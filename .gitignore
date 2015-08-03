@@ -1,0 +1,20 @@
+
+# - Ignore latex compilated files
+Documentation/*.log
+Documentation/*.aux
+Documentation/*.toc
+
+/wert_*/
+
+# - Ignore some folders
+/raw/
+/test/
+
+# - Ignore python compiled files
+PyModules/*.pyc
+*.pyc
+
+# - Ignore link to activate (virtual environment python)
+activate
+# - But ignore virtualenv
+/venv/

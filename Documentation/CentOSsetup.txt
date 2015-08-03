@@ -1,0 +1,542 @@
+
+
+=====================================================================
+A few notes for the setup
+of the prognose2 machine!
+=====================================================================
+I (Reto Stauffer) started setting up the machine on
+the 25th of September 2014. It is possible that
+a few packages or commands are out of date now!
+This is just a note-sheet for myselfe and to get an
+idea how to do it again (if necessary).
+=====================================================================
+
+
+=====================================================================
+PASSWORDS: WARNING THEY ARE CLEAR-TEXT IN THIS FILE!
+- Server Admin:        8GalzK
+- Server retos:        NO PASS, ONLY SSH (password set to weha****)
+=====================================================================
+
+
+=====================================================================
+ADDING USERS AND SUDO PERMISSIONS
+=====================================================================
+
+# - In file /etc/sudoers
+Added the line
+%admin          ALL=(ALL:ALL)       ALL
+To give all users in the admin group sudo permissions.
+
+# - Create new user called retos. In this case with
+#   password (not only ssh access).
+useradd retos
+passwd retos
+gpasswd -a retos wheel
+
+# - Create admin group and add retos
+groupadd admin
+usermod -a -G admin retos
+=====================================================================
+
+
+=====================================================================
+INSTALLING SOFTWARE
+=====================================================================
+
+# - Get sudo permissions
+sudo su
+
+# - Tip: to search packages in YUM
+yum list mysql-server
+
+# - Installing necessary software now
+yum install vim                     # oooohhh fein :)
+yum install mysql-server mysql      # mysql-server for joomla
+yum install mysql-devel             # necessary e.g. for RMySQL package for R
+yum install httpd                   # apache/http service
+yum install links                   # necessary for apachectl
+yum install php php-gd php-mysql    # php and extensions
+yum install unzip
+yum install git
+yum install pygtk2.x86_64 pygtk2-devel.x86_64
+
+# - Some python libraries
+yum install numpy scipy
+yum install MySQL-python
+yum install mytop # analyze mysql processes
+
+# - Install ssh deamon
+yum install openssh
+yum install openssh-clients 
+
+# - Imagemagick
+yum install ImageMagick.x86_64
+
+# - Configure apache (httpd) webserver
+# - Check if apache group exists
+cat /etc/group | grep 'apache'
+# - Add (at least myselfe) to the group 
+usermod -a -G apache retos 
+# - Check if you are member of the group
+groups retos 
+
+# - Start service
+service httpd start
+service httpd status                # running?
+# - Check apache status
+apachectl status                    # you can use: apachectl start/stop/restart
+# - Add service to autostart
+chkconfig --add httpd
+chkconfig --list # to check if entry is in
+# - Set autostart on
+chkconfig httpd on
+
+# - We need to open HTTP in the firewall
+vim /etc/sysconfig/iptables
+# - Add the following rules
+#   BEFORE the end statement
+# Allow everyone to access the webserver
+# Port 80: normal traffic, 443: secure http
+-A INPUT -m state --state NEW -p tcp --dport 80 -j ACCEPT
+-A INPUT -m state --state NEW -p tcp --dport 443 -j ACCEPT
+# Allow outgoing traffic for tcp protocoll
+
+# - Restart iptables service
+service iptables restart            # restart firewall with new rules
+
+=====================================================================
+MODIFY HTML DIRECTORY (FOR APACHE)
+=====================================================================
+
+# - Ownership and groupship to apache user
+sudo chmod -R apache:apache /var/www/html
+# - Sticky bit and write permissions for apache user
+sudo chmod g+ws /var/www/html
+
+
+=====================================================================
+PREPARE DATABASE FOR THE wetterturnier AND wordpress
+=====================================================================
+
+# - First we have to set a root password!
+sudo mysqladmin -u root password 8GalzK
+
+# - Then login
+sudo mysql -u root -p8GalzK
+# - To check current databases
+show databases;
+
+# - Create wpwt user (all permissions) 
+#   Create database wpwt
+CREATE USER 'wpwt'@'localhost' IDENTIFIED BY 'password';
+SET PASSWORD FOR 'wpwt'@'localhost' = PASSWORD('U3#fo12!');
+CREATE DATABASE wpwt;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES ON wpwt.* TO 'wpwt'@'localhost' IDENTIFIED BY 'U3#fo12!';
+FLUSH PRIVILEGES;
+
+    **********************************
+    * PASSWORD (wpwt):   U3#fo12!   *
+    **********************************
+
+# - Create readonly user (only select)
+CREATE USER 'rouser'@'localhost' IDENTIFIED BY 'password';
+SET PASSWORD FOR 'rouser'@'localhost' = PASSWORD('readonly');
+GRANT SELECT, CREATE TEMPORARY TABLES ON wpwt.* TO 'rouser'@'localhost' IDENTIFIED BY 'readonly';
+FLUSH PRIVILEGES;
+quit;
+
+    **********************************
+    * PASSWORD (rouser): readonly    *
+    **********************************
+
+# - Restart service
+service mysqld restart
+
+# - To test you can login and see if you have access
+mysql -u wpwt -p'U3#fo12!'
+show databases;
+use wpwt;
+show tables;
+quit;
+
+======================================================================
+DATABASE BACKUP STUFF
+======================================================================
+
+# - Installing xtrabackup to create incremental
+#   backups of the mysql database
+#   PLEASE go to percona.com and search for the correct
+#   url/version for your os system.
+yum install http://www.percona.com/redir/downloads/XtraBackup/LATEST/binary/redhat/6/x86_64/percona-xtrabackup-2.2.6-5042.el6.x86_64.rpm
+
+# - Create a new /backup directory and rewrite the group
+#   to mysql so that xtrabackup (running under the mysql
+#   user) can write into. 
+mkdir -p /backup/mysql/bin
+mkdir -p /backup/mysql/base
+chown mysql:mysql /backup/mysql
+
+# - Now we have to set the binary log config
+#   for the mysql deamon. If not, we cannot use
+#   xtrabackup to create incremental backups
+#   of the database.
+# 
+#   Open 'sudo vim /etc/my.cnf'
+#   In the [mysqld] section, add:
+#       log-bin=/backup/mysql/bin
+#       binlog-do-db="wpwt"
+#       expire_logs_days=3
+#       binlog-format=mixed
+#       innodb_log_file_size=5242880
+#   The mysqldeamon will now create binary logs
+#   and kills them after 3 days (expire date). This
+#   allows us to create incremental backups up to 3
+#   (better less, overlapping times) days.
+#   We would like to create an incremental backup
+#   every day so 3 days are more than enough.
+
+# - Now restart the mysql deamon
+/etc/init.d/mysqld restart
+
+# - Create initial backup with xtrabackup as mysql user
+sudo -u mysql -s
+xtrabackup --backup --target-dir=/backup/mysql/base/ --data-dir=/var/lib/mysql
+
+# - Create incremental backups ON the base
+#   for each day. Note that these are always
+#   incrementals of incrementals. First we have
+#   to create the incremental dirs.
+#   DUE TO THE SCHEDULER OF THE WETTERTURNIER
+#   I make the full backup on Wednesday and
+#   Increments for thu, fri, sat, sun, mon, tue,
+#   then a full backup again.
+mkdir /backup/mysql/inc/fri
+mkdir /backup/mysql/inc/mon
+mkdir /backup/mysql/inc/sat
+mkdir /backup/mysql/inc/sun
+mkdir /backup/mysql/inc/thu
+mkdir /backup/mysql/inc/tue
+chown -R mysql:mysql /backup/mysql/inc
+
+# - Now create the cronjob entries for the mysql
+#   user to make the backups.
+sudo crontab -e -u mysql
+xtrabackup --backup --target-dir=/backup/mysql/tue --incremental-basedir=/backup/mysql/base --datadir=/var/lib/mysql/
+
+# -------------------------------------------------------------------
+#   -------- content of the crontab for the mysql user ----------
+
+
+# -----------------------------------------------------------------------
+# Crontab file for mysql user on prognose2.met.fu-berlin.de
+# -----------------------------------------------------------------------
+# *     *     *     *     *  Befehl der ausgeführt werden soll
+# -     -     -     -     -
+# |     |     |     |     |
+# |     |     |     |     +----- Wochentag (0 - 7) (Sonntag ist 0 und 7; oder
+# Namen, siehe unten)
+# |     |     |     +------- Monat (1 - 12)
+# |     |     +--------- Tag (1 - 31)
+# |     +----------- Stunde (0 - 23)
+# +------------- Minute (0 - 59; oder Namen, siehe unten)
+# -----------------------------------------------------------------------
+
+
+# - Mysql make full backup with xtrabackup on wednesday.
+#   Also make mysqldump every wednesday night 0 UTC.
+0 0 * * 3 /usr/bin/mysqldump -u wpwt -p'U3#fo12!' > /backup/mysql/dump.sql
+
+# - Additional, update the xtrabackup base backup
+0 0 * * 3 /usr/bin/xtrabackup --backup --target-dir=/backup/mysql/base/ --data-dir=/var/lib/mysql
+
+# - Make the incremental backups Thursday to Tuesday based
+#   on the Wednesday full backup (see above)
+0 1 * * 4 /usr/bin/xtrabackup --backup --target-dir=/backup/mysql/thu --incremental-basedir=/backup/mysql/base --datadir=/var/lib/mysql/
+0 1 * * 5 /usr/bin/xtrabackup --backup --target-dir=/backup/mysql/fri --incremental-basedir=/backup/mysql/inc/tue --datadir=/var/lib/mysql/
+0 1 * * 6 /usr/bin/xtrabackup --backup --target-dir=/backup/mysql/sat --incremental-basedir=/backup/mysql/inc/fri --datadir=/var/lib/mysql/
+0 1 * * 7 /usr/bin/xtrabackup --backup --target-dir=/backup/mysql/sun --incremental-basedir=/backup/mysql/inc/sat --datadir=/var/lib/mysql/
+0 1 * * 1 /usr/bin/xtrabackup --backup --target-dir=/backup/mysql/mon --incremental-basedir=/backup/mysql/inc/sun --datadir=/var/lib/mysql/
+0 1 * * 2 /usr/bin/xtrabackup --backup --target-dir=/backup/mysql/tue --incremental-basedir=/backup/mysql/inc/mon --datadir=/var/lib/mysql/
+
+
+
+
+# -------------------------------------------------------------------
+
+=====================================================================
+INSTALLING BLANK WORDPRESS AND STUFF. IN MY CASE I JUST 
+MIGRATED THE INSTALLATION ON MY DEVELOPMENT SERVER TO THIS MACHINE.
+=====================================================================
+
+# - Migrate data
+# - Migrate database into wpwt database
+
+# - Create /var/www/files directory for my backend
+sudo mkdir /var/www/files
+sudo chown apache:apache -R /var/www/files
+sudo chmod g+ws /var/www/files
+
+# - enable mod_rewrite for httpd
+sudo vim /etc/httpd/conf/httpd.conf
+# - Change
+#   AllowOverwrite None  ... to ... AllowOverwrite All for
+#   "/var/www/html" and for "/" (<Directory />)
+#   Then restart httpd
+sudo /etc/init.d/httpd restart
+
+
+
+=====================================================================
+
+=====================================================================
+SENDMAIL
+DOES NOT WORK AT ALL -- NEED BERLIN SMTP ACCESS THEREFORE I GUESS
+=====================================================================
+
+# - Installing mailx
+yum install sendmail sendmail-cf dovecot m4
+/sbin/services sendmail start
+
+# - Configuration now 
+#   Open /etc/mail/sendmail.mc
+#   2.1 Comment out below line in /etc/mail/sendmail.mc to allow receiving email
+#   from anywhere. To comment a line in sendmail.mc, just put dnl at start of
+#   line.
+#       dnl DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl
+#   2.2 Add this line also in sendmail.mc above ‘MAILER’ option
+#        FEATURE(`relay_hosts_only')dnl
+#   2.3 Add your PC’s full hostname in this file.
+#        hostname >> /etc/mail/relay-domains
+#   Re-Create the sendmail.cf file. E.g. with make (or m4)
+#        cd /etc/mail 
+#        make all -C /etc/mail
+#   (alternatively)
+#        m4 /etc/mail/sendmail.mc > /etc/mail/sendmail.cf
+#   Restart sendmail service
+#        service sendmail restart
+
+/sbin/services sendmail restart
+
+
+
+=====================================================================
+CREATE USER FOR INCOMING DATA STUFF
+=====================================================================
+
+# - Create users group
+
+# - Add user, add user to the users group and change primary group.
+useradd -G users knuepffer
+chmod -R o-rwx /home/knuepffer     # closes for all 'others' users 
+chmod -R g+rwx /home/knuepffer     # full access for group
+
+# - Add the user where all the jobs are running to the
+#   groups of the users so that the jobs do have access
+#   to the data there!
+usermod -a -G knuepffer retos
+
+
+# - Created a new user for incoming data from the imgi
+useradd imgi
+# - Setting correct permissions
+chmod g+rx /home/retos/imgi
+# - Add imgi group to "apache" so that the apache
+#   can read the data from there e.g., images
+#   Same for retos (development and stuff)
+usermod -a -G imgi apache
+usermod -a -G imgi retos
+
+
+
+=====================================================================
+INSTALLING FTP SREVER
+=====================================================================
+
+yum install vsftpd
+service vsftpd start
+
+# - multiuser support
+chkconfig vsftpd on
+
+# - Config
+vim /etc/vsftpd/vsftpd.conf 
+# Set: anonymous_enable=NO
+# Set: ftpd_banner=Welcome to wetterturnier FTP service.
+
+sudo service vsftpd restart
+
+# - Allow FTP in firewall rules
+#   Open /etc/sysconfig/iptables
+#   And add the following two lines below the entries for
+#   port 22 (which is the ssh connection rule)
+#   -A INPUT  -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
+#   -A INPUT  -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
+#
+#   Restart the iptables servie calling:
+#   service iptables restart
+#   You should now be able to connect to the ftp.
+
+
+
+
+## unused ## =====================================================================
+## unused ## INSTALLING PYTHON3.3 ON CENTOS
+## unused ## =====================================================================
+## unused ## 
+## unused ## cd /var/tmp
+## unused ## 
+## unused ## wget http://www.python.org/ftp/python/3.3.2/Python-3.3.2.tar.bz2 -O
+## unused ## /var/tmp/Python-3.3.2.tar.bz2
+## unused ## # - Unzip the archive:
+## unused ## bzip2 -cd /var/tmp/Python-3.3.2.tar.bz2 | tar xvf -
+## unused ## # -Install Python 3.3
+## unused ## # - Next, go to the extracted Python directory:
+## unused ## cd /var/tmp/Python-3.3.2
+## unused ## # - Then setup compilation:
+## unused ## ./configure
+## unused ## 
+## unused ## # - Installing pip3.3
+## unused ## curl -O https://raw.githubusercontent.com/pypa/pip/master/contrib/get-pip.py
+## unused ## sudo python3.2 get-pip.py
+## unused ## 
+## unused ## # - Setting links
+## unused ## cd /usr/bin
+## unused ## # - If existing remove python3 and pip3
+## unused ## ln -s /usr/local/bin/python3.3 python3
+## unused ## ln -s /usr/local/bin/pip3.3 pip3
+## unused ## 
+## unused ## pip3 install numpy
+## unused ## pip3 install ipython
+## unused ## cd /usr/bin
+## unused ## ln -s /usr/local/bin/ipython3 ipython3
+
+
+
+=====================================================================
+DECODING BUFR - INSTALL NECESSARY SOFTWARE
+=====================================================================
+
+
+yum install emos.x86_64 ## if not installed
+
+
+# - WARNING this is because I have to downlaod the data
+#   from a pop account at the moment (ftp not online at the moment).
+#   However, in the future the GISC network should deliver the data
+#   via ftp.
+
+yum install getmail
+mkdir -p /home/imgi/.getmail
+mkdir -p /home/imgi/gisc-mail/new
+mkdir -p /home/imgi/gisc-mail/cur
+mkdir -p /home/imgi/gisc-mail/tmp
+
+# add the following content to /home/imgi/.getmail/getmailrc:
+#    [retriever]
+#    type = MultidropPOP3SSLRetriever
+#    server = pop3.sculptor.uberspace.de 
+#    username = gisc@wetterleuchte.ch
+#    password = suchti
+#    # Our domain mailbox mailhost records the envelope recipient address in a
+#    # new Delivered-To: header field at the top of the message.
+#    envelope_recipient = delivered-to:1
+#    
+#    [destination]
+#    type = Maildir
+#    path = ~/gisc-mail/
+#    
+#    [options]
+#    verbose = 1
+#    delete = true
+
+
+#### NO #### # - Installing python bufr
+#### NO #### #   Try to follow:
+#### NO #### #   https://code.google.com/p/python-bufr/wiki/InstallationUbuntu
+#### NO #### 
+#### NO #### #   Installing bufrdc from ECMWF homepage:
+#### NO #### #   Download, extract, change the config (adding -fPIC to CFLAGS and FFLAGS
+#### NO #### #   as written in the installation documentation you can find here:
+#### NO #### #   http://python-bufr.googlecode.com/svn/trunk/doc/build/html/install.html#dependencies
+#### NO #### #   Afterwards run ./build_library
+#### NO #### #   Then 'make' and 'install'. Should work even if the thing
+#### NO #### #   tells you that it cannot execute check_tables.sh.
+#### NO #### #   Installs bufrtables (default) in /usr/local/lib/bufrtables
+#### NO #### #
+#### NO #### #   After that installing python-bufr. You need to know where
+#### NO #### #   your libbufr.a file is located. 
+#### NO #### #   To find: find / -name 'libbufr*/'
+#### NO #### #   If you cannot find, check if pybufr-ecmwf is installed. If not,
+#### NO #### #   install first (try pip2 install pybufr-ecmwf).
+#### NO #### #
+#### NO #### #   Download python-bufr, e.g.
+#### NO #### #   https://python-bufr.googlecode.com/files/python-bufr-0.2-5.tar.gz
+#### NO #### #   WARNING: the onilne version has a bug which is not fixed yet
+#### NO #### #   propperly. There is a description what to do here:
+#### NO #### #   - python-bufr-0.2-5_BUGFIX.tar.gz
+#### NO #### #   However, The Documentation directory should contain a file
+#### NO #### #   - python-bufr-0.2-5_BUGFIX.tar.gz
+#### NO #### #   including the BUGFIX allready. Take this for the build/install.
+#### NO #### #   Unpack and then:
+#### NO #### #   export LDFLAGS=-L/usr/lib64/python2.6/site-packages/pybufr_ecmwf/
+#### NO #### #   python setup.py build
+#### NO #### #   python setup.py install
+
+# - After testing hundreds of things using a perl script now
+#   to extract the BUFR data.
+#   Geo::BUFR from the Norwegian weather service.
+#
+#   Download: http://search.cpan.org/dist/Geo-BUFR/
+#   Read the readme how to install. Will fail compiling if
+#   dependencies missing. Please install:
+yum install libgtextutils.x86_64
+yum install libgtextutils-devel.x86_64
+yum install perl-ExtUtils-AutoInstall
+yum install perl-File-Slurp
+#   Then compile the perl script.
+#   - perl Makefile.PL
+#   - make
+#   - make install
+
+
+
+=====================================================================
+PREPARE DATABASE FOR THE observations (made a separate database) 
+=====================================================================
+
+# - Then login
+sudo mysql -u root -p8GalzK
+# - To check current databases
+show databases;
+
+# - Create wpwt user (all permissions) 
+#   Create database obs
+CREATE USER 'obs'@'localhost' IDENTIFIED BY 'password';
+SET PASSWORD FOR 'obs'@'localhost' = PASSWORD('&0bsDa#a');
+CREATE DATABASE obs;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES ON obs.* TO 'obs'@'localhost' IDENTIFIED BY '&0bsDa#a';
+FLUSH PRIVILEGES;
+
+    **********************************
+    * PASSWORD (obs):    &0bsDa#a   *
+    **********************************
+
+# - Give the rouser (check if existing) the permissions
+#   to read obs database. 
+GRANT SELECT, CREATE TEMPORARY TABLES ON obs.* TO 'rouser'@'localhost' IDENTIFIED BY 'readonly';
+FLUSH PRIVILEGES;
+quit;
+
+
+
+
+
+
+
+
+
+
+
+
+
