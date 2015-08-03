@@ -2,13 +2,14 @@
 # - NAME:        ComputePoints.py
 # - AUTHOR:      Reto Stauffer
 # - DATE:        2014-09-21
+# - LICENSE: GPL-3, Reto Stauffer, copyright 2014
 # -------------------------------------------------------------------
 # - DESCRIPTION: Compute points for all players. 
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-02-12 08:28 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-03 17:49 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -18,10 +19,11 @@ sys.path.append('PyModules')
 # - Start as main script (not as module)
 if __name__ == '__main__':
 
-   import inputcheck
-   import utils
-   import database
    import numpy as np
+   # - Wetterturnier specific modules
+   from pywetterturnier import inputcheck
+   from pywetterturnier import utils
+   from pywetterturnier import database
    
    # - Evaluating input arguments
    inputs = inputcheck.inputcheck('ComputePoints')
@@ -67,57 +69,64 @@ if __name__ == '__main__':
    # ----------------------------------------------------------------
    for city in cities:
 
-      # ----------------------------------------------------------------
+      # -------------------------------------------------------------
       # - If aldates, take all tdates from database
-      # ----------------------------------------------------------------
+      # -------------------------------------------------------------
       if config['input_alldates']:
          tdates = db.all_tournament_dates( city['ID'] )
 
-      # ----------------------------------------------------------------
+      # -------------------------------------------------------------
       # - Looping trough dates
-      # ----------------------------------------------------------------
+      # -------------------------------------------------------------
       for tdate in tdates:
 
          print '  * Current tournament is %s' % utils.tdate2string( tdate )
 
-         # ----------------------------------------------------------------
+         # ----------------------------------------------------------
          # - Avoid to change old points!
-         # ----------------------------------------------------------------
+         # ----------------------------------------------------------
          if not config['input_force'] and tdate <= 16423:
             print "\n       SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP"
             print "       |  do NOT change points before 2015   |"
             print "       SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP\n"
             continue
 
-         # ----------------------------------------------------------------
+         # ----------------------------------------------------------
          # - Which judgingclass do we have to take?
          #   It is possible that the scoring system changed.
-         # ----------------------------------------------------------------
+         # ----------------------------------------------------------
          #   Take the latest judgingclass changed in 2002-12-06
-         if tdate >= 12027:
-            from judgingclass20021206 import judging
-         elif config['input_force']:
-            print '[!] Force allows to skip this.'
-            continue
-         else:
+         if tdate < 12027:
             if config['input_ignore']:
                print '[!] Judginglcass not defined - but started in ignore mode. Skip.'
                continue
             else:
                utils.exit('I dont know which judgingclass I should use for this date. Stop.')
-         jug = judging()
 
-         # -------------------------------------------------------------
+         # ----------------------------------------------------------
+         # - Dynamically loading judgingclass
+         # ----------------------------------------------------------
+         modname = "pywetterturnier.judgingclass%s" % config['judging_test']
+         try:
+            from importlib import import_module
+            judging = import_module(modname)
+         except Exception as e:
+            print e
+            sys.exit("[!] Problems loading the judgingclass %s" % modname)
+
+         jug = judging.judging()
+
+         # ----------------------------------------------------------
          # - Looping over the forecast days
-         # -------------------------------------------------------------
+         # ----------------------------------------------------------
          for day in range(1,3):
    
             print '\n  * Compute points for city %s (ID: %d)' % (city['name'], city['ID'])
             print '    Bets for: %s' % utils.tdate2string( tdate + day )
    
-            # ----------------------------------------------------------
+            # -------------------------------------------------------
             # - Compute points
-            # ----------------------------------------------------------
+            # -------------------------------------------------------
             for param in params:
 
                if not config['input_param'] == None:
@@ -149,7 +158,7 @@ if __name__ == '__main__':
                   special = None # unused
    
                # - Now compute points
-               points = jug.get_points(obs,param,values,special)
+               points = jug.get_points(obs,param,values,special,tdate)
    
                jug.points_to_database( db, IDs, points )
 
