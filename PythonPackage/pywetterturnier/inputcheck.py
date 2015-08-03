@@ -11,7 +11,7 @@
 # - EDITORIAL:   2014-09-28, RS: Created file on thinkreto.
 #                2015-01-05, RS: Doing getopt evaluation in here.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-07-23 13:41 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-03 17:36 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 # -------------------------------------------------------------------
@@ -24,7 +24,6 @@ def inputcheck(what):
    # - Evaluating input arguments from the __main__ script.
    try:
       opts, args = getopt.getopt(sys.argv[1:], "c:u:t:p:ahi", ["city=", "user=", "tdate=","param=","alldates","help","ignore"])
-      print opts, args
    except getopt.GetoptError as err:
       print str(err) # will print something like "option -a not recognized"
       usage(what)

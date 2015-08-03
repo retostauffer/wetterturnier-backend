@@ -12,13 +12,30 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 12:34 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-03 17:48 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
 import numpy as np
 
 class judging(object):
+
+   # ----------------------------------------------------------------
+   # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   # Additional safety thing. If set (not NONE)
+   # These settings will be checked when method get_points is called
+   # with tdate input. In this case: 
+   #  - if tdate is smaller than tdate_min    --> ERROR
+   #  - if tdate bigger or equal to tdate_max --> ERROR
+   # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   # If you create a new judging class please modify not only 
+   # tdate_min of the new class, be sure that you also set the
+   # tdate_max in the old judgingclass to avoid that older tournament
+   # dates can be based on the wrong judgingclass.
+   # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   # ----------------------------------------------------------------
+   tdate_min = 12027
+   tdate_max = None
 
    def __init__(self,quiet=False):
 
@@ -61,10 +78,25 @@ class judging(object):
    # - Handling all different point computation methods.
    #   Stops if there is an undefined class.
    # ----------------------------------------------------------------
-   def get_points(self,obs,what,data,special=None):
+   def get_points(self,obs,what,data,special=None,tdate=None):
 
       import utils
       import numpy as np
+
+      # - If tdate is set: check if this special date is
+      #   allowed in this judgingclass or not. Please note
+      #   that this is not used in the TestPoints.py case.
+      if not tdate == None:
+         if not self.tdate_min == None:
+            if self.tdate_min > tdate:
+               import sys
+               sys.exit("WARNING: judgingclass %s not allowed for tournament date %d" % \
+                        (__name__,tdate))
+         if not self.tdate_max == None:
+            if self.tdate_max <= tdate:
+               import sys
+               sys.exit("WARNING: judgingclass %s not allowed for tournament date %d" % \
+                        (__name__,tdate))
 
       # - What to plot?
       method_to_use = '__points_%s__' % what
