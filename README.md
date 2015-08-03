@@ -13,13 +13,13 @@ to be sure to conserve the versions which were running/tested
 and to avoid auto-updates by the server OS.
 
 Was built like this:
-> virtualenv --no-site-packages venv
+> 'virtualenv --no-site-packages venv'
 
 Note: this includes that you activate the correct
 virtual environment, even for cronjobs. Therefore
 a cronjob using one of the scripts in here has to look similar
 to this one:
-'*/10 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Observations.py &> /home/retos/cronlog/Observations.log'
+> */10 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Observations.py &> /home/retos/cronlog/Observations.log
  
 ###Installing necessary packages
 
