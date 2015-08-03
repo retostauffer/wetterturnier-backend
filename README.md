@@ -19,7 +19,7 @@ Note: this includes that you activate the correct
 virtual environment, even for cronjobs. Therefore
 a cronjob using one of the scripts in here has to look similar
 to this one:
-> '*/10 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Observations.py &> /home/retos/cronlog/Observations.log'
+'*/10 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Observations.py &> /home/retos/cronlog/Observations.log'
  
 ###Installing necessary packages
 
