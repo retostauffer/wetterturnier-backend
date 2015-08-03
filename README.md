@@ -19,7 +19,7 @@ Note: this includes that you activate the correct
 virtual environment, even for cronjobs. Therefore
 a cronjob using one of the scripts in here has to look similar
 to this one:
-> */10 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Observations.py &> /home/retos/cronlog/Observations.log
+> '*/10 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Observations.py &> /home/retos/cronlog/Observations.log'
  
 ###Installing necessary packages
 
@@ -27,14 +27,14 @@ If your virtualenv is activated (_source venv/bin/activate_)
 you can try to install the *pywetterturnier* package. This
 is locted within this repository in PythonPackage.
 
-> python setup.py install
+> 'python setup.py install'
 
 This should automatically install all necessary dependencies
 for the *pywetterturnier* package. However, I had some troubles
 as a package called *astral* could not be installed. In this case
 you can easily install it manually:
 
-> pip install astral
+> 'pip install astral'
 
 ## Some of the major script files and what they do
 
