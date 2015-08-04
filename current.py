@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-16, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 14:50 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:33 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
       opts, args = getopt.getopt(sys.argv[1:],'-o',['--obs'])
    except getopt.GetoptError as err:
       print(err)
-      sys.exit('Wrong input options set')
+      utils.exit('Wrong input options set')
    obsonly = False
    for o, a in opts:
       if o in ['-o','--obs']:

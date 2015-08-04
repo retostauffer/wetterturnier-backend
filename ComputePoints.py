@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 17:49 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:33 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -21,12 +21,11 @@ if __name__ == '__main__':
 
    import numpy as np
    # - Wetterturnier specific modules
-   from pywetterturnier import inputcheck
    from pywetterturnier import utils
    from pywetterturnier import database
    
    # - Evaluating input arguments
-   inputs = inputcheck.inputcheck('ComputePoints')
+   inputs = utils.inputcheck('ComputePoints')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
 
@@ -112,7 +111,7 @@ if __name__ == '__main__':
             judging = import_module(modname)
          except Exception as e:
             print e
-            sys.exit("[!] Problems loading the judgingclass %s" % modname)
+            utils.exit("Problems loading the judgingclass %s" % modname)
 
          jug = judging.judging()
 

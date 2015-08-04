@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-29, RS: Adapted from ComputeMoses.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 14:33 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:15 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -25,10 +25,9 @@ if __name__ == '__main__':
    # - Wetterturnier specific methods
    from pywetterturnier import utils
    from pywetterturnier import database
-   from pywetterturnier import inputcheck
    
    # - Evaluating input arguments
-   inputs = inputcheck.inputcheck('ComputePetrus')
+   inputs = utils.inputcheck('ComputePetrus')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
    

@@ -182,7 +182,7 @@ class importbets:
     # ---------------------------------------------------------------
     def identify_city(self):
 
-        import utils
+        from pywetterturnier import utils
 
         print "* Try to identify city based on the first few lines of the file"
 
@@ -219,7 +219,7 @@ class importbets:
         try:
             ID = int(ID)
         except:
-            sys.exit('Problem converting the city ID into an integer value!')
+            utils.exit('Problem converting the city ID into an integer value!')
 
         print '  - Identified city as [%s] with ID [%d]' % (city_hash, ID)
 
@@ -233,6 +233,7 @@ class importbets:
 
         import re
         import datetime as dt
+        from pywetterturnier import utils
 
         data = self.bettimes
         if data == None:
@@ -245,7 +246,7 @@ class importbets:
 
         # - Check if cityID is set
         if self.cityID == None:
-            sys.exit('STOP. cityID equals None. Stop now')
+            utils.exit('STOP. cityID equals None. Stop now')
 
         # - Caching usernames to extract the points afterwards. hopefully.
         unames = [] 
@@ -524,12 +525,13 @@ class importbets:
     def extract_obs(self,block):
 
         import re
+        from pywetterturnier import utils
         if block == 1:
             data = self.obs1
         elif block == 2:
             data = self.obs2
         else:
-            sys.exit('wrong input to extract_obs. 1 or 2 allowed')
+            utils.exit('wrong input to extract_obs. 1 or 2 allowed')
 
         # betdate is
         tdate = self.tournamentdate
@@ -538,7 +540,7 @@ class importbets:
 
         # - Check if cityID is set
         if self.cityID == None:
-            sys.exit('STOP. cityID equals None. Stop now')
+            utils.exit('cityID equals None. Stop now')
 
         # - Loading parameters
         param = data[1].replace('WvWn','Wv Wn').split()[1:]
@@ -562,13 +564,13 @@ class importbets:
             station_name = utils.nicename( rawname )
             wmo = self.__get_wmo_number__(station_name)
             if not wmo:
-                sys.exit('Cannot find wmo number for station ' + station_name + ' in config file')
+                utils.exit('Cannot find wmo number for station ' + station_name + ' in config file')
             print '  - Found station ' + str(wmo) + ' ' + station_name
 
             # - Check if we do have enough values 
             if not file:
                 if not len(param) == len(line[26:].split()):
-                    sys.exit('parameter length and data length not matching in obs line')
+                    utils.exit('parameter length and data length not matching in obs line')
                 obs = line[26:].split()
             else:
                 # parse that shit by hand
@@ -580,7 +582,7 @@ class importbets:
                 if len( line[len(rawname):] ) == 0: continue
                 data = line[len(rawname):].split()
                 if not len(param) == len(data):
-                    #sys.exit('noch nicht alle obs da, stop')
+                    #utils.exit('noch nicht alle obs da, stop')
                     print 'noch nicht alle obs da, skip'
                     continue
                 for i in range(len(param)):
@@ -590,7 +592,7 @@ class importbets:
             for i in range(0,len(param)):
                 paramID = self.wp_get_param_id(param[i])
                 if paramID == None:
-                    sys.exit('found param which does not exist in db')
+                    utils.exit('found param which does not exist in db')
                 if len(obs[i].strip()) == 0:
                     continue
                 #####print wmo,paramID,betdate,obs[i]
@@ -609,6 +611,8 @@ class importbets:
     # ---------------------------------------------------------------
     def __insert_obs_to_db__(self,station,paramID,bdate,value):
 
+        from pywetterturnier import utils
+
         # - Skip if it was not observed.
         if value.strip() == 'n':
             return True
@@ -617,7 +621,7 @@ class importbets:
         try:
             value = int(round( float(value) * 10. ))
         except:
-            sys.exit('could not convert value to float')
+            utils.exit('could not convert value to float')
 
         sql = 'INSERT INTO ' + self.db_obs + ' (station, paramID, betdate, value) VALUES ' + \
               '({0:d},{1:d},{2:d},{3:d}) ON DUPLICATE KEY UPDATE value = {3:d}' \
@@ -649,13 +653,14 @@ class importbets:
     # ---------------------------------------------------------------
     def extract_bets(self,block):
 
+        from pywetterturnier import utils
         import re
         if block == 1:
             data = self.data1
         elif block == 2:
             data = self.data2
         else:
-            sys.exit('wrong input to extract_bets. 1 or 2 allowed')
+            utils.exit('wrong input to extract_bets. 1 or 2 allowed')
 
         # betdate is
         tdate = self.tournamentdate
@@ -664,7 +669,7 @@ class importbets:
 
         # - Check if cityID is set
         if self.cityID == None:
-            sys.exit('STOP. cityID equals None. Stop now')
+            utils.exit('STOP. cityID equals None. Stop now')
 
         # - Loading parameters
         param = data[1].replace('WvWn','Wv Wn').split()[1:]
@@ -705,7 +710,7 @@ class importbets:
             self.unames.append(username)
 
             if not len(param) == len(line[len(orig):].split()):
-                sys.exit('parameter length and data length not matching')
+                utils.exit('parameter length and data length not matching')
 
             print '  - %-25s %d' % (username, userID)
 
@@ -714,7 +719,7 @@ class importbets:
             for i in range(0,len(param)):
                 paramID = self.wp_get_param_id(param[i])
                 if paramID == None:
-                    sys.exit('found param which does not exist in db')
+                    utils.exit('found param which does not exist in db')
                 #print userID,paramID,tdate,betdate,data[i]
                 self.__insert_bet_to_db__(userID,paramID,tdate,betdate,data[i])
                 self.__insert_betstat_to_db__(userID,tdate)
@@ -726,10 +731,12 @@ class importbets:
     # ---------------------------------------------------------------
     def __insert_bet_to_db__(self,userID,paramID,tdate,bdate,value):
 
+        from pywetterturnier import utils
+
         try:
             value = int(round( float(value) * 10. ))
         except:
-            sys.exit('could not convert value to float')
+            utils.exit('could not convert value to float')
 
         sql = 'INSERT INTO ' + self.db_bets + ' (userID, cityID, paramID, ' + \
               'tournamentdate, betdate, value) VALUES ' + \

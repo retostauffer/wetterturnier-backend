@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 17:48 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:37 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
@@ -90,12 +90,12 @@ class judging(object):
          if not self.tdate_min == None:
             if self.tdate_min > tdate:
                import sys
-               sys.exit("WARNING: judgingclass %s not allowed for tournament date %d" % \
+               utils.exit("judgingclass %s not allowed for tournament date %d" % \
                         (__name__,tdate))
          if not self.tdate_max == None:
             if self.tdate_max <= tdate:
                import sys
-               sys.exit("WARNING: judgingclass %s not allowed for tournament date %d" % \
+               utils.exit("judgingclass %s not allowed for tournament date %d" % \
                         (__name__,tdate))
 
       # - What to plot?

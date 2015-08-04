@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 14:38 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:16 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -23,10 +23,9 @@ if __name__ == '__main__':
    from pywetterturnier import utils
    from pywetterturnier import database
    from pywetterturnier import mitteltip 
-   from pywetterturnier import inputcheck
 
    # - Evaluating input arguments
-   inputs = inputcheck.inputcheck('ComputePetrus')
+   inputs = utils.inputcheck('ComputePetrus')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
 

@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 14:41 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:33 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -23,10 +23,9 @@ if __name__ == '__main__':
    # - wetterturnier specific packages
    from pywetterturnier import utils
    from pywetterturnier import database
-   from pywetterturnier import inputcheck
    
    # - Evaluating input arguments
-   inputs = inputcheck.inputcheck('ComputeMoses')
+   inputs = utils.inputcheck('ComputeMoses')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
    
@@ -52,7 +51,7 @@ if __name__ == '__main__':
 
    # - If moses directory does not exist:
    if not os.path.isdir( config['data_moses'] ):
-      sys.exit("ERROR: Cannot find directory \"%s\" which should contain " + \
+      utils.exit("Cannot find directory \"%s\" which should contain " + \
                "the necessary coefficient-files for Moses! Stop!")
 
    # - Reading parameter list
@@ -189,7 +188,7 @@ if __name__ == '__main__':
    
                   if not userID:
                      print '    - Problems getting userID for user %s (%s)' % (nicename,username)
-                     sys.exit('Reto, should not happen. What doing now?')
+                     utils.exit('Reto, should not happen. What doing now?')
       
                   print '    - Moses coeff: %10.5f for userID %4d %s (%s)' % (coef,userID,nicename,username)
    
