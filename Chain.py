@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePoints.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 14:32 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:15 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -30,7 +30,6 @@ if __name__ == '__main__':
    """
 
    import sys, os
-   from pywetterturnier import inputcheck
    from pywetterturnier import utils
    from pywetterturnier import database
    import numpy as np
@@ -39,7 +38,7 @@ if __name__ == '__main__':
    #   to call the subscripts. Only for the Chain.py script.
    main_args = sys.argv[1:]
    # - Evaluating input arguments
-   inputs = inputcheck.inputcheck('Chain')
+   inputs = utils.inputcheck('Chain')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
 

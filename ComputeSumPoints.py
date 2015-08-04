@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 14:51 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:16 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -114,12 +114,11 @@ if __name__ == '__main__':
 
    import numpy as np
    # - Wetterturnier specific modules
-   from pywetterturnier import inputcheck
    from pywetterturnier import utils
    from pywetterturnier import database
    
    # - Evaluating input arguments
-   inputs = inputcheck.inputcheck('ComputeSumPoints')
+   inputs = utils.inputcheck('ComputeSumPoints')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
 

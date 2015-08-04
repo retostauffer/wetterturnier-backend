@@ -18,7 +18,7 @@
 #                Adapted from ComputePetrus.py
 #                2015-08-03, RS: Much nicer usage, nicer output.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 17:43 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:32 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -82,9 +82,9 @@ if __name__ == '__main__':
 
    inputs, args = parser.parse_args()
    # - Missing input -o
-   if not inputs.param:  print parser.usage;    sys.exit( "Missing required input -p/--param.")
-   if not inputs.obs:    print parser.usage;    sys.exit( "Missing required input -o/--obs.")
-   if not inputs.values: print parser.usage;    sys.exit( "Missing required input -v/--values.")
+   if not inputs.param:  print parser.usage;    utils.exit( "Missing required input -p/--param.")
+   if not inputs.obs:    print parser.usage;    utils.exit( "Missing required input -o/--obs.")
+   if not inputs.values: print parser.usage;    utils.exit( "Missing required input -v/--values.")
    # ----------------------------------------------------------------
 
 
@@ -102,7 +102,7 @@ if __name__ == '__main__':
    db = database.database(config)
    paramID = db.get_parameter_id( inputs.param )
    db.close(False)
-   if not paramID: sys.exit("[!] Parameter %s unknown! Stop." % inputs.param)
+   if not paramID: utils.exit("[!] Parameter %s unknown! Stop." % inputs.param)
    
 
    # ----------------------------------------------------------------
@@ -126,7 +126,7 @@ if __name__ == '__main__':
          try:
             res.append( float(elem) )
          except:
-            sys.exit("Problems: %s have to be numeric!" % msg)
+            utils.exit("Problems: %s have to be numeric!" % msg)
       return np.asarray(res)
 
 
@@ -149,7 +149,7 @@ if __name__ == '__main__':
       judging = import_module(modname)
    except Exception as e:
       print e
-      sys.exit("[!] Problems loading the judgingclass %s" % modname)
+      utils.exit("Problems loading the judgingclass %s" % modname)
 
    # - Initialize judging
    jug = judging.judging(inputs.quiet)

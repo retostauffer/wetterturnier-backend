@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 17:36 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:16 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -22,7 +22,6 @@ if __name__ == '__main__':
    import numpy as np
    import sys, os
    # - Wetterturnier specific modules
-   from pywetterturnier import inputcheck
    from pywetterturnier import utils
    from pywetterturnier import database
    from pywetterturnier import getobs
@@ -30,7 +29,7 @@ if __name__ == '__main__':
    os.environ['TZ'] = 'UTC' # Important!
    
    # - Evaluating input arguments
-   inputs = inputcheck.inputcheck('Observations')
+   inputs = utils.inputcheck('Observations')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
 

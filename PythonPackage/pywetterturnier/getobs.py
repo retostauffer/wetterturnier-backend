@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 07:47 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 09:35 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -20,22 +20,42 @@ class getobs( object ):
 
 
    def __init__(self, config, db, city, date):
+      """!Initialization of the @ref getobs.getobs class.
+      
+      @param config. List, contains all necessary configs for the
+      pywetterturnier package. Please have a look into 
+      @ref utils.readconfig for more details. 
+      @return Returns nothing. Just contains several methods.
+      """
 
-      self.config = config
+      # -------------------------------------------------------------
+      # Public attributes
+      # -------------------------------------------------------------
+      ## @ref database.database object handling the db I/O.
       self.db     = db
-      self.table  = config['mysql_obstable'] 
-      ## City ID for which we are loading the observations.
-      self.city   = city
-      ## Date of the observations.
-      self.date   = date
-      self.data   = None
-      ## Columns available in in self.table
-      self.columns = self.get_columns( self.table )
+      ## Will contain data. Intitialized as None, will be a
+      #  2-level deep dict at the end of the form: 
+      #  data[wmo station number][parameter] = observation value.
+      self.data     = None
       ## List of stationclass objects
       self.stations = self.db.get_stations_for_city( city['ID'] )
+
+      # -------------------------------------------------------------
+      # - Private attributes
+      # -------------------------------------------------------------
+      ## Copy of the input config list
+      self._config_  = config
+      ## Database table name.
+      self._table_   = config['mysql_obstable'] 
+      ## City ID for which we are loading the observations.
+      self._city_    = city
+      ## Date of the observations.
+      self._date_    = date
+      ## Columns available in in self._table_
+      self._columns_ = self.get_columns( self._table_ )
       if len(self.stations) == 0: return False
       ## Dict with astronomic day length per station.
-      self.maxSd = self.get_maximum_Sd(self.stations,self.date)
+      self._maxSd_    = self.get_maximum_Sd(self.stations,self._date_)
 
 
    # ----------------------------------------------------------------
@@ -58,7 +78,7 @@ class getobs( object ):
       import astral
       from datetime import datetime as dt
 
-      # - self.maxSd used to store the info based on the wmo number
+      # - self._maxSd_ used to store the info based on the wmo number
       maxSd = {}
       cur = self.db.cursor()
       sql = "SELECT name, lon, lat, hoehe FROM obs.stations WHERE statnr = %s"
@@ -134,19 +154,21 @@ class getobs( object ):
       database was empty (NULL).
       """
 
-      parameter = parameter.lower()
-      if not parameter in self.columns:
-         sys.exit("Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
-                  (parameter, self.table))
+      from pywetterturnier import utils
 
-      tmp    = self.date + dt.timedelta( 0, hour*3600 )
+      parameter = parameter.lower()
+      if not parameter in self._columns_:
+         utils.exit("Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
+                  (parameter, self._table_))
+
+      tmp    = self._date_ + dt.timedelta( 0, hour*3600 )
       datum  = int( tmp.strftime('%Y%m%d') )
       stdmin = int( tmp.strftime('%H%M')   )
       #print "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter)
 
       # - Load from db
       sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
-            (parameter, self.table, wmo, datum, stdmin)
+            (parameter, self._table_, wmo, datum, stdmin)
 
       cur = self.db.cursor()
       cur.execute( sql )
@@ -156,7 +178,7 @@ class getobs( object ):
       if len(data) == 0:
          return None
       elif len(data) > 1:
-         sys.exit("ERROR: got more than one row - thats not good. Stop.")
+         utils.exit("got more than one row - thats not good. Stop.")
       # - Field is empty
       elif data[0][0] == None:
          return None
@@ -182,10 +204,10 @@ class getobs( object ):
       @return Boolean value. False if no such row exists, else True.
       """
 
-      datumsec   = self.date + dt.timedelta( 0, hour*3600 )
+      datumsec   = self._date_ + dt.timedelta( 0, hour*3600 )
       datumsec   = int( datumsec.strftime('%s') )
       sql = "SELECT count(*) FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datumsec = %d" % \
-            (self.table, wmo, datumsec )
+            (self._table_, wmo, datumsec )
       cur = self.db.cursor()
       cur.execute( sql )
       data = cur.fetchone()
@@ -194,69 +216,17 @@ class getobs( object ):
       return (int(data[0]) > 0)
 
 
-   # # ----------------------------------------------------------------
-   # # - Loading sunshine. 
-   # #   1) if 24h sum is available on 'sunday' on 06 UTC we will 
-   # #      take this value.
-   # #   2) if 06UTC sunday is not available but we have a sunday
-   # #      value at 00 UTC: take this one.
-   # #   3) else sum up the 'sun' 1h-rly obs. WARNING: seems that
-   # #      'none' is either 'no sun' or 'not reported'. I can't
-   # #      decide which one is which one at the moment. I just
-   # #      take none = 0 and sum up.
-   # # ----------------------------------------------------------------
-   # def load_sunshine( self, wmo ):
-   #    ""
-
-   #    # - If we have not loaded maxSd: stop
-   #    if not wmo in self.maxSd:
-   #       sys.exit("ERROR: maximum sunshine duration for station %d unknown.\n" % wmo + \
-   #                "Most possible reason: there is no entry for this station\n" + \
-   #                "in the table obs.stations and therefore I can't compute\n" + \
-   #                "the astronomic sunshine duration which is needed!")
-
-   #    # - If we dont have any information about the maximum Sd we cant
-   #    #   compute the relative value. In this case return False
-   #    if not self.maxSd[wmo]: return False
-
-   #    # - Loading sunshine 24h sum, next day reported at 06UTC
-   #    #   which is +30 hours from self.date.
-   #    tmp = self.load_obs( wmo, 30, 'sunday' )
-   #    if tmp:
-   #       tmp =int( np.round(np.float(tmp)/np.float(self.maxSd[wmo]) * 100) ) * 10
-   #       return tmp
-
-   #    # - Loading sunshine 24h sum, next day reported at 00UTC
-   #    #   which is +24 hours from self.date
-   #    tmp = self.load_obs( wmo, 24, 'sunday' )
-   #    if tmp:
-   #       tmp =int( np.round(np.float(tmp)/np.float(self.maxSd[wmo]) * 100) ) * 10
-   #       return tmp
-   # 
-   #    # - Else try to get the hourly sums.
-   #    datum = int( self.date.strftime('%Y%m%d') )
-   #    sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self.table,wmo) + \
-   #          "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum
-
-   #    cur = self.db.cursor()
-   #    cur.execute( sql )
-   #    tmp = cur.fetchall()
-
-   #    # - No data? Return False
-   #    if len(tmp) == 0: return False
-   #    
-   #    # - Else sum up
-   #    Sd = 0
-   #    for rec in tmp: Sd += int(rec[0])
-   #    Sd =int( np.round(np.float(Sd)/np.float(self.maxSd[wmo]) * 100) ) * 10
-
-   #    return Sd 
-
-
    # ----------------------------------------------------------------
    # - Adding value
    # ----------------------------------------------------------------
-   def __add_obs_value__(self,parameter,wmo,value):
+   def _add_obs_value_(self,parameter,wmo,value):
+      """!Adds a loaded observation to the final data object stored on the
+      parent @ref getobs.getobs object. Appends all data to the
+      public attribute getobs.getobs.data .
+      @param parameter. String, wetterturnier parameter shortname.
+      @param wmo. Integer, WMO station number.
+      @param value. Either a numeric value or None.
+      """
 
       # - If value is none: return
       if value == None: return
@@ -300,7 +270,7 @@ class getobs( object ):
       # - Else calling function
       for station in self.stations:
          value = fun(station)
-         self.__add_obs_value__(parameter,station.wmo,value)
+         self._add_obs_value_(parameter,station.wmo,value)
 
    # ----------------------------------------------------------------
    # - Prepare TTm
@@ -479,11 +449,11 @@ class getobs( object ):
       """
 
       # - Timestamps
-      ts1 = self.date + dt.timedelta(0, 6*3600); ts1 = int(ts1.strftime("%s"))
-      ts2 = self.date + dt.timedelta(0,30*3600); ts2 = int(ts2.strftime("%s"))
+      ts1 = self._date_ + dt.timedelta(0, 6*3600); ts1 = int(ts1.strftime("%s"))
+      ts2 = self._date_ + dt.timedelta(0,30*3600); ts2 = int(ts2.strftime("%s"))
 
       # - Else try to get the hourly sums.
-      sql = "SELECT ffx1 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self.table,station.wmo) + \
+      sql = "SELECT ffx1 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
             "AND datumsec > %s AND datumsec <= %d AND NOT ffx1 IS NULL" % (ts1,ts2)
 
       cur = self.db.cursor()
@@ -638,8 +608,6 @@ class getobs( object ):
            If observed precipitation amount is negative (some
            stations send -0.1mm/12h for no precipitation) we
 
-      @bug TODO RETO this is a problem as I just ignore the case
-      that there can be '0.0' or '-30'
       @param station. Object of class stationclass.
       @return numeric or None. Returns observed value if loading data
          was successful, or None if observation not available or nor recorded
@@ -654,20 +622,27 @@ class getobs( object ):
       # - Check if observations (records) are hete
       check18 = self.check_record( station.wmo, 18 )
       check06 = self.check_record( station.wmo, 30 )
+
       # - IF RR18 is None (no value) but the observation
       #   for 18 UTC is hereL set RR18 to 0.0 (we have to
       #   assume that non-observed is = 0.0).
       #   Same for RR06
-      if RR18 == None and check18: RR18 = 0.
-      if RR06 == None and check06: RR06 = 0.
+      if RR18 == None and check18: RR18 = -1
+      if RR06 == None and check06: RR06 = -1
 
       # - Both observations available: use them
       if not RR18 == None and not RR06 == None:
-         if RR18 < 0.: RR18 = 0.
-         if RR06 < 0.: RR06 = 0.
-         value = RR18 + RR06
-         # Wetterturnier special: 0mm is -3.0
-         if value == 0.: value = -30
+         # - Both negative (no precipitation) will
+         #   result in Wetterturnier special: -3.0mm.
+         if RR18 < 0 and RR06 < 0:
+            value = -30.
+         # - Else at least one of the obs was 0.0  
+         #   which is non-obervable precipitation,
+         #   but precipitation!
+         else:
+            if RR18 < 0.: RR18 = 0.
+            if RR06 < 0.: RR06 = 0.
+            value = RR18 + RR06
       else:
          value = None
       # - Return value  
@@ -695,36 +670,37 @@ class getobs( object ):
          was successful, or None if observation not available or nor recorded
       """
 
+      from pywetterturnier import utils
       # - If we have not loaded maxSd: stop
-      if not station.wmo in self.maxSd:
-         sys.exit("ERROR: maximum sunshine duration for station %d unknown.\n" % station.wmo + \
-                  "Most possible reason: there is no entry for this station\n" + \
-                  "in the table obs.stations and therefore I can't compute\n" + \
-                  "the astronomic sunshine duration which is needed!")
+      if not station.wmo in self._maxSd_:
+         utils.exit("maximum sunshine duration for station %d unknown.\n" % station.wmo + \
+                    "Most possible reason: there is no entry for this station\n" + \
+                    "in the table obs.stations and therefore I can't compute\n" + \
+                    "the astronomic sunshine duration which is needed!")
 
       # - If we dont have any information about the maximum Sd we cant
       #   compute the relative value. In this case return False
-      if not self.maxSd[station.wmo]:
+      if not self._maxSd_[station.wmo]:
          value = None
       # - Else start processing the data
       else:
          # - Loading sunshine 24h sum, next day reported at 06UTC
-         #   which is +30 hours from self.date.
+         #   which is +30 hours from self._date_.
          tmp = self.load_obs( station.wmo, 30, 'sunday' )
          if tmp:
-            value =int( np.round(np.float(tmp)/np.float(self.maxSd[station.wmo]) * 100) ) * 10
+            value =int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
          # - Loading sunshine 24h sum, next day reported at 00UTC
-         #   which is +24 hours from self.date
+         #   which is +24 hours from self._date_
          else:
             tmp = self.load_obs( station.wmo, 24, 'sunday' )
             if tmp:
-               Sd = int( np.round(np.float(tmp)/np.float(self.maxSd[station.wmo]) * 100) ) * 10
+               Sd = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
                value = Sd 
             # - Else try to sum up hourly observations
             else:
                # - Else try to get the hourly sums.
-               datum = int( self.date.strftime('%Y%m%d') )
-               sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self.table,station.wmo) + \
+               datum = int( self._date_.strftime('%Y%m%d') )
+               sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
                      "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum
 
                cur = self.db.cursor()
@@ -738,7 +714,7 @@ class getobs( object ):
                   # - Else sum up
                   value = 0
                   for rec in tmp: value += int(rec[0])
-                  value = int( np.round(np.float(value)/np.float(self.maxSd[station.wmo]) * 100) ) * 10
+                  value = int( np.round(np.float(value)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
 
       # - Return value
       return value
@@ -748,6 +724,10 @@ class getobs( object ):
    # - Show loaded data
    # ----------------------------------------------------------------
    def show( self ):
+      """!Shows a summary of the current @ref getobs.getobs class.
+      Was mainly used for development purposes. Shows data and stuff
+      stored on class attributes.
+      """
 
       if not self.data:
          print "    Can't show data summary: no observation data loaded"
@@ -786,6 +766,10 @@ class getobs( object ):
    # - Save to database
    # ----------------------------------------------------------------
    def write_to_db( self ):
+      """!Write prepared observations to database. Writes all prepared
+      observations which are stored in the parent @ref getobs.getobs class
+      to the Wetterturnier database.
+      """
 
       if self.data == None:   
          print "Cant write data to database. Because there are no data. Return."
@@ -814,7 +798,7 @@ class getobs( object ):
       # - Dates and update date
       now = dt.datetime.now()
       now = now.strftime("%Y-%m-%d %H:%M")
-      betdate = np.int( np.floor( np.float(self.date.strftime('%s')) / 86400. ) )
+      betdate = np.int( np.floor( np.float(self._date_.strftime('%s')) / 86400. ) )
 
       # - Looping over wmo stations
       cur = self.db.cursor()
