@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 18:55 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 07:47 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -22,29 +22,38 @@ class getobs( object ):
    def __init__(self, config, db, city, date):
 
       self.config = config
-      self.city   = city
-      self.date   = date
       self.db     = db
       self.table  = config['mysql_obstable'] 
+      ## City ID for which we are loading the observations.
+      self.city   = city
+      ## Date of the observations.
+      self.date   = date
       self.data   = None
-
-      # - Loading available columns in self.table
-      self.columns = self.get_columns()
-
-      # - Loading wmo stations for this city
-      #self.stations = self.db.get_station_numbers_for_city( city['ID'] )
+      ## Columns available in in self.table
+      self.columns = self.get_columns( self.table )
+      ## List of stationclass objects
       self.stations = self.db.get_stations_for_city( city['ID'] )
-
       if len(self.stations) == 0: return False
-
-      # - Compute day length
-      self.maxSd = self.get_maximum_Sd()
+      ## Dict with astronomic day length per station.
+      self.maxSd = self.get_maximum_Sd(self.stations,self.date)
 
 
    # ----------------------------------------------------------------
    # - Compute maximum day length using the python astral package.
    # ----------------------------------------------------------------
-   def get_maximum_Sd( self ):
+   def get_maximum_Sd( self, stations, date ):
+      """!Computes astronomic (maximum) sun shine duration for a set
+      of stations. Note that the station has to be stored in the database
+      table @b obs.stations. If not, we dont know the position of the   
+      station and therefore we can't compute astronomical sunshine
+      duration resulting in a None value.
+      Uses external python package @astral.
+
+      @param stations. List of @ref stationclass.stationclass objects.
+      @param datetime object. Day of the observations.
+      @return A dict consisting of WMO station number and
+      the length of the astronomic day in seconds. 
+      """
 
       import astral
       from datetime import datetime as dt
@@ -53,24 +62,24 @@ class getobs( object ):
       maxSd = {}
       cur = self.db.cursor()
       sql = "SELECT name, lon, lat, hoehe FROM obs.stations WHERE statnr = %s"
-      for stn in self.stations:
-         cur.execute( sql % stn.wmo )
+      for station in stations:
+         cur.execute( sql % station.wmo )
          res = cur.fetchone()
 
          # - no info? Skip
          if res == None:
-            maxSd[stn.wmo] = None
+            maxSd[station.wmo] = None
             print "[!] ERROR: Problems in get_maximum_Sd. Reason: \n" + \
-                  "    there is no entry for wmo station %d in table\n" % stn.wmo + \
+                  "    there is no entry for wmo station %d in table\n" % station.wmo + \
                   "    obs.stations and I can't compute the astronomic\n" + \
                   "    sunshine duration."
-            maxSd[stn.wmo] = None
+            maxSd[station.wmo] = None
       
          # - Else
          else:
 
             # - Else compute day length
-            nam = str( res[0] )
+            nam = str(   res[0] )
             lon = float( res[1] )
             lat = float( res[2] )
             if int(res[3]) == None:
@@ -80,14 +89,14 @@ class getobs( object ):
 
             # - Define location
             loc = astral.Location( (nam,'Region',lat,lon,'Europe/London',elevation) )
-            res = loc.sun(local=True,date=self.date)
+            res = loc.sun(local=True,date=date)
             daylen = int(res['sunset'].strftime('%s')) - int(res['sunrise'].strftime('%s'))
             daylen = daylen / 60.
 
-            maxSd[stn.wmo] = daylen
+            maxSd[station.wmo] = daylen
 
             print "    WMO station %7d: daylength %5.2f min (%5.2f h)" % \
-                   (stn.wmo,daylen,daylen/60.)
+                   (station.wmo,daylen,daylen/60.)
 
       return maxSd
 
@@ -95,9 +104,13 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading 
    # ----------------------------------------------------------------
-   def get_columns( self ):
+   def get_columns( self, table ):
+      """!Returns database table columns.
+      @param table. String, name of the database table.
+      @return A list of all available table columns.
+      """
 
-      sql = "SHOW COLUMNS FROM %s" % self.table
+      sql = "SHOW COLUMNS FROM %s" % table
       cur = self.db.cursor()
       cur.execute(sql)
       tmp = cur.fetchall()
@@ -109,6 +122,17 @@ class getobs( object ):
    # - Loading observations
    # ----------------------------------------------------------------
    def load_obs( self, wmo, hour, parameter ):
+      """!Loading a specific observation from the database.
+      The date for which the observation should be valid and the
+      name of the database are coming from the public attributes of the
+      class (@ref getobs.getobs).
+
+      @param wmo. Numeric, WMO station number.
+      @param hour. Integer, hour for which the observation should
+      be valid [0,...,24].
+      @return Either a numeric value or None if the cell in the
+      database was empty (NULL).
+      """
 
       parameter = parameter.lower()
       if not parameter in self.columns:
@@ -147,6 +171,16 @@ class getobs( object ):
    #   content of the colums. 
    # ----------------------------------------------------------------
    def check_record( self, wmo, hour ):
+      """!Checks if database record exists. Just checks if for the   
+      current date/time/station combination a row exists in the database
+      and not what a specific cell contains. Note: date, and table name
+      are coming from the public attributes of @ref getobs.getobs .
+
+      @param wmo. Integer, WMO station number.
+      @param hour. Integer, hour time shift relative to the 'date', 00:00 UTC.
+         As an example: hour=30 means that we are checking 'tomorrow 06:00 UTC'.
+      @return Boolean value. False if no such row exists, else True.
+      """
 
       datumsec   = self.date + dt.timedelta( 0, hour*3600 )
       datumsec   = int( datumsec.strftime('%s') )
@@ -159,66 +193,64 @@ class getobs( object ):
       # - Else return value
       return (int(data[0]) > 0)
 
-   
 
+   # # ----------------------------------------------------------------
+   # # - Loading sunshine. 
+   # #   1) if 24h sum is available on 'sunday' on 06 UTC we will 
+   # #      take this value.
+   # #   2) if 06UTC sunday is not available but we have a sunday
+   # #      value at 00 UTC: take this one.
+   # #   3) else sum up the 'sun' 1h-rly obs. WARNING: seems that
+   # #      'none' is either 'no sun' or 'not reported'. I can't
+   # #      decide which one is which one at the moment. I just
+   # #      take none = 0 and sum up.
+   # # ----------------------------------------------------------------
+   # def load_sunshine( self, wmo ):
+   #    ""
 
+   #    # - If we have not loaded maxSd: stop
+   #    if not wmo in self.maxSd:
+   #       sys.exit("ERROR: maximum sunshine duration for station %d unknown.\n" % wmo + \
+   #                "Most possible reason: there is no entry for this station\n" + \
+   #                "in the table obs.stations and therefore I can't compute\n" + \
+   #                "the astronomic sunshine duration which is needed!")
 
-   # ----------------------------------------------------------------
-   # - Loading sunshine. 
-   #   1) if 24h sum is available on 'sunday' on 06 UTC we will 
-   #      take this value.
-   #   2) if 06UTC sunday is not available but we have a sunday
-   #      value at 00 UTC: take this one.
-   #   3) else sum up the 'sun' 1h-rly obs. WARNING: seems that
-   #      'none' is either 'no sun' or 'not reported'. I can't
-   #      decide which one is which one at the moment. I just
-   #      take none = 0 and sum up.
-   # ----------------------------------------------------------------
-   def load_sunshine( self, wmo ):
+   #    # - If we dont have any information about the maximum Sd we cant
+   #    #   compute the relative value. In this case return False
+   #    if not self.maxSd[wmo]: return False
 
-      # - If we have not loaded maxSd: stop
-      if not wmo in self.maxSd:
-         sys.exit("ERROR: maximum sunshine duration for station %d unknown.\n" % wmo + \
-                  "Most possible reason: there is no entry for this station\n" + \
-                  "in the table obs.stations and therefore I can't compute\n" + \
-                  "the astronomic sunshine duration which is needed!")
+   #    # - Loading sunshine 24h sum, next day reported at 06UTC
+   #    #   which is +30 hours from self.date.
+   #    tmp = self.load_obs( wmo, 30, 'sunday' )
+   #    if tmp:
+   #       tmp =int( np.round(np.float(tmp)/np.float(self.maxSd[wmo]) * 100) ) * 10
+   #       return tmp
 
-      # - If we dont have any information about the maximum Sd we cant
-      #   compute the relative value. In this case return False
-      if not self.maxSd[wmo]: return False
+   #    # - Loading sunshine 24h sum, next day reported at 00UTC
+   #    #   which is +24 hours from self.date
+   #    tmp = self.load_obs( wmo, 24, 'sunday' )
+   #    if tmp:
+   #       tmp =int( np.round(np.float(tmp)/np.float(self.maxSd[wmo]) * 100) ) * 10
+   #       return tmp
+   # 
+   #    # - Else try to get the hourly sums.
+   #    datum = int( self.date.strftime('%Y%m%d') )
+   #    sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self.table,wmo) + \
+   #          "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum
 
-      # - Loading sunshine 24h sum, next day reported at 06UTC
-      #   which is +30 hours from self.date.
-      tmp = self.load_obs( wmo, 30, 'sunday' )
-      if tmp:
-         tmp =int( np.round(np.float(tmp)/np.float(self.maxSd[wmo]) * 100) ) * 10
-         return tmp
+   #    cur = self.db.cursor()
+   #    cur.execute( sql )
+   #    tmp = cur.fetchall()
 
-      # - Loading sunshine 24h sum, next day reported at 00UTC
-      #   which is +24 hours from self.date
-      tmp = self.load_obs( wmo, 24, 'sunday' )
-      if tmp:
-         tmp =int( np.round(np.float(tmp)/np.float(self.maxSd[wmo]) * 100) ) * 10
-         return tmp
-   
-      # - Else try to get the hourly sums.
-      datum = int( self.date.strftime('%Y%m%d') )
-      sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self.table,wmo) + \
-            "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum
+   #    # - No data? Return False
+   #    if len(tmp) == 0: return False
+   #    
+   #    # - Else sum up
+   #    Sd = 0
+   #    for rec in tmp: Sd += int(rec[0])
+   #    Sd =int( np.round(np.float(Sd)/np.float(self.maxSd[wmo]) * 100) ) * 10
 
-      cur = self.db.cursor()
-      cur.execute( sql )
-      tmp = cur.fetchall()
-
-      # - No data? Return False
-      if len(tmp) == 0: return False
-      
-      # - Else sum up
-      Sd = 0
-      for rec in tmp: Sd += int(rec[0])
-      Sd =int( np.round(np.float(Sd)/np.float(self.maxSd[wmo]) * 100) ) * 10
-
-      return Sd 
+   #    return Sd 
 
 
    # ----------------------------------------------------------------
@@ -243,9 +275,18 @@ class getobs( object ):
    #   parameters like TTm, TTn, ... 
    # ----------------------------------------------------------------
    def prepare( self, parameter ):
+      """!Prepares the different observed parameters like TTn, TTm, N,
+      and so on. Note that the script will ignore a wrong specified
+      or unknown parameter as the internal method then does not exist. 
+      The date will be taken from the public arguments of the parent
+      class @ref getobs.getobs.
+
+      @param parameter. String, shortname of the Wetterturnier parameters. 
+      @return No return. Appends data to internal object. 
+      """
 
       try:
-         fun = eval("self.prepare_fun_%s" % parameter)
+         fun = eval("self._prepare_fun_%s_" % parameter)
       except Exception as e:
          print "[!] WARNING: method prepare_fun_%s does not exist. Cannot prepare data." % parameter
          print e
@@ -258,24 +299,21 @@ class getobs( object ):
 
       # - Else calling function
       for station in self.stations:
-         value = fun(parameter,station)
+         value = fun(station)
          self.__add_obs_value__(parameter,station.wmo,value)
 
    # ----------------------------------------------------------------
    # - Prepare TTm
    # ----------------------------------------------------------------
-   def prepare_fun_TTm(self,parameter,station):
-      """
-      Helper function for TTM, maximum temperature. Returns 18 UTC maximum
+   def _prepare_fun_TTm_(self,station):
+      """!Helper function for TTM, maximum temperature. Returns 18 UTC maximum
       temperature, either from column tmax12 or - if tmax12 not available
       but tmax24 exists - maximum temperature from tmax24.
       Temperature will be in 1/10 degrees Celsius.
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+
+      @param station. Object of class @ref stationclass.stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
@@ -298,16 +336,13 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare TTn
    # ----------------------------------------------------------------
-   def prepare_fun_TTn(self,parameter,station):
-      """
-      Helper function for TTN, minimum temperature. Returns 06 UTC minimum
+   def _prepare_fun_TTn_(self,station):
+      """!Helper function for TTN, minimum temperature. Returns 06 UTC minimum
       temperature. Simply the tmin12 column at 06 UTC in 1/10 degrees Celsius.
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
@@ -320,16 +355,13 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare TTd
    # ----------------------------------------------------------------
-   def prepare_fun_TTd(self,parameter,station):
-      """
-      Helper function for dew point temperature. Returns 12 UTC observed
+   def _prepare_fun_TTd_(self,station):
+      """!Helper function for dew point temperature. Returns 12 UTC observed
       dew point temperature from database column td in 1/10 degrees Celsius.
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - Loading td valid at 12 UTC 
@@ -341,16 +373,13 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare PPP
    # ----------------------------------------------------------------
-   def prepare_fun_PPP(self,parameter,station):
-      """
-      Helper function for mean sea level pressure at 12 UTC from
-      database column pmsl. Return value will be in 1/10 hPa.
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+   def _prepare_fun_PPP_(self,station):
+      """!Helper function for mean sea level pressure at 12 UTC.
+      Based on database column pmsl. Return value will be in 1/10 hPa.
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - Loading td valid at 12 UTC 
@@ -366,24 +395,21 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare dd
    # ----------------------------------------------------------------
-   def prepare_fun_dd(self,parameter,station):
-      """
-      Helper function for the wind direction at 12 UTC from database
+   def _prepare_fun_dd_(self,station):
+      """!Helper function for the wind direction at 12 UTC from database
       column dd. Values will be returned in 1/10 degrees but rounded
       to full 10 degrees. E.g., observed '138' degrees will be converted
       into '1400' (1/10 degrees, rounded to full 10 degrees). 
       Special case: also depends on database column ff. The following
       cases will be used:
-         1) if dd not observed/received: return None
-         2) if dd==0 and ff==0:          return 0.0
-         3) if dd==0 and ff>0:           return None (variable wind direction)
-         4) else:                        return value
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+      @arg 1) if dd not observed/received: @b return None
+      @arg 2) if dd==0 and ff==0:          @b return 0.0
+      @arg 3) if dd==0 and ff>0:           @b return None (variable wind direction)
+      @arg 4) else:                        @b return value
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - Loading td valid at 12 UTC 
@@ -407,9 +433,8 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare ff
    # ----------------------------------------------------------------
-   def prepare_fun_ff(self,parameter,station):
-      """
-      Helper function for the wind speed at 12 UTC from database
+   def _prepare_fun_ff_(self,station):
+      """!Helper function for the wind speed at 12 UTC. Based on database
       column ff. Values will be in 1/10 knots but rounded to full knots.
       E.g., if 3.2m/s observed -> 6.22kt -> Return value will be 60. 
       Args:
@@ -418,6 +443,9 @@ class getobs( object ):
       Returns:
          numeric: observed value if loading data was successful 
          None: if observation not available or nor recorded
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - Loading td valid at 12 UTC 
@@ -431,26 +459,23 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading fx (maximum wind gust over last 1h, 6 to 6 UTC)
    # ----------------------------------------------------------------
-   def prepare_fun_fx(self,parameter,station):
-      """
-      Helper function for the maximum gust speed (fx > 25kt) from 
-      database column fx1. Return value will be in 1/10 knots but
+   def _prepare_fun_fx_(self,station):
+      """!Helper function for the maximum gust speed (fx > 25kt).
+      Based on database column fx1. Return value will be in 1/10 knots but
       rounded to full knots. 
       E.g., if 21.2m/s observed -> 41.21kt -> Return value will be 410. 
       Special cases:
-         1) no observation available but +30h
-            observation (row) is in database:
-            Assume that there were no gusts at all    return 0
-         2) no observations available and +30h
-            observation (row) not yet in database     return None 
-         3) observation available, below 25 knots     return 0 
-         4) observation available, >= 25 knots        return value
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+      @arg 1) no observation available but +30h
+           observation (row) is in database:
+           Assume that there were no gusts at all:      @b return 0
+      @arg 2) no observations available and +30h
+            observation (row) not yet in database:      @b return None 
+      @arg 3) observation available, below 25 knots:    @b return 0 
+      @arg 4) observation available, >= 25 knots:       @b return value
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - Timestamps
@@ -489,22 +514,19 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare N
    # ----------------------------------------------------------------
-   def prepare_fun_N(self,parameter,station):
-      """
-      Helper function for cloud cover at 12 UTC. Return value
+   def _prepare_fun_N_(self,station):
+      """!Helper function for cloud cover at 12 UTC. Return value
       will be in 1/10 octas, rounded to full octas [0,10,20,30,...,80]. 
       Observations based on database column cc.
-         1) if observation is available         return value
-         2) if observation not recorded but
+      @arg 1) if observation is available:       @b return value
+      @arg 2) if observation not recorded but
             12 UTC database entry exists we
-            assume that there were no clouds    return 0
-         3) else                                return None
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+            assume that there were no clouds:     @b return 0
+      @arg 3) else:                               @b return None
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - Loading td valid at 12 UTC 
@@ -528,9 +550,8 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare Wv
    # ----------------------------------------------------------------
-   def prepare_fun_Wv(self,parameter,station):
-      """
-      Helper function for significant weather observatioins between
+   def _prepare_fun_Wv_(self,station):
+      """!Helper function for significant weather observatioins between
       06 UTC and 12 UTC (forenoon) based on database table w1.
       Value will be in 1/10 levels [0,10,20,...,90].
          1) if observation not recorded but
@@ -543,12 +564,10 @@ class getobs( object ):
             BUFR messages, 10+ are for automated
             significant weather instruments)       return None 
          3) else                                   return value
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       check12 = self.check_record( station.wmo, 12 )
@@ -568,27 +587,24 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare Wn
    # ----------------------------------------------------------------
-   def prepare_fun_Wn(self,parameter,station):
-      """
-      Helper function for significant weather observatioins between
-      12 UTC and 18 UTC (afternoon) based on database table w1.
+   def _prepare_fun_Wn_(self,station):
+      """!Helper function for significant weather observatioins between
+      12 UTC and 18 UTC (afternoon). Based on database table w1.
       Value will be in 1/10 levels [0,10,20,...,90].
-         1) if observation not recorded but
+      @arg 1) if observation not recorded but
             18 UTC database entry exists we
-            assume that there were no clouds       return 0
-         2) if observation not recorded and
-            18 UTC database entry not available    return None
-         3) observation here BUT 
-            the observed value is < 10 (note:
+            assume that there were no clouds:      @b return 0
+      @arg 2) if observation not recorded and
+            18 UTC database entry not available:   @b return None
+      @arg 3) observation here BUT 
+            the observed value is >= 10 (note:
             BUFR messages, 10+ are for automated
-            significant weather instruments)       return None 
-         3) else                                   return value
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+            significant weather instruments):      @b return None 
+      @arg 3) else:                                @b return value
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       check18 = self.check_record( station.wmo, 18 )
@@ -608,28 +624,25 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading RR
    # ----------------------------------------------------------------
-   def prepare_fun_RR(self,parameter,station):
-      """
-      Helper function for 24h sum of precipitation based on
+   def _prepare_fun_RR_(self,station):
+      """!Helper function for 24h sum of precipitation based on
       database column 'rrr12' at +18 and +30h (as the reported
       observations are 12h sums this means from 06 UTC today
       to 06 UTC tomorrow). Returns precipitation in 1/10 mm
       OR -30 if there was no precipitation at all.
-         First: if database entry for 18 UTC is here but
-            there is no recorded amount of precipitation we
-            have to assume that there was no precipitation.
-            The same for +30h (06 UTC next day).
-         Second:
-            If observed precipitation amount is negative (some
-            stations send -0.1mm/12h for no precipitation) we
+      @arg First: if database entry for 18 UTC is here but
+           there is no recorded amount of precipitation we
+           have to assume that there was no precipitation.
+           The same for +30h (06 UTC next day).
+      @arg Second:
+           If observed precipitation amount is negative (some
+           stations send -0.1mm/12h for no precipitation) we
 
-         TODO RETO this is a problem!
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+      @bug TODO RETO this is a problem as I just ignore the case
+      that there can be '0.0' or '-30'
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # ----------------------------------------------------------
@@ -664,25 +677,22 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading sunshine. 
    # ----------------------------------------------------------------
-   def prepare_fun_Sd(self,parameter,station):
-      """
-      Helper function for relative sun shine duration for the
+   def _prepare_fun_Sd_(self,station):
+      """!Helper function for relative sun shine duration for the
       full day. Will be returned in 1/10 percent rounded to
       full percent (34% will result in 340.).
-         1) if 24h sum is available on 'sunday' on 06 UTC we will 
-            take this value.
-         2) if 06UTC sunday is not available but we have a sunday
-            value at 00 UTC: take this one.
-         3) else sum up the 'sun' 1h-rly obs. WARNING: seems that
-            'none' is either 'no sun' or 'not reported'. I can't
-            decide which one is which one at the moment. I just
-            take none = 0 and sum up.
-      Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
-      Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
+      @arg 1) if 24h sum is available on 'sunday' on 06 UTC we will 
+              take this value.
+      @arg 2) if 06UTC sunday is not available but we have a sunday
+              value at 00 UTC: take this one.
+      @arg 3) else sum up the 'sun' 1h-rly obs. WARNING: seems that
+              'none' is either 'no sun' or 'not reported'. I can't
+              decide which one is which one at the moment. I just
+              take none = 0 and sum up.
+
+      @param station. Object of class stationclass.
+      @return numeric or None. Returns observed value if loading data
+         was successful, or None if observation not available or nor recorded
       """
 
       # - If we have not loaded maxSd: stop

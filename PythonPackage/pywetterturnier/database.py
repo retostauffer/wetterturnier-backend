@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 12:40 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 07:36 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -169,6 +169,10 @@ class database(object):
    # - Loading stations from database for a given city
    # -------------------------------------------------------------------
    def get_stations_for_city(self,cityID):
+      """!Loading all stations mached to a certain city.
+      @param cityID. Integer, ID of the city in the database.
+      @return List object containing @b N @ref stationclass.stationclass objects.
+      """
 
       sql = "SELECT * FROM %swetterturnier_stations WHERE cityID = %d" % (self.prefix,cityID)
       cur = self.db.cursor()
