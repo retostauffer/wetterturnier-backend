@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-09-14 09:24 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-09-14 09:29 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -461,17 +461,25 @@ class getobs( object ):
       ts6   = self._date_ + dt.timedelta(0,12*3600); ts6 = int(ts6.strftime("%s"))
 
       # - Pick 10min ffx data 
+      #   From >   +6 hours to <= +30 hours: or in other words, all
+      #   6h-ffx observations from "07UTC to 06UTC next day"
       sql  = "SELECT ffx  FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
-             "AND datumsec > %s AND datumsec <= %d AND NOT ffx  IS NULL"  % (ts1,tsend)
+             "AND datumsec >  %s AND datumsec <= %d AND NOT ffx  IS NULL" % (ts1,tsend)
       # - Statements to pick 1h gusts
+      #   From >   +6 hours to <= +30 hours: or in other words, all
+      #   6h-ffx observations from "07UTC to 06UTC next day"
       sql1 = "SELECT ffx1 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
-             "AND datumsec > %s AND datumsec <= %d AND NOT ffx1 IS NULL"  % (ts1,tsend)
+             "AND datumsec >  %s AND datumsec <= %d AND NOT ffx1 IS NULL" % (ts1,tsend)
       # - Statements to pick 3h gusts
+      #   From >=  +9 hours to <= +30 hours: or in other words, all
+      #   6h-ffx observations from "09UTC to 06UTC next day"
       sql3 = "SELECT ffx3 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
-             "AND datumsec > %s AND datumsec <= %d AND NOT ffx3 IS NULL"  % (ts3,tsend)
+             "AND datumsec >= %s AND datumsec <= %d AND NOT ffx3 IS NULL" % (ts3,tsend)
       # - Statements to pick 6h gusts
+      #   From >= +12 hours to <= +30 hours: or in other words, all
+      #   6h-ffx observations from "12UTC to 06UTC next day"
       sql6 = "SELECT ffx6 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
-             "AND datumsec > %s AND datumsec <= %d AND NOT ffx6 IS NULL"  % (ts6,tsend)
+             "AND datumsec >= %s AND datumsec <= %d AND NOT ffx6 IS NULL" % (ts6,tsend)
 
 
       # - Initialize database cursor
