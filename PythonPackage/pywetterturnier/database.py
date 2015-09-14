@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 11:33 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-11 09:06 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -833,12 +833,15 @@ class database(object):
       """
 
       cur = self.db.cursor()
-      sql = 'SELECT (CASE WHEN b.points IS NULL THEN 0 ELSE 1 END ) AS points ' + \
+      sql = 'SELECT b.points AS points ' + \
             'FROM %swetterturnier_betstat AS b LEFT OUTER JOIN %susers AS u ' + \
             'ON b.userID = u.ID ' + \
-            'WHERE cityID = %d AND tdate = %d AND userID != %d '
+            'WHERE cityID = %d AND tdate = %d AND userID != %d ' + \
+            'AND NOT b.points IS NULL'
       cur.execute( sql % ( self.prefix, self.prefix,cityID,tdate,ignore) )
       data = cur.fetchall()
+
+      print data
       if not data:
          return False
       else:

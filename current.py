@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-16, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 09:33 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-23 13:15 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -19,6 +19,7 @@ if __name__ == '__main__':
 
    import subprocess as sub
    import getopt
+   import sys
    # - Wetterturnier specific modules
    from pywetterturnier import utils
    from pywetterturnier import importbets

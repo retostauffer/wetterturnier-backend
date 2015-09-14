@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 09:35 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-09-14 09:24 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -449,30 +449,63 @@ class getobs( object ):
       """
 
       # - Timestamps
-      ts1 = self._date_ + dt.timedelta(0, 6*3600); ts1 = int(ts1.strftime("%s"))
-      ts2 = self._date_ + dt.timedelta(0,30*3600); ts2 = int(ts2.strftime("%s"))
+      ts1   = self._date_ + dt.timedelta(0, 6*3600); ts1   = int(ts1.strftime("%s"))
+      tsend = self._date_ + dt.timedelta(0,30*3600); tsend = int(tsend.strftime("%s"))
 
-      # - Else try to get the hourly sums.
-      sql = "SELECT ffx1 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
-            "AND datumsec > %s AND datumsec <= %d AND NOT ffx1 IS NULL" % (ts1,ts2)
+      # - For FFX6 (maximum over the last 6 hours) I'll be sure not to pick a date/time
+      #   overlapping the period we'll take the data from. Same holds for FFX3 which is
+      #   max gust over the last 3 hours. Therefore
+      #   - ts3: first time step to pick FFX3 from
+      #   - ts6: first time step to pick FFX6 from
+      ts3   = self._date_ + dt.timedelta(0, 9*3600); ts3 = int(ts3.strftime("%s"))
+      ts6   = self._date_ + dt.timedelta(0,12*3600); ts6 = int(ts6.strftime("%s"))
 
+      # - Pick 10min ffx data 
+      sql  = "SELECT ffx  FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
+             "AND datumsec > %s AND datumsec <= %d AND NOT ffx  IS NULL"  % (ts1,tsend)
+      # - Statements to pick 1h gusts
+      sql1 = "SELECT ffx1 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
+             "AND datumsec > %s AND datumsec <= %d AND NOT ffx1 IS NULL"  % (ts1,tsend)
+      # - Statements to pick 3h gusts
+      sql3 = "SELECT ffx3 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
+             "AND datumsec > %s AND datumsec <= %d AND NOT ffx3 IS NULL"  % (ts3,tsend)
+      # - Statements to pick 6h gusts
+      sql6 = "SELECT ffx6 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
+             "AND datumsec > %s AND datumsec <= %d AND NOT ffx6 IS NULL"  % (ts6,tsend)
+
+
+      # - Initialize database cursor
       cur = self.db.cursor()
-      cur.execute( sql )
-      tmp = cur.fetchall()
 
+      # - New object to store the values (from all sql queries)
+      data = []
+      def append_data(data,tmp):
+         for rec in tmp:  data.append( rec[0] )
+         return data
+
+      # - FFX (last 10 min gusts) 
+      cur.execute( sql  );     tmp = cur.fetchall();     data = append_data( data, tmp )
+      # - FFX1 (last 1 h gusts) 
+      cur.execute( sql1 );     tmp = cur.fetchall();     data = append_data( data, tmp )
+      # - FFX1 (last 3 h gusts) 
+      cur.execute( sql3 );     tmp = cur.fetchall();     data = append_data( data, tmp )
+      # - FFX1 (last 6 h gusts) 
+      cur.execute( sql6 );     tmp = cur.fetchall();     data = append_data( data, tmp )
+
+      # - Check if +30 h observation is available.
       check30 = self.check_record( station.wmo, 30 )
 
       # - No wind gusts received, but last observation is here
-      if len(tmp) == 0 and check30:
+      if len(data) == 0 and check30:
          value = 0
       # - No observations at all
-      elif len(tmp) == 0:
+      elif len(data) == 0:
          value = None
       # - Else sum up
       else:
          value = 0
          import numpy as np
-         for rec in tmp: value = np.maximum(value,rec[0]) 
+         for rec in data: value = np.maximum(value,rec) 
          # - Convert from meters per second to knots.
          #   Moreover, if knots are below 25, ignore.
          value = np.round( np.float( value ) * 1.94384449 / 10. ) * 10

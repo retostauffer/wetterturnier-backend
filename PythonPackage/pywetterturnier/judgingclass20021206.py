@@ -12,13 +12,23 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 09:37 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 11:56 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
 import numpy as np
 
 class judging(object):
+   """!This is a judgingclass - a class used to compute the points
+   a user gets on a specific weekend. Please note that it is possible
+   that the rules change somewhen and that there is a second judgingclass.
+   
+   The class contains public attributes tdate_min and tdate_max as a
+   safety-instrument. As soon as you would like to compute points
+   for a specific tournament which falls outside this limits the script
+   will stop in the operational mode not to re-compute old bets with
+   a wrong judgingclass.
+   """
 
    # ----------------------------------------------------------------
    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -34,10 +44,23 @@ class judging(object):
    # dates can be based on the wrong judgingclass.
    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    # ----------------------------------------------------------------
+
+   ## Do not use this judgingclass in the operational mode for tournaments
+   #  smaller or equal to this date (days since 1970-01-01).
    tdate_min = 12027
+   ## If set - do not use this judgingclass in the operational mode
+   #  for tournaments > this date (days sicne 1970-01-01).
    tdate_max = None
 
    def __init__(self,quiet=False):
+      """!Initialize new juding object.
+      @param quiet. Boolean, default is False. Redudes the output
+         to a minimum if set to True. Used for some applications.
+      @note actually I would like to connect this script to a php
+         scrpt to give the users the oportunity to 'test' the 
+         judgingclass. And therefore the script has to be quiet and
+         just prints what I need. Not done yet.
+      """
 
       if not quiet:
          print '    Initializing judging class 2002-12-06 py'
@@ -47,7 +70,16 @@ class judging(object):
    # - Prepares data to insert them into the database.
    #   Creates list tuple out of two lists.
    # ----------------------------------------------------------------
-   def __prepare_for_database__(self,IDs,values):
+   def _prepare_for_database_(self,IDs,values):
+      """!Prepares ID/value pairs for database.
+      Creates a tuple list which can be used with
+      @b database.database.executemany. Used later with
+      the method 'points_to_database' within this class to update
+      the bets table.
+      @param IDs. List containing integers, ID's of the rows in the
+         database we have to update.
+      @param values. List containing numeric values connected to the ID's.
+      """
 
       if not len(IDs) == len(values):
          utils.exit('In judging.prepare_for_database got different lengths of IDs and values!')
@@ -64,8 +96,14 @@ class judging(object):
    # - Inserts data into database. They have to be prepared
    # ----------------------------------------------------------------
    def points_to_database(self,db,IDs,values):
+      """!Updates the bets database.
+      @param IDs. List containing integers, ID's of the rows in the
+         database we have to update.
+      @param values. List containing numeric values connected to the ID's.
+      """
 
-      data = self.__prepare_for_database__(IDs,values)
+      # - Prepare tuple list object
+      data = self._prepare_for_database_(IDs,values)
 
       sql = 'UPDATE '+db.prefix+'wetterturnier_bets SET points = %s ' + \
             'WHERE ID = %s' 
