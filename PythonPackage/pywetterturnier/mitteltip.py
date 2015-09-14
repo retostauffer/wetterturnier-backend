@@ -8,10 +8,21 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-20, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-02-16 07:55 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 11:46 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 def mitteltip(db,typ,ID,city,tdate):
+   """!Function returning Mitteltips or group bets.
+  
+   @param db. Database handler object, see @ref database.database 
+   @param typ. String. Forwarded to @ref database.database.get_bet_data. Please
+      read the manual there for more information.
+   @param ID. Integer. Forwarded to @ref database.database.get_bet_data. Please
+      read the manual there for more information.
+   @param city. Integer, city ID.
+   @param tdate. Integer, tournament date. Days since 1970-01-01'
+   @return dict containing the mitteltip.
+   """
 
    import numpy as np
    import utils

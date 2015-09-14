@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePoints.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 09:15 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-23 15:48 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -64,12 +64,19 @@ if __name__ == '__main__':
    
    # - Compute the Points for all the dudes first
    import subprocess as sub
-   scripts = ['ComputeMeanBets.py',
-              'ComputePetrus.py',
-              'ComputePersistenz.py',
-              'ComputePoints.py',
-              'ComputeSumPoints.py',
-              'ComputeDeadman.py']
+   if not config['input_alldates']:
+      scripts = ['ComputeMeanBets.py',
+                 'ComputePetrus.py',
+                 'ComputePersistenz.py',
+                 'ComputePoints.py',
+                 'ComputeSumPoints.py',
+                 'ComputeDeadman.py']
+   else:
+      scripts = ['ComputeMeanBets.py',
+                 'ComputePetrus.py',
+                 'ComputePoints.py',
+                 'ComputeSumPoints.py',
+                 'ComputeDeadman.py']
 
 
    # - Now calling the other scripts using the necessary

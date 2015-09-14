@@ -7,24 +7,37 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-24, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-07-24 07:41 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-08-04 11:41 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
 class stationclass( object ):
+   """!A small class holding all infors for a specific WMO station."""
 
    def __init__( self, desc, data ):
+      """!Initializing a new stationclss object.
+      @param desc. List/tuple of strings, value description of the values
+         in input data.
+      @param data. List/tuple of values corresponding to input desc.
+      """ 
 
       # - Prepare cols
       cols = []
       for rec in desc: cols.append( str(rec[0]) )
 
-      # - Empty entries first
+      ## Station ID in the database. 
       self.ID         = None 
+      ## Station WMO number.
       self.wmo        = None 
+      ## To which city the station maches, city ID from database.
       self.cityID     = None 
+      ## String, name of the station.
       self.name       = None 
+      ## The nullconfig is a list of ID's where each ID corresponds to a parameter
+      #  in the database (parameterID). All parameters included in the nullconfig
+      #  are labeled as 'this station does NOT report this value at all'.
       self.nullconfig = None 
+      ## Date the station was changed the last time.
       self.changed    = None  
 
       # - Save all different values onto the object
@@ -56,6 +69,8 @@ class stationclass( object ):
    # - Helper function. Shows content.
    # ----------------------------------------------------------------
    def show(self):
+      """!Small summary function which prints the content of a stationclass
+      object in a nice way."""
 
       from datetime import datetime as dt
       import json

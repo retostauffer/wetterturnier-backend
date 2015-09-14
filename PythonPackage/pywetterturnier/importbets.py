@@ -6,6 +6,9 @@ import utils
 import database
 
 class importbets:
+    """! USED TO IMPORT OLD ARCHIVE DATA FROM THE OLD WETTERTURNIER.
+    AS I WILL NEVER USE THIS ROUTINE AGAIN I DONT DO THE DOCUMENTATION
+    FOR ALL THE METHODS IN HERE."""
 
     data1 = None
     data2 = None
@@ -618,6 +621,7 @@ class importbets:
             return True
 
         # - Else convert
+        if value == 'x': return
         try:
             value = int(round( float(value) * 10. ))
         except:
@@ -733,6 +737,7 @@ class importbets:
 
         from pywetterturnier import utils
 
+        if value == 'x': return
         try:
             value = int(round( float(value) * 10. ))
         except:
