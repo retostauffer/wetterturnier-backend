@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-29, RS: Adapted from ComputeMoses.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 09:15 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2016-01-24 08:26 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -139,10 +139,26 @@ if __name__ == '__main__':
             # -------------------------------------------------------
             # - take arithmetic mean value for: N, Sd, ff, PPP, TTm, TTn, TTd
             # -------------------------------------------------------
-            if param in ['N','ff','Sd']:
-               bet[param] = np.int(np.round( mean( res[param] ) / 10. )) * 10
+            res_tmp = []
+            for elem in res[param]:
+               if type(elem) == type(int()) or type(elem) == type(float()):
+                  res_tmp.append( elem )
+            if len(res_tmp) == 0:
+               bet[param] = None
+            elif param in ['N','ff','Sd']:
+               bet[param] = np.int(np.round( mean( res_tmp ) / 10. )) * 10
             elif param in ['PPP','TTm','TTn','TTd']:
-               bet[param] = np.int(np.round( mean(res[param]) ))
+               bet[param] = np.int(np.round( mean(res_tmp) ))
+            #if res[param] is None:
+            #   print "AAA"
+            #   bet[param] = None
+            #elif param in ['N','ff','Sd']:
+            #   print "BBB"
+            #   bet[param] = np.int(np.round( mean( res[param] ) / 10. )) * 10
+            #elif param in ['PPP','TTm','TTn','TTd']:
+            #   print "CCC"
+            #   bet[param] = np.int(np.round( mean(res[param]) ))
+
 
             # -------------------------------------------------------
             # - ffx: decide gust or no gust
@@ -247,20 +263,14 @@ if __name__ == '__main__':
             for param in bet.keys():
                paramID = db.get_parameter_id( param )
                #print              userID,city['ID'],paramID,tdate,day,bet[param]
-               print "    - user %4d, city %2d, parameter %-6s %8d" % \
-                          (userID,city['ID'],"%s:" % param,bet[param])
-               db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[param])
+               if bet[param] is None:
+                  print "    - user %4d, city %2d, parameter %-6s %8s" % \
+                             (userID,city['ID'],"%s:" % param,'None')
+               else:
+                  print "    - user %4d, city %2d, parameter %-6s %8d" % \
+                             (userID,city['ID'],"%s:" % param,bet[param])
+                  db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[param])
 
-         # - Save into database. Note: we have loaded the persistence
-         #   dat from day -1 (e.g., thuesday if tournament is friday)
-         #   but have to store for two days (saturday, sunday). Therefore
-         #   there is the day-loop here.
-         for day in range(1,3):
-            print "    Insert Persistenz bets into database for day %d" % day
-            for param in bet.keys():
-               paramID = db.get_parameter_id( param )
-               #print              userID,city['ID'],paramID,tdate,day,bet[param]
-               db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[param])
    
    # - Close database
    db.close()

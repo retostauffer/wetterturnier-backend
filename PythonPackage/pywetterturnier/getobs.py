@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-09-14 09:29 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2016-01-04 17:38 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -385,6 +385,7 @@ class getobs( object ):
       # - Loading td valid at 12 UTC 
       dd = self.load_obs( station.wmo, 12, 'dd' )
       ff = self.load_obs( station.wmo, 12, 'ff' )
+      print " ------------- " , dd, ff
       # - If dd is valid: take this one
       if dd == None:
          value = None
@@ -397,6 +398,8 @@ class getobs( object ):
       # - Else take dd as it is
       else: 
          value = np.round(float(dd)/10) * 100.
+         # - North wind will be 360, not 0. Change if 0 occurs
+         if value == 0.: value = 3600.
       # - Return value
       return value
 
@@ -589,8 +592,12 @@ class getobs( object ):
          else:          value = None
       # - Observed 
       else:
-         if w1 >= 10.:  value = None    # automated observation
-         else:          value = w1 * 10 # juchee
+         # - If there is no significant weather, the BUFR reports a
+         #   code 508 (no sign weather phaenomena, past and current weather omitted).
+         #   In this case we can return a 0.
+         if int(w1) == 508:    value = 0
+         elif w1 >= 10.:       value = None    # automated observation
+         else:                 value = w1 * 10 # juchee
       # - Return value  
       return value
 
@@ -626,8 +633,12 @@ class getobs( object ):
          else:          value = None
       # - Observed 
       else:
-         if w1 >= 10.:  value = None    # automated observation
-         else:          value = w1 * 10 # juchee
+         # - If there is no significant weather, the BUFR reports a
+         #   code 508 (no sign weather phaenomena, past and current weather omitted).
+         #   In this case we can return a 0.
+         if int(w1) == 508:    value = 0
+         elif w1 >= 10.:       value = None    # automated observation
+         else:                 value = w1 * 10 # juchee
       # - Return value  
       return value
 

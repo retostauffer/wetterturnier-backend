@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{array,graphicx}
+\usepackage{booktabs}
+\usepackage{pifont}
+
+\newcommand*\rot{\rotatebox{90}}
+\newcommand*\OK{\ding{51}}
+
+\begin{document}
+
+\begin{table} \centering
+    \begin{tabular}{ccccccccc}
+        & & \multicolumn{7}{c}{Observed} \\[2ex]
+        & & \textbf{0} & \textbf{4} & \textbf{5} & \textbf{6} & \textbf{7} & \textbf{8} & \textbf{9} \\
+        \cmidrule{3-9}
+        & \textbf{0} &  \textbf{0} &  8 & 10 & 10 & 10 &  7 &  8 \\ 
+        & \textbf{4} &  5 &  \textbf{0} &  3 &  6 &  6 &  8 &  9 \\ 
+        & \textbf{5} &  7 &  3 &  \textbf{0} &  1 &  4 &  5 &  7 \\ 
+        & \textbf{6} &  7 &  5 &  2 &  \textbf{0} &  4 &  2 &  5 \\ 
+        & \textbf{7} &  7 &  5 &  4 &  3 &  \textbf{0} &  2 &  6 \\ 
+        & \textbf{8} &  6 &  9 &  6 &  3 &  3 &  \textbf{0} &  3 \\ 
+ \rot{\rlap{~Forecasted}}
+        & \textbf{9} &  6 &  9 &  8 &  4 &  4 &  2 &  \textbf{0} \\ 
+        \cmidrule[1pt]{3-9}
+    \end{tabular}
+    \caption{Some caption}
+\end{table}
+
+
+\begin{table} \centering
+    \begin{tabular}{ccccccccc}
+        & & \multicolumn{7}{c}{Beobachtet} \\[2ex]
+        & & \textbf{0} & \textbf{4} & \textbf{5} & \textbf{6} & \textbf{7} & \textbf{8} & \textbf{9} \\
+        \cmidrule{3-9}
+        & \textbf{0} &  \textbf{0} &  8 & 10 & 10 & 10 &  7 &  8 \\ 
+        & \textbf{4} &  5 &  \textbf{0} &  3 &  6 &  6 &  8 &  9 \\ 
+        & \textbf{5} &  7 &  3 &  \textbf{0} &  1 &  4 &  5 &  7 \\ 
+        & \textbf{6} &  7 &  5 &  2 &  \textbf{0} &  4 &  2 &  5 \\ 
+        & \textbf{7} &  7 &  5 &  4 &  3 &  \textbf{0} &  2 &  6 \\ 
+        & \textbf{8} &  6 &  9 &  6 &  3 &  3 &  \textbf{0} &  3 \\ 
+ \rot{\rlap{~Vorhergesagt}}
+        & \textbf{9} &  6 &  9 &  8 &  4 &  4 &  2 &  \textbf{0} \\ 
+        \cmidrule[1pt]{3-9}
+    \end{tabular}
+    \caption{Some caption}
+\end{table}
+
+\end{document}

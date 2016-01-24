@@ -506,13 +506,14 @@ class importbets:
 
 
         if len(res[1]) == 6:
-            sql = 'INSERT INTO '+self.db.prefix+'wetterturnier_betstat ' + \
+            #sql = 'INSERT INTO '+self.db.prefix+'wetterturnier_betstat ' + \
+            sql = 'INSERT INTO '+self.db_betstat+' ' + \
                   ' (userID, cityID, tdate, points, points_d1, points_d2) VALUES ' + \
                   ' (%s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE ' + \
                   ' points=VALUES(points), points_d1=VALUES(points_d1), ' + \
                   ' points_d2=VALUES(points_d2) '
         else:
-            sql = 'INSERT INTO '+self.db.prefix+'wetterturnier_betstat ' + \
+            sql = 'INSERT INTO '+self.db_betstat+' ' + \
                   ' (userID, cityID, tdate, points) VALUES ' + \
                   ' (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE ' + \
                   ' points=VALUES(points) '
