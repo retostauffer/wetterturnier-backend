@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-11 09:06 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2015-12-13 12:42 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -399,11 +399,6 @@ class database(object):
          than 5 betdate is just taken as set. 
       @return Returns a list containing all the bets.
 
-      @bug Reto you are including all bets, even if a user has only filled in a subset
-      of parameters. Therefore I had the active' flag somewhen. Maybe would be better
-      to croscheck the betstat table as the betstattable should only include full bets.
-      Moreover betstat table is used to display the data on the front end and can easily
-      be screened online.
       @todo Reto the deadman does ont get bets - he just gets points. Maybe I can
       disable/remove the 'all' function if I am not using it anymore.
       """
@@ -435,25 +430,33 @@ class database(object):
          cur.execute( 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d' % (self.prefix, ref) )
          tmp = cur.fetchall()
          ref = [];
-         for rec in tmp: ref.append('AND v.userID != %d' % rec[0] )
+         for rec in tmp: ref.append('AND bet.userID != %d' % rec[0] )
          # - Create final statement
-         sql = 'SELECT v.value AS value FROM %swetterturnier_bets AS v ' + \
-                     'LEFT OUTER JOIN %susers AS u ' + \
-                     'ON v.userID = u.ID ' + \
-                     'WHERE u.user_login NOT LIKE \'%s\' ' + \
-                     'AND v.cityID = %d AND v.paramID = %d ' + \
-                     'AND v.tournamentdate = %d AND v.betdate = %d ' + \
-                     'AND v.userID != %d ' + ' '.join( ref )
-                     #####'AND v.status = %d AND v.userID != %d'
-         ###print( sql % (self.prefix, self.prefix, 'GRP_%', cityID, paramID, tdate, bdate, deadID) ) 
-         cur.execute( sql % (self.prefix, self.prefix, 'GRP_%', cityID, paramID, tdate, bdate, deadID) ) 
+         sql = []
+         sql.append("SELECT bet.value AS value FROM %swetterturnier_bets AS bet" % self.prefix)
+         sql.append("LEFT OUTER JOIN %susers AS usr" % self.prefix)
+         sql.append("ON bet.userID = usr.ID")
+         sql.append("INNER JOIN %swetterturnier_betstat AS stat" % self.prefix)
+         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tournamentdate=stat.tdate")
+         sql.append("WHERE usr.user_login NOT LIKE \"%s\"" % "GRP_%")
+         sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
+         sql.append("AND bet.tournamentdate = %d AND bet.betdate = %d" % (tdate,bdate))
+         sql.append("AND bet.userID != %d" % deadID)
+         sql.append(" ".join(ref))
+         # print "\n".join(sql)
+         cur.execute( "\n".join(sql) )
       # - If input was user, load tips for a specific user.
       elif typ == 'user':
-         sql = 'SELECT value FROM %swetterturnier_bets WHERE ' + \
-                     'userID = %d AND cityID = %d AND paramID = %d ' + \
-                     'AND tournamentdate = %d AND betdate = %d '
-                     #####'AND status = %d'
-         cur.execute( sql % (self.prefix, ID, cityID, paramID, tdate, bdate ) ) 
+         # - Create sql statement 
+         sql = []
+         sql.append("SELECT bet.value AS value FROM %swetterturnier_bets AS bet" % self.prefix)
+         sql.append("INNER JOIN %swetterturnier_betstat AS stat" % self.prefix)
+         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tournamentdate=stat.tdate")
+         sql.append("WHERE bet.userID = %d" % ID) 
+         sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
+         sql.append("AND bet.tournamentdate = %d AND bet.betdate = %d" % (tdate,bdate))
+         #print "\n".join( sql )
+         cur.execute( "\n".join(sql) ) 
       # - If input was user, load tips for a specific user.
       elif typ == 'group':
          sql = 'SELECT v.value AS value FROM %swetterturnier_bets AS v ' + \
@@ -462,7 +465,17 @@ class database(object):
                      'WHERE gu.groupID = %d ' + \
                      'AND v.cityID = %d AND v.paramID = %d ' + \
                      'AND v.tournamentdate = %d AND v.betdate = %d '
-         cur.execute( sql % (self.prefix, self.prefix, ID, cityID, paramID, tdate, bdate) ) 
+         sql = []
+         sql.append("SELECT bet.value AS value FROM %swetterturnier_bets AS bet" % self.prefix)
+         sql.append("LEFT OUTER JOIN %swetterturnier_groupusers AS gu" % self.prefix)
+         sql.append("ON bet.userID = gu.userID")
+         sql.append("INNER JOIN %swetterturnier_betstat AS stat" % self.prefix)
+         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tournamentdate=stat.tdate")
+         sql.append("WHERE gu.groupID = %d" % ID) 
+         sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
+         sql.append("AND bet.tournamentdate = %d AND bet.betdate = %d" % (tdate,bdate))
+         #print "\n".join( sql )
+         cur.execute( "\n".join(sql) ) 
       # - Else ... adapt the exit condition above please.
       else:
          utils.exit('Seems that you allowed anohter type in database.get_bet_data but you have not created a propper rule')
