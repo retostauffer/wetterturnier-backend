@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2016-01-04 17:38 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2016-09-09 16:37 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -574,10 +574,12 @@ class getobs( object ):
          2) if observation not recorded and
             12 UTC database entry not available    return None
          3) observation here BUT 
-            the observed value is < 10 (note:
+            the observed value is > 10 (note:
             BUFR messages, 10+ are for automated
             significant weather instruments)       return None 
-         3) else                                   return value
+         4) If observation is 1, 2, or 3: set to 0
+            as 1, 2, 3 are not used in the WT      return 0
+         5) else                                   return value
 
       @param station. Object of class stationclass.
       @return numeric or None. Returns observed value if loading data
@@ -595,9 +597,10 @@ class getobs( object ):
          # - If there is no significant weather, the BUFR reports a
          #   code 508 (no sign weather phaenomena, past and current weather omitted).
          #   In this case we can return a 0.
-         if int(w1) == 508:    value = 0
-         elif w1 >= 10.:       value = None    # automated observation
-         else:                 value = w1 * 10 # juchee
+         if int(w1) == 508:          value = 0
+         elif w1 >= 10.:             value = None    # automated observation
+         elif w1 >= 1. and w1 <= 4.: value = 0 # 1,2,3 is not used
+         else:                       value = w1 * 10 # juchee
       # - Return value  
       return value
 
@@ -609,16 +612,18 @@ class getobs( object ):
       """!Helper function for significant weather observatioins between
       12 UTC and 18 UTC (afternoon). Based on database table w1.
       Value will be in 1/10 levels [0,10,20,...,90].
-      @arg 1) if observation not recorded but
+         1) if observation not recorded but
             18 UTC database entry exists we
             assume that there were no clouds:      @b return 0
-      @arg 2) if observation not recorded and
+         2) if observation not recorded and
             18 UTC database entry not available:   @b return None
-      @arg 3) observation here BUT 
+         3) observation here BUT 
             the observed value is >= 10 (note:
             BUFR messages, 10+ are for automated
             significant weather instruments):      @b return None 
-      @arg 3) else:                                @b return value
+         4) If observation is 1, 2, or 3: set to 0
+            as 1, 2, 3 are not used in the WT      return 0
+         5) else:                                @b return value
 
       @param station. Object of class stationclass.
       @return numeric or None. Returns observed value if loading data
@@ -636,9 +641,10 @@ class getobs( object ):
          # - If there is no significant weather, the BUFR reports a
          #   code 508 (no sign weather phaenomena, past and current weather omitted).
          #   In this case we can return a 0.
-         if int(w1) == 508:    value = 0
-         elif w1 >= 10.:       value = None    # automated observation
-         else:                 value = w1 * 10 # juchee
+         if int(w1) == 508:          value = 0
+         elif w1 >= 10.:             value = None    # automated observation
+         elif w1 >= 1. and w1 <= 4.: value = 0 # 1,2,3 is not used
+         else:                       value = w1 * 10 # juchee
       # - Return value  
       return value
 

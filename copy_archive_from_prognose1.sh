@@ -2,7 +2,7 @@
 
 EXTPC='admin@prognose.met.fu-berlin.de'
 
-extra="15"
+extra="1[6-7]"
 
 
 # - Innsbruck

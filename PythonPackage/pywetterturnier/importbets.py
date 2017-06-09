@@ -146,7 +146,7 @@ class importbets:
         # ---------------------------------------------------------------
         # - Create timestamp
         # ---------------------------------------------------------------
-        self.tournamentdate = ( dt.strptime(date,'%d.%m.%Y') - \
+        self.tdate = ( dt.strptime(date,'%d.%m.%Y') - \
                                 dt.strptime('1970-01-01 00:00','%Y-%m-%d %H:%M') ).days
     
         # ---------------------------------------------------------------
@@ -244,7 +244,7 @@ class importbets:
             return
 
         # betdate is
-        tdate = self.tournamentdate
+        tdate = self.tdate
         print '* Extracting bettimes for date %d' % (tdate)
 
         # - Check if cityID is set
@@ -327,7 +327,7 @@ class importbets:
         print '    - Update database now'
         cur = self.db.cursor()
         sql = 'UPDATE '+self.db.prefix+'wetterturnier_bets SET placed = %s ' + \
-              ' WHERE userID = %s AND tournamentdate = %s AND cityID = %s'
+              ' WHERE userID = %s AND tdate = %s AND cityID = %s'
         cur.executemany( sql, res )
         self.db.commit()
  
@@ -417,14 +417,14 @@ class importbets:
                 #   userID               form self.db.get_user( uname )
                 #   cityID               from self.cityID
                 #   paramID              from self.db.get_parameter_id( ... )
-                #   tournamentdate       from self.tournamentdate
-                #   betdate              from self.tournamentdate + day
+                #   tdate       from self.tdate
+                #   betdate              from self.tdate + day
                 res.append( (points, userID,paramID, \
-                             self.tournamentdate,self.tournamentdate + day) )
+                             self.tdate,self.tdate + day) )
 
 
         sql = 'UPDATE '+self.db.prefix+'wetterturnier_bets SET points = %s ' + \
-              ' WHERE userID = %s AND paramID = %s AND tournamentdate = %s ' + \
+              ' WHERE userID = %s AND paramID = %s AND tdate = %s ' + \
               ' AND betdate = %s AND cityID = ' + str(self.cityID)
         cur = self.db.cursor()
         cur.executemany( sql , res ) 
@@ -500,9 +500,9 @@ class importbets:
             print '    %7.2f   %7.2f   %7.2f' % (psum,pd1,pd2)
 
             if not pd1:
-               res.append( (userID, self.cityID, self.tournamentdate, psum) )
+               res.append( (userID, self.cityID, self.tdate, psum) )
             else:
-               res.append( (userID, self.cityID, self.tournamentdate, psum, pd1, pd2) )
+               res.append( (userID, self.cityID, self.tdate, psum, pd1, pd2) )
 
 
         if len(res[1]) == 6:
@@ -538,7 +538,7 @@ class importbets:
             utils.exit('wrong input to extract_obs. 1 or 2 allowed')
 
         # betdate is
-        tdate = self.tournamentdate
+        tdate = self.tdate
         betdate = tdate + block
         print '* Extracting obs for block %d' % (block)
 
@@ -668,7 +668,7 @@ class importbets:
             utils.exit('wrong input to extract_bets. 1 or 2 allowed')
 
         # betdate is
-        tdate = self.tournamentdate
+        tdate = self.tdate
         betdate = tdate + block
         print '* Extracting data from block %d' % (block)
 
@@ -745,7 +745,7 @@ class importbets:
             utils.exit('could not convert value to float')
 
         sql = 'INSERT INTO ' + self.db_bets + ' (userID, cityID, paramID, ' + \
-              'tournamentdate, betdate, value) VALUES ' + \
+              'tdate, betdate, value) VALUES ' + \
               '({0:d},{1:d},{2:d},{3:d},{4:d},{5:d}) ON DUPLICATE KEY UPDATE value = {5:d}' \
               .format(int(userID),int(self.cityID),int(paramID),int(tdate),int(bdate),value)
         cur = self.db.cursor(); cur.execute(sql)
