@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 11:56 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2016-09-12 06:19 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
@@ -550,7 +550,11 @@ class judging(object):
          for i in range(len(data)):
             #            maxpoints -              observed      bet value
             tmp       =     10    - point_matrix[int(o/10)][int(data[i])/10]
-            if tmp > points[i]: points[i] = tmp
+            # Minimum points: 0!
+            if tmp < 0:
+               points[i] = 0.
+            if tmp > points[i]:
+               points[i] = tmp
 
       # - Show data (development stuff)
       #for i in range(len(data)):

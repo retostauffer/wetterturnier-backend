@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 09:16 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-09 15:25 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -23,6 +23,7 @@
 def CSP(db,config,cities,tdates):
 
    import sys, os
+   import numpy as np
    from pywetterturnier import utils
    print '\n  * Compute sum points to fill betstat table'
 
@@ -52,55 +53,87 @@ def CSP(db,config,cities,tdates):
          else:
             extra = '' 
 
-         sqlP = 'SELECT userID, cityID, tournamentdate, ' + \
-                'sum(points) AS points, max(placed) AS submitted ' + \
+         sqlP = 'SELECT userID, cityID, tdate, ' + \
+                'round(sum(points),3) AS points, max(placed) AS submitted ' + \
                 'FROM %swetterturnier_bets ' + \
-                'WHERE cityID = %d AND tournamentdate = %d %s ' + \
-                'GROUP BY userID, cityID, tournamentdate '
-                #####'WHERE status = 1 AND cityID = %d AND tournamentdate = %d %s ' + \
+                'WHERE cityID = %d AND tdate = %d %s ' + \
+                'GROUP BY userID, cityID, tdate '
          sqlP = sqlP % (db.prefix,city['ID'], tdate, extra)
-         sqlX = 'SELECT userID, cityID, tournamentdate, sum(points) AS points ' + \
+         sqlX = 'SELECT userID, cityID, tdate, sum(points) AS points ' + \
                 'FROM %swetterturnier_bets ' + \
-                'WHERE cityID = %d AND tournamentdate = %d ' + \
+                'WHERE cityID = %d AND tdate = %d ' + \
                 'AND betdate = %d %s ' + \
-                'GROUP BY userID, cityID, tournamentdate'
-                #####'WHERE status = 1 AND cityID = %d AND tournamentdate = %d ' + \
+                'GROUP BY userID, cityID, tdate'
          sql1 = sqlX % (db.prefix,city['ID'], tdate, tdate+1, extra)
          sql2 = sqlX % (db.prefix,city['ID'], tdate, tdate+2, extra)
 
 
-         sql_full = 'SELECT p.userID, p.cityID, p.tournamentdate, p.points AS points, ' + \
+         sql_full = 'SELECT p.userID, p.cityID, p.tdate, p.points AS points, ' + \
                     'd1.points AS points_d1, d2.points AS points_d2, p.submitted ' + \
                     'FROM ('+sqlP+') AS p ' + \
                     'LEFT OUTER JOIN ' + \
-                    '('+sql1+') AS d1 ON p.userID=d1.userID AND p.tournamentdate=d1.tournamentdate ' + \
+                    '('+sql1+') AS d1 ON p.userID=d1.userID AND p.tdate=d1.tdate ' + \
                     'AND p.cityID = d1.cityID ' + \
                     'LEFT OUTER JOIN ' + \
-                    '('+sql2+') AS d2 ON p.userID=d2.userID AND p.tournamentdate=d2.tournamentdate ' + \
+                    '('+sql2+') AS d2 ON p.userID=d2.userID AND p.tdate=d2.tdate ' + \
                     'AND p.cityID = d2.cityID ' + \
                     ''
 
          print '    - Reading data from database'
          cur = db.cursor()
          cur.execute( sql_full )
+         desc = cur.description
          data = cur.fetchall()
 
+         # Now compute 
          if len(data) == 0:
             print '    - Sorry, got no data to compute sum points'
          else:
+            # Else: we have data, update database
             print '    - Upserting database (%d lines)' % len(data)
+
+            # Require the index of the "points" variable
+            points_idx = None
+            for di in range(0,len(desc)):
+               if str(desc[di][0]) == 'points':
+                  points_idx = di
+                  break
+            if not points_idx:
+               sys.exit("ERROR: could not find variable \"points\" in data. Stop.")
+
             # - Prepare the data
             sql = 'INSERT INTO '+db.prefix+'wetterturnier_betstat ' + \
                   '(userID, cityID, tdate, points, ' + \
-                  'points_d1, points_d2, submitted) ' + \
-                  'VALUES (%s, %s, %s, %s, %s, %s, %s) ' + \
+                  'points_d1, points_d2, submitted, rank) ' + \
+                  'VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ' + \
                   'ON DUPLICATE KEY UPDATE ' + \
                   'points_d1=VALUES(points_d1), ' + \
                   'points_d2=VALUES(points_d2), ' + \
-                  'points=VALUES(points)'
-            for d in data:
-                if not int(d[0]) == 1130: continue
-                print d
+                  'points=VALUES(points), ' + \
+                  'rank=VALUES(rank)'
+            #for d in data:
+            #    if not int(d[0]) == 1130: continue
+            #    print d
+
+            # Compute rank
+            points = []
+            for pi in range(0,len(data)): points.append(data[pi][points_idx])
+            points = np.sort(points)[::-1]
+
+            rank = []
+            data = list(data)
+            for pi in range(0,len(data)):
+               this   = data[pi][points_idx]
+               # if points is empty: skip
+               if not this:
+                  data[pi] = data[pi] + (None,)
+                  continue
+               # else search rank
+               rank   = np.where(points == this)[0]
+               if not len(rank):
+                  data[pi] = data[pi] + (None,)
+               else:
+                  data[pi] = data[pi] + (rank[0] + 1,)
 
             cur.executemany( sql , data )
             db.commit()

@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-12-13 12:42 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-09 15:26 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -254,7 +254,7 @@ class database(object):
    def current_tournament(self):
       """!Returns tdate for current tournament.
       The tdate is the number of days since 1970-01-01. Loading the
-      max(tournamentdate) from the bets table.
+      max(tdate) from the bets table.
       If all works as it should bets can only be placed for the upcoming
       tournament. And this method is used to compute e.g., the points and
       stuff. Therefore we just have to know which are the newest bets and
@@ -266,11 +266,15 @@ class database(object):
       in a row. Can this method then handle the requests?
       """
 
+      import numpy as np
+      import datetime as dt
+
       print '  * %s' % 'Searching current tournament date'
-      sql = 'SELECT max(tournamentdate) FROM %swetterturnier_bets'
+      today = int(np.floor(float(dt.datetime.now().strftime("%s"))/86400))
+      sql = 'SELECT max(tdate) FROM %swetterturnier_bets WHERE tdate <= %d'
 
       cur = self.cursor()
-      cur.execute( sql % self.config['mysql_prefix'] )
+      cur.execute( sql % (self.config['mysql_prefix'],today) )
       tdate = cur.fetchone()[0]
 
       print '    Current tournament date is: %d' % tdate
@@ -292,14 +296,14 @@ class database(object):
       """
 
       print '  * %s' % 'Searching all tournament dates for city %d' % cityID
-      sql = 'SELECT tournamentdate FROM %swetterturnier_bets ' + \
-            'WHERE cityID = %d GROUP BY tournamentdate'
+      sql = 'SELECT tdate FROM %swetterturnier_bets ' + \
+            'WHERE cityID = %d GROUP BY tdate'
 
-      # - DEVELOPMENT: ONLY DATES 2015+
-      print "[!] RETO: DEVELOPMENT IN all_tournament_dates YOU ARE ONLY"
-      print "    PICKING DATES 2015+ AND NOT ALL ..."
-      sql = 'SELECT tournamentdate FROM %swetterturnier_bets ' + \
-            'WHERE cityID = %d AND tournamentdate > 16436 GROUP BY tournamentdate'
+      ## - DEVELOPMENT: ONLY DATES 2015+
+      #print "[!] RETO: DEVELOPMENT IN all_tournament_dates YOU ARE ONLY"
+      #print "    PICKING DATES 2015+ AND NOT ALL ..."
+      #sql = 'SELECT tdate FROM %swetterturnier_bets ' + \
+      #      'WHERE cityID = %d AND tdate > 16436 GROUP BY tdate'
 
       cur = self.cursor()
       cur.execute( sql % (self.config['mysql_prefix'], cityID) )
@@ -311,7 +315,7 @@ class database(object):
       return tdates
 
    # -------------------------------------------------------------------
-   # - Returns alllllll bets for a given tournamentdate and
+   # - Returns alllllll bets for a given tdate and
    #   a parameter. Returns ID and values. That's what we need
    #   to compute and store the points. Returns two lists with ID and values.
    #   This will be used by the judgingclass to compute the points.
@@ -343,7 +347,7 @@ class database(object):
       cur = self.db.cursor()
       sql = 'SELECT ID, value FROM %swetterturnier_bets ' + \
             'WHERE cityID = %d AND paramID = %d AND betdate = %d AND ' + \
-            'tournamentdate = %d' ### AND status = 1'
+            'tdate = %d' ### AND status = 1'
 
       # - If there is a userID on self.config['input_user']:
       #   only return the data for this user!
@@ -421,7 +425,7 @@ class database(object):
       deadID = self.get_user_id('Deadman')
 
       # - For Petrus, load all bets for a given
-      #   tournamentdate/betdate, city and parameter.
+      #   tdate/betdate, city and parameter.
       if typ == 'all': 
          # - Also ignore Referenztips. They look like players but they
          #   should not be included into mitteltips. Else Persistenz
@@ -437,10 +441,10 @@ class database(object):
          sql.append("LEFT OUTER JOIN %susers AS usr" % self.prefix)
          sql.append("ON bet.userID = usr.ID")
          sql.append("INNER JOIN %swetterturnier_betstat AS stat" % self.prefix)
-         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tournamentdate=stat.tdate")
+         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tdate=stat.tdate")
          sql.append("WHERE usr.user_login NOT LIKE \"%s\"" % "GRP_%")
          sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
-         sql.append("AND bet.tournamentdate = %d AND bet.betdate = %d" % (tdate,bdate))
+         sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
          sql.append("AND bet.userID != %d" % deadID)
          sql.append(" ".join(ref))
          # print "\n".join(sql)
@@ -451,10 +455,10 @@ class database(object):
          sql = []
          sql.append("SELECT bet.value AS value FROM %swetterturnier_bets AS bet" % self.prefix)
          sql.append("INNER JOIN %swetterturnier_betstat AS stat" % self.prefix)
-         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tournamentdate=stat.tdate")
+         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tdate=stat.tdate")
          sql.append("WHERE bet.userID = %d" % ID) 
          sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
-         sql.append("AND bet.tournamentdate = %d AND bet.betdate = %d" % (tdate,bdate))
+         sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
          #print "\n".join( sql )
          cur.execute( "\n".join(sql) ) 
       # - If input was user, load tips for a specific user.
@@ -464,16 +468,16 @@ class database(object):
                      'ON v.userID = gu.userID ' + \
                      'WHERE gu.groupID = %d ' + \
                      'AND v.cityID = %d AND v.paramID = %d ' + \
-                     'AND v.tournamentdate = %d AND v.betdate = %d '
+                     'AND v.tdate = %d AND v.betdate = %d '
          sql = []
          sql.append("SELECT bet.value AS value FROM %swetterturnier_bets AS bet" % self.prefix)
          sql.append("LEFT OUTER JOIN %swetterturnier_groupusers AS gu" % self.prefix)
          sql.append("ON bet.userID = gu.userID")
          sql.append("INNER JOIN %swetterturnier_betstat AS stat" % self.prefix)
-         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tournamentdate=stat.tdate")
+         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tdate=stat.tdate")
          sql.append("WHERE gu.groupID = %d" % ID) 
          sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
-         sql.append("AND bet.tournamentdate = %d AND bet.betdate = %d" % (tdate,bdate))
+         sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
          #print "\n".join( sql )
          cur.execute( "\n".join(sql) ) 
       # - Else ... adapt the exit condition above please.
@@ -514,7 +518,7 @@ class database(object):
       cur = self.db.cursor()
 
       sql = 'INSERT INTO %swetterturnier_bets ' + \
-            '(userID, cityID, paramID, tournamentdate, betdate, value) VALUES ' + \
+            '(userID, cityID, paramID, tdate, betdate, value) VALUES ' + \
             '(%d, %d, %d, %d, %d, %d) ON DUPLICATE KEY UPDATE value = VALUES(value)'
    
       cur.execute( sql % (self.prefix, userID, cityID, paramID, tdate, bdate, value) )
@@ -549,7 +553,7 @@ class database(object):
       cur = self.db.cursor()
 
       sql = 'INSERT INTO %swetterturnier_bets ' + \
-            '(userID, cityID, paramID, tournamentdate, betdate, value, points) VALUES ' + \
+            '(userID, cityID, paramID, tdate, betdate, value, points) VALUES ' + \
             '(%d, %d, %d, %d, %d, %d, %f) ON DUPLICATE KEY UPDATE points = VALUES(points)'
    
       cur.execute( sql % (self.prefix, userID, cityID, paramID, tdate, bdate, -999, points) )
