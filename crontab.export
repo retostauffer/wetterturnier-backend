@@ -1,0 +1,52 @@
+# Edit this file to introduce tasks to be run by cron.
+# 
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+# 
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').# 
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+# 
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+# 
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+# 
+# For more information see the manual pages of crontab(5) and cron(8)
+# 
+# m h  dom mon dow   command
+MAILTO=""
+
+# - Backup purposes. Copy werte files from old server to new server
+* */12 * * * cd /home/retos/WTbackend && /bin/bash copy_archive_from_prognose1.sh 2> /home/retos/WTbackend/copy_archive_from_prognose1.log
+
+
+# - Operational wetterturnier steps.
+
+# - Prepare obs for tournament. Loading RAW observations
+#   from database obs.bufr/obs.stations and stores them into
+#   the wetterturnier plugin wpwt.wp_wetterturnier_obs
+#   !!! Note that the script is running in a local virtual environment.
+*/2 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Observations.py &> /home/retos/cronlog/Observations.log
+
+# - Chain: does everything necessary:
+#   1) ComputeMeanBets (group bets)
+#   2) ComputePetrus
+#   3) ComputePoints     (computes the points for the players)
+#   4) ComputeDeadman    (deadman is based on the points of the players)
+#   5) ComputeSumPoints  (computes sum of points - necessary for the ranking)
+#   PLEASE NOTE: the source/activae is very important here as the Chain.py
+#   starts ComputePoints, ComputeSumpoints and other scrpits. They are started
+#   using "python" which has to be the python executable from the virtual
+#   environment! Do not remove source venv/bin/activate unless you install
+#   the pywetterturnier package into the system wide python library.
+*/5 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Chain.py &> /home/retos/cronlog/Chain.log
+
+
+# - Development. Import altes wetterturnier
+####PFAD UND SO FALSCH#####0 */2 * * *  timeout 1800 /usr/bin/python /var/www/wetterturnier/current.py > /home/retos/cronlog/current.log 2>&1
