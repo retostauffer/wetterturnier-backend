@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2016-09-12 06:19 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-12 16:52 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
@@ -70,24 +70,24 @@ class judging(object):
    # - Prepares data to insert them into the database.
    #   Creates list tuple out of two lists.
    # ----------------------------------------------------------------
-   def _prepare_for_database_(self,IDs,values):
+   def _prepare_for_database_(self,userID,cityID,paramID,tdate,betdate,values):
       """!Prepares ID/value pairs for database.
       Creates a tuple list which can be used with
       @b database.database.executemany. Used later with
       the method 'points_to_database' within this class to update
       the bets table.
-      @param IDs. List containing integers, ID's of the rows in the
-         database we have to update.
+      @param userID, cityID, paramID, tdate, betdate. Lists containing integers,
+         all these integers define the 'unique key' in the database.
       @param values. List containing numeric values connected to the ID's.
       """
 
-      if not len(IDs) == len(values):
-         utils.exit('In judging.prepare_for_database got different lengths of IDs and values!')
+      if not len(userID) == len(values):
+         utils.exit('In judging.prepare_for_database got different lengths of userIDs and values!')
 
       # - Create result
       res = []
-      for i in range(len(IDs)):
-         res.append( (values[i],IDs[i]) )
+      for i in range(len(values)):
+         res.append( (values[i],userID[i],cityID[i],paramID[i],tdate[i],betdate[i]) )
 
       return res
 
@@ -95,18 +95,18 @@ class judging(object):
    # ----------------------------------------------------------------
    # - Inserts data into database. They have to be prepared
    # ----------------------------------------------------------------
-   def points_to_database(self,db,IDs,values):
+   def points_to_database(self,db,userID,cityID,paramID,tdate,betdate,values):
       """!Updates the bets database.
-      @param IDs. List containing integers, ID's of the rows in the
-         database we have to update.
+      @param userID, cityID, paramID, tdate, betdate. Lists containing integers,
+         all these integers define the 'unique key' in the database.
       @param values. List containing numeric values connected to the ID's.
       """
 
       # - Prepare tuple list object
-      data = self._prepare_for_database_(IDs,values)
+      data = self._prepare_for_database_(userID,cityID,paramID,tdate,betdate,values)
 
       sql = 'UPDATE '+db.prefix+'wetterturnier_bets SET points = %s ' + \
-            'WHERE ID = %s' 
+            'WHERE userID=%s and cityID=%s and paramID=%s and tdate=%s and betdate=%s'
 
       cur = db.cursor()
       cur.executemany( sql, data )

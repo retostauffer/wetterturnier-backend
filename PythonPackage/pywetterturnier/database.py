@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-09 15:26 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-12 16:56 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -333,8 +333,9 @@ class database(object):
       @param day: Integer. [1/2] where 1 means tdate+1 (leading to a Saturday if
          tdate is a Friday). 2 means Sunday. Value between 0 and 5, however, only
          1 and 2 are useful as we do not have bets for the other days. 
-      @return Returns two lists, the first one is a list containing the database ID's
-         from the bets table, the second one the values (bets itself).
+      @return Returns a set of lists containing the 'unique key identifier' for
+         the database and the 'value' to update the database.  
+         Namely: userID, cityID, paramID, tdate, betdate and values.
       """
 
       # - If day is smaller equal 5 then the betdate
@@ -345,9 +346,9 @@ class database(object):
          betdate = day
 
       cur = self.db.cursor()
-      sql = 'SELECT ID, value FROM %swetterturnier_bets ' + \
+      sql = 'SELECT userID, cityID, paramID, tdate, betdate, value FROM %swetterturnier_bets ' + \
             'WHERE cityID = %d AND paramID = %d AND betdate = %d AND ' + \
-            'tdate = %d' ### AND status = 1'
+            'tdate = %d'
 
       # - If there is a userID on self.config['input_user']:
       #   only return the data for this user!
@@ -369,12 +370,22 @@ class database(object):
       if not data or len(data) == 0:
          return False, False
       else:
-         IDs = []; values = []
+         # Elements required for the unique key (for the update)
+         userID = []
+         cityID = []
+         paramID = []
+         tdate = []
+         betdate = []
+         # Values to update the database
+         values = []
          for elem in data:
-            IDs.append( int(elem[0]) )
-            values.append( int(elem[1]) )
-         return IDs, values
-      
+            userID.append(  int(elem[0]) )  
+            cityID.append(  int(elem[1]) )  
+            paramID.append( int(elem[2]) )  
+            tdate.append(   int(elem[3]) )  
+            betdate.append( int(elem[4]) )
+            values.append(  int(elem[5]) )
+         return userID, cityID, paramID, tdate, betdate, values
 
    # -------------------------------------------------------------------
    # - Loading bets. 
