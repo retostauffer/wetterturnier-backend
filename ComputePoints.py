@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2016-05-22 20:12 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-12 16:51 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -143,8 +143,10 @@ if __name__ == '__main__':
                # - Loading city observations
                # - Loading the user bets
                nullonly = False
-               IDs, values = db.get_cityall_bet_data(city['ID'],paramID,tdate,day,nullonly=nullonly)
-               if not IDs or not values:
+               db_userID, db_cityID, db_paramID, db_tdate, db_betdate, values = \
+                  db.get_cityall_bet_data(city['ID'],paramID,tdate,day,nullonly=nullonly)
+               # - No data: skip 
+               if not values:
                   print '    Got no data for this parameter. Skip.'
                   continue
    
@@ -159,7 +161,8 @@ if __name__ == '__main__':
                # - Now compute points
                points = jug.get_points(obs,param,values,special,tdate)
    
-               jug.points_to_database( db, IDs, points )
+               jug.points_to_database( db, db_userID, db_cityID, db_paramID, db_tdate, \
+                                       db_betdate, points )
 
 
    # ----------------------------------------------------------------
