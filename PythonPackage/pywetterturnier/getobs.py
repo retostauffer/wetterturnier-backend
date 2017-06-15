@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-15 17:43 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-15 17:53 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -661,6 +661,11 @@ class getobs( object ):
       observations are 12h sums this means from 06 UTC today
       to 06 UTC tomorrow). Returns precipitation in 1/10 mm
       OR -30 if there was no precipitation at all.
+      Note: if there is no recorded precipitation amount or
+      the amount of precipitation recorded is 0.0 I also check
+      the W1 observations for the time period of interest. If
+      there is no sign. precipitation weather recorded in W1
+      (w1 = 5, 6, 7, 8 or 9) the value will be set to -3.0.
       @arg First: if database entry for 18 UTC is here but
            there is no recorded amount of precipitation we
            have to assume that there was no precipitation.
@@ -715,10 +720,11 @@ class getobs( object ):
          W1.append( self.load_obs( station.wmo, 24, 'w1' ) )
          W1.append( self.load_obs( station.wmo, 30, 'w1' ) )
 
-         # Check if all W1-observations are 10 (no sign. weather reported)
-         # And precipitation sum is 0 mm: return -3.0.
+         # Check if all W1-observations are 10 (no sign. weather reported),
+         # class 0/1/2/3/4 (the non-precip-weather-types) or missing.
+         # If so, then the sum will be set to -3.0 (dry) rather than 0.0.
          print value
-         if all( item in [None,10] for item in W1):
+         if all( item in [None,0,1,2,3,4,10] for item in W1):
             value = -30.
 
       # - Return value  
