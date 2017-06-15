@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-15 17:21 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-15 17:43 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -385,7 +385,6 @@ class getobs( object ):
       # - Loading td valid at 12 UTC 
       dd = self.load_obs( station.wmo, 12, 'dd' )
       ff = self.load_obs( station.wmo, 12, 'ff' )
-      print " ------------- " , dd, ff
       # - If dd is valid: take this one
       if dd == None:
          value = None
@@ -589,7 +588,7 @@ class getobs( object ):
       """
 
       check12 = self.check_record( station.wmo, 12 )
-      ww = self.load_obs( station.wmo, 12, 'w1' )
+      w1 = self.load_obs( station.wmo, 12, 'w1' )
       # - Not observed
       if w1 == None:
          if check12:    value = 0
@@ -685,12 +684,11 @@ class getobs( object ):
       check18 = self.check_record( station.wmo, 18 )
       check06 = self.check_record( station.wmo, 30 )
 
-      # - IF RR18 is None (no value) but the observation
-      #   for 18 UTC is hereL set RR18 to 0.0 (we have to
-      #   assume that non-observed is = 0.0).
-      #   Same for RR06
-      if RR18 == None and check18: RR18 = -1
-      if RR06 == None and check06: RR06 = -1
+      # - If observed values RR18/RR06 are empty but the observations
+      #   are in the database we have to assume that there was no
+      #   precipitation at all. Set these values to -3.0 (no precip).
+      if RR18 == None and check18: RR18 = -3.0
+      if RR06 == None and check06: RR06 = -3.0
 
       # - Both observations available: use them
       if not RR18 == None and not RR06 == None:
@@ -707,6 +705,22 @@ class getobs( object ):
             value = RR18 + RR06
       else:
          value = None
+
+      # - Extra check: if precipitation sum is 0:
+      if value == 0:
+         # - Load W1 observation for the time period 06UTC-06UTC
+         W1 = []
+         W1.append( self.load_obs( station.wmo, 12, 'w1' ) )
+         W1.append( self.load_obs( station.wmo, 18, 'w1' ) )
+         W1.append( self.load_obs( station.wmo, 24, 'w1' ) )
+         W1.append( self.load_obs( station.wmo, 30, 'w1' ) )
+
+         # Check if all W1-observations are 10 (no sign. weather reported)
+         # And precipitation sum is 0 mm: return -3.0.
+         print value
+         if all( item in [None,10] for item in W1):
+            value = -30.
+
       # - Return value  
       return value
 
