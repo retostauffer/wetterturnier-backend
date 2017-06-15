@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2016-09-09 16:37 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-15 17:21 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -573,13 +573,15 @@ class getobs( object ):
             assume that there were no clouds       return 0
          2) if observation not recorded and
             12 UTC database entry not available    return None
-         3) observation here BUT 
+         3) If observation is = 10 (no sign weather)
+            we can return class 0                  @b return 0
+         4) observation here BUT 
             the observed value is > 10 (note:
-            BUFR messages, 10+ are for automated
+            BUFR messages, > 10 are for automated
             significant weather instruments)       return None 
-         4) If observation is 1, 2, or 3: set to 0
+         5) If observation is 1, 2, or 3: set to 0
             as 1, 2, 3 are not used in the WT      return 0
-         5) else                                   return value
+         6) else                                   return value
 
       @param station. Object of class stationclass.
       @return numeric or None. Returns observed value if loading data
@@ -587,19 +589,19 @@ class getobs( object ):
       """
 
       check12 = self.check_record( station.wmo, 12 )
-      w1 = self.load_obs( station.wmo, 12, 'w1' )
+      ww = self.load_obs( station.wmo, 12, 'w1' )
       # - Not observed
       if w1 == None:
-         if check12:    value = 0. 
+         if check12:    value = 0
          else:          value = None
       # - Observed 
       else:
          # - If there is no significant weather, the BUFR reports a
-         #   code 508 (no sign weather phaenomena, past and current weather omitted).
+         #   code 10 on w1/w2 (no sign weather phaenomena).
          #   In this case we can return a 0.
-         if int(w1) == 508:          value = 0
-         elif w1 >= 10.:             value = None    # automated observation
-         elif w1 >= 1. and w1 <= 4.: value = 0 # 1,2,3 is not used
+         if int(w1) == 10:           value = 0
+         elif w1 >  10.:             value = None    # automated observation
+         elif w1 >= 1. and w1 <= 4.: value = 0       # 1,2,3 is not used
          else:                       value = w1 * 10 # juchee
       # - Return value  
       return value
@@ -617,13 +619,15 @@ class getobs( object ):
             assume that there were no clouds:      @b return 0
          2) if observation not recorded and
             18 UTC database entry not available:   @b return None
-         3) observation here BUT 
-            the observed value is >= 10 (note:
-            BUFR messages, 10+ are for automated
+         3) If observation is = 10 (no sign weather)
+            we can return class 0                  @b return 0
+         4) observation here BUT 
+            the observed value is > 10 (note:
+            BUFR messages, > 10 are for automated
             significant weather instruments):      @b return None 
-         4) If observation is 1, 2, or 3: set to 0
+         5) If observation is 1, 2, or 3: set to 0
             as 1, 2, 3 are not used in the WT      return 0
-         5) else:                                @b return value
+         6) else:                                @b return value
 
       @param station. Object of class stationclass.
       @return numeric or None. Returns observed value if loading data
@@ -639,11 +643,11 @@ class getobs( object ):
       # - Observed 
       else:
          # - If there is no significant weather, the BUFR reports a
-         #   code 508 (no sign weather phaenomena, past and current weather omitted).
+         #   code 10 on w1/w2 (no sign weather phaenomena).
          #   In this case we can return a 0.
-         if int(w1) == 508:          value = 0
-         elif w1 >= 10.:             value = None    # automated observation
-         elif w1 >= 1. and w1 <= 4.: value = 0 # 1,2,3 is not used
+         if int(w1) == 10:           value = 0
+         elif w1 >  10.:             value = None    # automated observation
+         elif w1 >= 1. and w1 <= 4.: value = 0       # 1,2,3 is not used
          else:                       value = w1 * 10 # juchee
       # - Return value  
       return value
