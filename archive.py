@@ -10,7 +10,7 @@
 # - EDITORIAL:   2014-09-23, RS: Created file on pc24-c707.
 #                2014-09-26, RS: Using local files now.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-10 18:28 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-17 14:24 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -56,17 +56,29 @@ if __name__ == '__main__':
          # ----------------------------------------------------------
          # - Allready processed?
          # ----------------------------------------------------------
-         print '* Checking %s in logfile' % file
-         if os.path.isfile( config['rawdir']+'/archivefiles_processed_%s.txt' % city ):
-            aid = open(config['rawdir']+'/archivefiles_processed_%s.txt' % city, 'r')
-            aco = aid.readlines()
-            aid.close()
-            skip = False
-            for aline in aco:
-               if file in aline:
-                  print '    - ALLREADY PROCESSED. Skip'
-                  skip = True
-            if skip: continue
+
+         # - Extract tournament date. Used to force a certain file
+         #   to be processed ('live' for development).
+         mtch = re.match(".*wert([0-9]{6}).txt$",file)
+         file_date = int("20{0:s}".format(mtch.group(1)))
+
+         # - Force in
+         if file_date in [20170616]:
+            print "[!] FORCE file {0:s} to database now".format(file)
+            file_forced = True
+         else:
+            file_forced = False
+            print '* Checking {0:s}s in logfile'.format(file)
+            if os.path.isfile( config['rawdir']+'/archivefiles_processed_%s.txt' % city ):
+               aid = open(config['rawdir']+'/archivefiles_processed_%s.txt' % city, 'r')
+               aco = aid.readlines()
+               aid.close()
+               skip = False
+               for aline in aco:
+                  if file in aline:
+                     print '    - ALLREADY PROCESSED. Skip'
+                     skip = True
+               if skip: continue
                   
 
          print '* Loading: %s' % (file)
@@ -74,7 +86,7 @@ if __name__ == '__main__':
          if counter >= 5: utils.exit('dev stop, counter >= 5 here')
 
          # - Import first file
-         obj = importbets.importbets(config)
+         obj = importbets.importbets(config,file_forced)
          obj.loadfilecontent( file )
 
          obj.identify_city()

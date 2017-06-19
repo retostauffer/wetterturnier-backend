@@ -28,8 +28,9 @@ class importbets:
     # ---------------------------------------------------------------
     # - Init method
     # ---------------------------------------------------------------
-    def __init__(self,config):
+    def __init__(self,config,file_forced):
 
+        self.file_forced = file_forced
         self.config = config
 
         host   = self.config['mysql_host']
@@ -407,6 +408,7 @@ class importbets:
                     points = float( words[-1] )
                 except:
                     print words
+                    if self.file_forced: continue
                     utils.exit('Problems getting points from that line')
                 if not paramID:
                     utils.exit('Problems extracting parameter or getting paramID from line')

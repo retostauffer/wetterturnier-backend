@@ -27,4 +27,4 @@ rsync -vart admin@prognose.met.fu-berlin.de:/home/wien/auswertung/wert/wert${ext
 
 # - Kill data of current tournament (can crash if there is everything full of x)
 today=`date -u '+%y%m%d'`
-rm wert_*/wert${today}.txt
+#rm wert_*/wert${today}.txt
