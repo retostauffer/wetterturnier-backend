@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-15 17:53 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-19 17:52 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -244,7 +244,7 @@ class getobs( object ):
    # - Calling the prepare_fun methods for the different
    #   parameters like TTm, TTn, ... 
    # ----------------------------------------------------------------
-   def prepare( self, parameter ):
+   def prepare( self, parameter, extra_from=None, extra_to=None):
       """!Prepares the different observed parameters like TTn, TTm, N,
       and so on. Note that the script will ignore a wrong specified
       or unknown parameter as the internal method then does not exist. 
@@ -269,13 +269,13 @@ class getobs( object ):
 
       # - Else calling function
       for station in self.stations:
-         value = fun(station)
+         value = fun(station,extra_from=extra_from,extra_to=extra_to)
          self._add_obs_value_(parameter,station.wmo,value)
 
    # ----------------------------------------------------------------
    # - Prepare TTm
    # ----------------------------------------------------------------
-   def _prepare_fun_TTm_(self,station):
+   def _prepare_fun_TTm_(self,station,extra_from,extra_to):
       """!Helper function for TTM, maximum temperature. Returns 18 UTC maximum
       temperature, either from column tmax12 or - if tmax12 not available
       but tmax24 exists - maximum temperature from tmax24.
@@ -306,7 +306,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare TTn
    # ----------------------------------------------------------------
-   def _prepare_fun_TTn_(self,station):
+   def _prepare_fun_TTn_(self,station,extra_from,extra_to):
       """!Helper function for TTN, minimum temperature. Returns 06 UTC minimum
       temperature. Simply the tmin12 column at 06 UTC in 1/10 degrees Celsius.
 
@@ -318,6 +318,11 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       value = self.load_obs( station.wmo,  6, 'tmin12' )
+      if extra_from is not None and extra_to is not None: 
+         print extra_from, extra_to
+         sys.exit()
+
+
       # - Return value
       return value 
 
@@ -325,7 +330,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare TTd
    # ----------------------------------------------------------------
-   def _prepare_fun_TTd_(self,station):
+   def _prepare_fun_TTd_(self,station,extra_from,extra_to):
       """!Helper function for dew point temperature. Returns 12 UTC observed
       dew point temperature from database column td in 1/10 degrees Celsius.
 
@@ -343,7 +348,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare PPP
    # ----------------------------------------------------------------
-   def _prepare_fun_PPP_(self,station):
+   def _prepare_fun_PPP_(self,station,extra_from,extra_to):
       """!Helper function for mean sea level pressure at 12 UTC.
       Based on database column pmsl. Return value will be in 1/10 hPa.
 
@@ -365,7 +370,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare dd
    # ----------------------------------------------------------------
-   def _prepare_fun_dd_(self,station):
+   def _prepare_fun_dd_(self,station,extra_from,extra_to):
       """!Helper function for the wind direction at 12 UTC from database
       column dd. Values will be returned in 1/10 degrees but rounded
       to full 10 degrees. E.g., observed '138' degrees will be converted
@@ -405,7 +410,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare ff
    # ----------------------------------------------------------------
-   def _prepare_fun_ff_(self,station):
+   def _prepare_fun_ff_(self,station,extra_from,extra_to):
       """!Helper function for the wind speed at 12 UTC. Based on database
       column ff. Values will be in 1/10 knots but rounded to full knots.
       E.g., if 3.2m/s observed -> 6.22kt -> Return value will be 60. 
@@ -431,7 +436,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading fx (maximum wind gust over last 1h, 6 to 6 UTC)
    # ----------------------------------------------------------------
-   def _prepare_fun_fx_(self,station):
+   def _prepare_fun_fx_(self,station,extra_from,extra_to):
       """!Helper function for the maximum gust speed (fx > 25kt).
       Based on database column fx1. Return value will be in 1/10 knots but
       rounded to full knots. 
@@ -527,7 +532,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare N
    # ----------------------------------------------------------------
-   def _prepare_fun_N_(self,station):
+   def _prepare_fun_N_(self,station,extra_from,extra_to):
       """!Helper function for cloud cover at 12 UTC. Return value
       will be in 1/10 octas, rounded to full octas [0,10,20,30,...,80]. 
       Observations based on database column cc.
@@ -548,7 +553,8 @@ class getobs( object ):
       if not N == None:
          import numpy as np
          # - Note: BUFR report is in percent
-         value = np.round(np.float(N)/100.*8.) * 10 
+         value = (np.floor(np.float(N)/100.*8.) + 1 ) * 10
+         if value > 80: value == 80
       # - Else if record exists but there is no observed
       #   cloud cover we have to assume that the value
       #   should be 0 but is not reported at all. 
@@ -563,7 +569,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare Wv
    # ----------------------------------------------------------------
-   def _prepare_fun_Wv_(self,station):
+   def _prepare_fun_Wv_(self,station,extra_from,extra_to):
       """!Helper function for significant weather observatioins between
       06 UTC and 12 UTC (forenoon) based on database table w1.
       Value will be in 1/10 levels [0,10,20,...,90].
@@ -609,7 +615,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare Wn
    # ----------------------------------------------------------------
-   def _prepare_fun_Wn_(self,station):
+   def _prepare_fun_Wn_(self,station,extra_from,extra_to):
       """!Helper function for significant weather observatioins between
       12 UTC and 18 UTC (afternoon). Based on database table w1.
       Value will be in 1/10 levels [0,10,20,...,90].
@@ -655,7 +661,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading RR
    # ----------------------------------------------------------------
-   def _prepare_fun_RR_(self,station):
+   def _prepare_fun_RR_(self,station,extra_from,extra_to):
       """!Helper function for 24h sum of precipitation based on
       database column 'rrr12' at +18 and +30h (as the reported
       observations are 12h sums this means from 06 UTC today
@@ -734,7 +740,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading sunshine. 
    # ----------------------------------------------------------------
-   def _prepare_fun_Sd_(self,station):
+   def _prepare_fun_Sd_(self,station,extra_from,extra_to):
       """!Helper function for relative sun shine duration for the
       full day. Will be returned in 1/10 percent rounded to
       full percent (34% will result in 340.).

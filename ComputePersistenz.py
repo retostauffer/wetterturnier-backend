@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-29, RS: Adapted from ComputeMoses.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2016-01-24 08:26 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-19 17:35 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -61,6 +61,16 @@ if __name__ == '__main__':
    db.create_user( username )
    userID = db.get_user_id( username )
 
+   # -------------------------------------------------------------
+   # Remove boolean values from list
+   # -------------------------------------------------------------
+   def remove_bool_from_list( x ):
+      res = []
+      for elem in x:
+         if not isinstance(elem,bool):
+            res.append( elem )
+      return res
+
    # ----------------------------------------------------------------
    # - Loopig over all tournament dates
    # ----------------------------------------------------------------
@@ -108,8 +118,11 @@ if __name__ == '__main__':
 
                # - The results dict, needed later
                val = db.get_obs_data(city['ID'],paramID,tdate,-1,stn.wmo)
-               #if type(val) == type(bool()): continue
+               if isinstance(val,bool): continue
+
                res[param].append( val )
+
+            #res[param] = remove_bool_from_list( res[param] )
 
 
          # -------------------------------------------------------------
@@ -139,16 +152,12 @@ if __name__ == '__main__':
             # -------------------------------------------------------
             # - take arithmetic mean value for: N, Sd, ff, PPP, TTm, TTn, TTd
             # -------------------------------------------------------
-            res_tmp = []
-            for elem in res[param]:
-               if type(elem) == type(int()) or type(elem) == type(float()):
-                  res_tmp.append( elem )
-            if len(res_tmp) == 0:
+            if len(res[param]) == 0:
                bet[param] = None
             elif param in ['N','ff','Sd']:
-               bet[param] = np.int(np.round( mean( res_tmp ) / 10. )) * 10
+               bet[param] = np.int(np.round( mean( res[param] ) / 10. )) * 10
             elif param in ['PPP','TTm','TTn','TTd']:
-               bet[param] = np.int(np.round( mean(res_tmp) ))
+               bet[param] = np.int(np.round( mean(res[param]) ))
             #if res[param] is None:
             #   print "AAA"
             #   bet[param] = None
