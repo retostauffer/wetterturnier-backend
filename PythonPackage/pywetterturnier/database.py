@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-12 16:56 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-23 10:13 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -78,6 +78,25 @@ class database(object):
       """!Simple wrapper to MySQL.commit"""
       self.db.commit()
 
+   def check_if_table_exists(self,table):
+      """!Checks wheter a table exists in the database. Note that the
+      table name is the table name without prefix! For example: if you
+      wanna check whether wp_users exists the the variable tablename
+      has to be 'users' only. The prefix is used as specified in the
+      config file.
+      @param table. Character string, table name without prefix.
+      @return True if table exists, False if not."""
+
+      cur = self.db.cursor()
+      sql = "SELECT count(*) FROM information_schema.tables WHERE " + \
+            "table_schema = '{0:s}' AND table_name = '{1:s}{2:s}';".format(
+            self.config['mysql_db'],self.config['mysql_prefix'],table)
+      cur.execute(sql)
+      res = cur.fetchone()
+      if int(res[0]) == 0:
+         return False
+      else:
+         return True
 
    # -------------------------------------------------------------------
    # - Create a group
@@ -314,6 +333,24 @@ class database(object):
 
       return tdates
 
+   # -------------------------------------------------------------------
+   # - Given an ID this method returns the city name.
+   # -------------------------------------------------------------------
+   def get_city_name_by_ID(self,cityID):
+      """!Returns the full city name given a valid cityID. If the city
+      cannot be found in the database False will be returned.
+      @params cityID. Integer, required.
+      @return Returns city name (string) or False (bool) if the city could
+         not be found in the database."""
+      sql = "SELECT name FROM {0:s}{1:s} WHERE ID = {2:d}".format(
+         self.config['mysql_prefix'],"wetterturnier_cities",cityID)
+      cur = self.cursor(); cur.execute(sql)
+      res = cur.fetchone()
+      if len(res) == 0: return False
+      return str(res[0])
+
+      print sql
+   
    # -------------------------------------------------------------------
    # - Returns alllllll bets for a given tdate and
    #   a parameter. Returns ID and values. That's what we need

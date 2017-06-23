@@ -10,7 +10,7 @@
 # - EDITORIAL:   2014-09-23, RS: Created file on pc24-c707.
 #                2014-09-26, RS: Using local files now.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-17 14:24 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-19 18:40 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -103,10 +103,6 @@ if __name__ == '__main__':
          obj.extract_bets(2)
 
          # - Extracting .. points?
-
-         ## - Now extracting bet-times
-         ##   MAKES UPDATE: HAS TO BE AFTER EXTRACTE BETS!!!
-         #obj.extract_bettimes()
 
          # - Try to get the points of all the users
          obj.extract_parameter_points()

@@ -331,6 +331,11 @@ class importbets:
               ' WHERE userID = %s AND tdate = %s AND cityID = %s'
         cur.executemany( sql, res )
         self.db.commit()
+
+        sql = 'UPDATE '+self.db.prefix+'wetterturnier_betstat SET submitted = %s ' + \
+              ' WHERE userID = %s AND tdate = %s AND cityID = %s'
+        cur.executemany( sql, res )
+        self.db.commit()
  
         # - Appending cached raw usernames to the object
         #   This will be used to extract the points afterwards.
