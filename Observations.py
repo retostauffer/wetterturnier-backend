@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-16 20:19 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-25 07:30 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -98,8 +98,8 @@ if __name__ == '__main__':
             obs = getobs.getobs(config,db,city,date)
 
             # - Temperatures
-            obs.prepare('TTm')
-            obs.prepare('TTn')
+            obs.prepare('TTm',special='T today 07:00 to today 18:00')
+            obs.prepare('TTn',special='T yesterday 19:00 to today 6:00 ')
             obs.prepare('TTd')
             # - Wind speed and direction
             obs.prepare('dd')

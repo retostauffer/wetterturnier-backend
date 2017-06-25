@@ -10,7 +10,7 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 10:22 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-23 20:01 on thinkreto
 # -------------------------------------------------------------------
 
 """@package docstring
@@ -109,7 +109,14 @@ def usage(what=None):
 
    import utils
 
-   if what == 'ComputePoints':
+   if what == None:
+      print """
+      Run into the usage from the inputcheck module with None type.
+      You should set an explcit 'what' type when calling the usage
+      so that I can give you a propper exit statement and some
+      explanation which input options are allowed.
+      """
+   else: 
       print """
       Sorry, wrong usage for type ComputePoints.
       Allowed inputs for this script are:
@@ -130,18 +137,11 @@ def usage(what=None):
                      features are there for some reason. So
                      please do not use.
       """
-   elif what == None:
-      print """
-      Run into the usage from the inputcheck module with None type.
-      You should set an explcit 'what' type when calling the usage
-      so that I can give you a propper exit statement and some
-      explanation which input options are allowed.
-      """
-   else:
-      print """
-      Run into the usage from the inputcheck module with an unknown
-      type. 
-      """
+   #else:
+   #   print """
+   #   Run into the usage from the inputcheck module with an unknown
+   #   type. 
+   #   """
 
    utils.exit('This is/was the usage (what: %s).' % what)
 

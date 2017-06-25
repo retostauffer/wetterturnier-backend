@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-29, RS: Adapted from ComputeMoses.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-19 17:35 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-23 20:03 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -158,16 +158,6 @@ if __name__ == '__main__':
                bet[param] = np.int(np.round( mean( res[param] ) / 10. )) * 10
             elif param in ['PPP','TTm','TTn','TTd']:
                bet[param] = np.int(np.round( mean(res[param]) ))
-            #if res[param] is None:
-            #   print "AAA"
-            #   bet[param] = None
-            #elif param in ['N','ff','Sd']:
-            #   print "BBB"
-            #   bet[param] = np.int(np.round( mean( res[param] ) / 10. )) * 10
-            #elif param in ['PPP','TTm','TTn','TTd']:
-            #   print "CCC"
-            #   bet[param] = np.int(np.round( mean(res[param]) ))
-
 
             # -------------------------------------------------------
             # - ffx: decide gust or no gust

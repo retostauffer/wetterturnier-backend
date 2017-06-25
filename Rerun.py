@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePoints.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-23 10:20 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-23 17:36 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
    if len(rerun) == 0:
       print "   There are no rerun requests, stop here."; sys.exit(0)
-
+   
    # - Compute the Points for all the dudes first
    import subprocess as sub
    from datetime import datetime as dt
