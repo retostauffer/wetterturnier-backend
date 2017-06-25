@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-23 10:13 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-23 17:30 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -161,7 +161,8 @@ class database(object):
       #   server.
       # - If the file wp-config.php does not exist, stop.
       if not os.path.isfile( self.config['migrate_wpconfig'] ):
-         utils.exit('Sorry, %s does not exist. Stop. Necessary to create wp users' % config['migrate_wpconfig'])
+         utils.exit('Sorry, {0:s} does not exist. Stop. Necessary to create wp users'.format(
+                     self.config['migrate_wpconfig']))
 
       
    
