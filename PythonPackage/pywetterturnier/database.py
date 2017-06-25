@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-25 13:53 on thinkreto
+# - L@ST MODIFIED: 2017-06-25 14:07 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -533,12 +533,14 @@ class database(object):
          from datetime import datetime as dt
          # Convert tdate into 'YYYY-mm-dd HH:MM:SS'
          strdate_bgn = dt.fromtimestamp(tdate*86400).strftime("%Y-%m-%d 00:00:00")
-         strdate_end = dt.fromtimestamp(tdate*86400+86400).strftime("%Y-%m-%d 00:00:00")
-         sql.append("AND gu.since <= '{0:s}' AND (gu.until IS NULL OR gu.until >= '{1:s}')".format(
-                    strdate_end,strdate_end))
+         strdate_end = dt.fromtimestamp((tdate+1)*86400).strftime("%Y-%m-%d 00:00:00")
+         sql.append("AND gu.since < '{0:s}' AND (gu.until IS NULL OR gu.until >= '{1:s}')".format(
+                    strdate_end,strdate_bgn))
+         ##print "\n".join(sql)
 
          # Execute query
          cur.execute( "\n".join(sql) ) 
+
       # - Else ... adapt the exit condition above please.
       else:
          utils.exit('Seems that you allowed anohter type in database.get_bet_data but you have not created a propper rule')
