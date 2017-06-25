@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-25 06:22 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-25 13:53 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -527,7 +527,17 @@ class database(object):
          sql.append("WHERE gu.groupID = %d" % ID) 
          sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
          sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
-         #print "\n".join( sql )
+
+         # Now we have to ensure that the players where active during these days
+         # in this group
+         from datetime import datetime as dt
+         # Convert tdate into 'YYYY-mm-dd HH:MM:SS'
+         strdate_bgn = dt.fromtimestamp(tdate*86400).strftime("%Y-%m-%d 00:00:00")
+         strdate_end = dt.fromtimestamp(tdate*86400+86400).strftime("%Y-%m-%d 00:00:00")
+         sql.append("AND gu.since <= '{0:s}' AND (gu.until IS NULL OR gu.until >= '{1:s}')".format(
+                    strdate_end,strdate_end))
+
+         # Execute query
          cur.execute( "\n".join(sql) ) 
       # - Else ... adapt the exit condition above please.
       else:
