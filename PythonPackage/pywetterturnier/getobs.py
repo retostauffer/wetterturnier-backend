@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-25 07:34 on thinkreto
+# - L@ST MODIFIED: 2017-06-25 07:53 on thinkreto
 # -------------------------------------------------------------------
 
 import sys, os
@@ -366,12 +366,16 @@ class getobs( object ):
       if special is not None and value is None:
          special = self.special_obs_object( special, self._date_ )
 
-         # Loading special data from database
-         spvalue = self.load_special_obs( station.wmo, special ) 
-         # If spvalue is not None take maximum of these
-         # observations as the 'best known maximum'.
-         if spvalue is not None:
-            value = float(np.max(spvalue))/10.
+         # If parsing was ok
+         if not special.error:
+            # Loading special data from database
+            spvalue = self.load_special_obs( station.wmo, special ) 
+            # If spvalue is not None take maximum of these
+            # observations as the 'best known maximum'.
+            if spvalue is not None:
+               value = np.max(spvalue)
+         else:
+            print "[!] Had problems parsing the special argument! SKip!"
 
 
       # - Return value
@@ -381,67 +385,6 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare TTn
    # ----------------------------------------------------------------
-   class special_obs_object(object):
-
-      def __init__( self, special, date ):
-         # Check whether the special option has the correct sytnax.
-         # First group: parameter
-         # Second group: 'from' statement
-         # Third group 'to' statement
-         regex_day="yesterday|today|tomorrow"
-         regex_time="[0-9]{1,2}:[0-9]{1,2}"
-         regex = "^([a-zA-Z0-9]+)\s+({0:s})\s+({1:s})\s+to\s+({0:s})\s+({1:s}).*$".format(
-                  regex_day,regex_time)
-
-         #print special
-         #print regex
-         import re
-         mtch = re.match(regex,special)
-         param,from_keyword,from_time,to_keyword,to_time = mtch.groups()
-
-         # Compute proper from/to datetime objects
-         self.from_date = self._string_to_date_(from_keyword,from_time,date)
-         self.to_date   = self._string_to_date_(to_keyword,to_time,date)
-         self.parameter = param
-
-         # Verbose if set to true
-         if False:
-            print "    Parameter:    {0:s}".format( param )
-            print "    From:         {0:s} {1:s}".format( from_keyword, from_time )
-            print "    To:           {0:s} {1:s}".format( to_keyword, to_time )
-            print "    Date is:      {0:s}".format( date.strftime("%Y-%m-%d %H:%M") )
-            print "    Yields from:  {0:s}".format( self.from_date.strftime("%Y-%m-%d %H:%M") )
-            print "    Yields to:    {0:s}".format( self.to_date.strftime("%Y-%m-%d %H:%M") )
-         
-      # Create proper date objects given the keyword,
-      # the time (e.g., 19:00) and the current tournament date 'date'
-      def _string_to_date_(self,keyword,time,date):
-         import re
-         import datetime as dt
-         hour,mins = re.match("^([0-9]{1,2}):([0-9]{1,2})$",time).groups()
-
-         if keyword == 'yesterday':
-            # If 'yesterday': subtract one day from 'date'
-            date = date - dt.timedelta(1)
-            # Create new date string
-            date = "{0:s} {1:02d}:{2:02d}".format(
-                   date.strftime("%Y-%m-%d"),int(hour),int(mins))
-         elif keyword == 'today':
-            # Create new date string
-            date = "{0:s} {1:02d}:{2:02d}".format(
-                   date.strftime("%Y-%m-%d"),int(hour),int(mins))
-         elif keyword == 'tomorrow':
-            # If 'tomorrow': add one day to 'date'
-            date = date + dt.timedelta(1)
-            # Create new date string
-            date = "{0:s} {1:02d}:{2:02d}".format(
-                   date.strftime("%Y-%m-%d"),int(hour),int(mins))
-            
-         # Convert the new proper date/time into a datetime object
-         return dt.datetime.strptime(date,"%Y-%m-%d %H:%M") 
-
-
-
    def _prepare_fun_TTn_(self,station,special):
       """!Helper function for TTN, minimum temperature. Returns 06 UTC minimum
       temperature. Simply the tmin12 column at 06 UTC in 1/10 degrees Celsius.
@@ -460,12 +403,16 @@ class getobs( object ):
       if special is not None and value is None:
          special = self.special_obs_object( special, self._date_ )
 
-         # Loading special data from database
-         spvalue = self.load_special_obs( station.wmo, special ) 
-         # If spvalue is not None take minimum of these
-         # observations as the 'best known minimum'.
-         if spvalue is not None:
-            value = float(np.min(spvalue))/10.
+         # If parsing was ok
+         if not special.error:
+            # Loading special data from database
+            spvalue = self.load_special_obs( station.wmo, special ) 
+            # If spvalue is not None take minimum of these
+            # observations as the 'best known minimum'.
+            if spvalue is not None:
+               value = np.min(spvalue)
+         else:
+            print "[!] Had problems parsing the special argument! SKip!"
             
       # - Return value
       return value 
@@ -1098,6 +1045,82 @@ class getobs( object ):
 
 
 
+
+
+
+   # ----------------------------------------------------------------
+   # Small helper class for the 'special observation usage'
+   # ----------------------------------------------------------------
+   class special_obs_object(object):
+      """!This class is used to parse the 'special' input arguments
+      to get_obs."""
+
+      error = False
+
+      def __init__( self, special, date ):
+         """!This class is used to parse the 'special' input arguments
+         to get_obs.
+
+         @param special. String in a very special format. 
+         @param date. datetime object (date of the tournament)."""
+         # Check whether the special option has the correct sytnax.
+         # First group: parameter
+         # Second group: 'from' statement
+         # Third group 'to' statement
+         regex_day="yesterday|today|tomorrow"
+         regex_time="[0-9]{1,2}:[0-9]{1,2}"
+         regex = "^([a-zA-Z0-9]+)\s+({0:s})\s+({1:s})\s+to\s+({0:s})\s+({1:s}).*$".format(
+                  regex_day,regex_time)
+
+         #print special
+         #print regex
+         import re
+         mtch = re.match(regex,special)
+         if not mtch:
+            self.error = True
+            return
+         param,from_keyword,from_time,to_keyword,to_time = mtch.groups()
+
+         # Compute proper from/to datetime objects
+         self.from_date = self._string_to_date_(from_keyword,from_time,date)
+         self.to_date   = self._string_to_date_(to_keyword,to_time,date)
+         self.parameter = param
+
+         # Verbose if set to true
+         if False:
+            print "    Parameter:    {0:s}".format( param )
+            print "    From:         {0:s} {1:s}".format( from_keyword, from_time )
+            print "    To:           {0:s} {1:s}".format( to_keyword, to_time )
+            print "    Date is:      {0:s}".format( date.strftime("%Y-%m-%d %H:%M") )
+            print "    Yields from:  {0:s}".format( self.from_date.strftime("%Y-%m-%d %H:%M") )
+            print "    Yields to:    {0:s}".format( self.to_date.strftime("%Y-%m-%d %H:%M") )
+         
+      # Create proper date objects given the keyword,
+      # the time (e.g., 19:00) and the current tournament date 'date'
+      def _string_to_date_(self,keyword,time,date):
+         import re
+         import datetime as dt
+         hour,mins = re.match("^([0-9]{1,2}):([0-9]{1,2})$",time).groups()
+
+         if keyword == 'yesterday':
+            # If 'yesterday': subtract one day from 'date'
+            date = date - dt.timedelta(1)
+            # Create new date string
+            date = "{0:s} {1:02d}:{2:02d}".format(
+                   date.strftime("%Y-%m-%d"),int(hour),int(mins))
+         elif keyword == 'today':
+            # Create new date string
+            date = "{0:s} {1:02d}:{2:02d}".format(
+                   date.strftime("%Y-%m-%d"),int(hour),int(mins))
+         elif keyword == 'tomorrow':
+            # If 'tomorrow': add one day to 'date'
+            date = date + dt.timedelta(1)
+            # Create new date string
+            date = "{0:s} {1:02d}:{2:02d}".format(
+                   date.strftime("%Y-%m-%d"),int(hour),int(mins))
+            
+         # Convert the new proper date/time into a datetime object
+         return dt.datetime.strptime(date,"%Y-%m-%d %H:%M") 
 
 
 
