@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-23 17:30 on thinkreto
+# - L@ST MODIFIED: 2017-06-25 08:21 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -571,6 +571,16 @@ class database(object):
             '(%d, %d, %d, %d, %d, %d) ON DUPLICATE KEY UPDATE value = VALUES(value)'
    
       cur.execute( sql % (self.prefix, userID, cityID, paramID, tdate, bdate, value) )
+
+      # Setting the betstat entry
+      sql = 'INSERT INTO %swetterturnier_betstat ' + \
+            '(userID, cityID, tdate, updated, submitted) VALUES ' + \
+            '(%d, %d, %d, "%s", "%s") ON DUPLICATE KEY UPDATE ' + \
+            'updated = VALUES(updated), submitted = VALUES(submitted)'
+
+      from dateteim import datetime as dt
+      now = dt.now().strftime("%Y-%m-%d %H:%M:%S")
+      cur.execute( sql % (self.prefix, userID, cityID, tdate, now, now) )
 
 
    # -------------------------------------------------------------------
