@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-16 14:00 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-27 11:07 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -67,18 +67,6 @@ def CSP(db,config,cities,tdates):
          sql1 = sqlX % (db.prefix,city['ID'], tdate, tdate+1, extra)
          sql2 = sqlX % (db.prefix,city['ID'], tdate, tdate+2, extra)
 
-
-         #sql_full = 'SELECT p.userID, p.cityID, p.tdate, p.points AS points, ' + \
-         #           'd1.points AS points_d1, d2.points AS points_d2, p.submitted ' + \
-         #           'FROM ('+sqlP+') AS p ' + \
-         #           'LEFT OUTER JOIN ' + \
-         #           '('+sql1+') AS d1 ON p.userID=d1.userID AND p.tdate=d1.tdate ' + \
-         #           'AND p.cityID = d1.cityID ' + \
-         #           'LEFT OUTER JOIN ' + \
-         #           '('+sql2+') AS d2 ON p.userID=d2.userID AND p.tdate=d2.tdate ' + \
-         #           'AND p.cityID = d2.cityID ' + \
-         #           ''
-
          sql_full = 'SELECT p.points AS points, d1.points AS points_d1, d2.points AS points_d2, ' + \
                     'p.userID, p.cityID, p.tdate ' + \
                     'FROM ('+sqlP+') AS p ' + \
@@ -112,16 +100,6 @@ def CSP(db,config,cities,tdates):
             if points_idx is None:
                sys.exit("ERROR: could not find variable \"points\" in data. Stop.")
 
-            ### - Prepare the data
-            ##sql = 'INSERT INTO '+db.prefix+'wetterturnier_betstat ' + \
-            ##      '(userID, cityID, tdate, points, ' + \
-            ##      'points_d1, points_d2, submitted, rank) ' + \
-            ##      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ' + \
-            ##      'ON DUPLICATE KEY UPDATE ' + \
-            ##      'points_d1=VALUES(points_d1), ' + \
-            ##      'points_d2=VALUES(points_d2), ' + \
-            ##      'points=VALUES(points), ' + \
-            ##      'rank=VALUES(rank)'
             # - Prepare the data
             sql = 'UPDATE IGNORE '+db.prefix+'wetterturnier_betstat ' + \
                   'SET rank=%s, points=%s, points_d1=%s, points_d2=%s ' + \
