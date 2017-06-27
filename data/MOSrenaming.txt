@@ -1,0 +1,6 @@
+# NEW NAME         ;     OLD NAME
+DWD-ICON-MOS       ;     GME-MOS
+DWD-EZ-MOS         ;     EZ-MOS
+DWD-MOS-Mix        ;     DWD-MOS-Mix(EZ+GME)
+MSwr-GFS-MOS       ;     MeteoService-GFS-MOS
+MSwr-MOS-Mix       ;     MSwr-MOS-Mix(GFS+HIR)

@@ -10,7 +10,7 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-23 20:01 on thinkreto
+# - L@ST MODIFIED: 2017-06-27 11:51 on thinkreto
 # -------------------------------------------------------------------
 
 """@package docstring
@@ -149,7 +149,7 @@ def usage(what=None):
 # -------------------------------------------------------------------
 # - Reading configuration file
 # -------------------------------------------------------------------
-def readconfig(file='config.conf',inputs=None):
+def readconfig(file='config.conf',inputs=None,conversion_table=None):
    """!Reading config file. There is a 'global' wetterturnier backend
    config file which is necessary to handle all the actions.
    This method also checks some parameters. E.g., if a required directory or
@@ -187,6 +187,7 @@ def readconfig(file='config.conf',inputs=None):
    # ----------------------------------------------------------------
    # - Reading mysql config
    config = {} 
+   config['conversion_table'] = conversion_table
    try:
       config['mysql_host']       = CNF.get('database','mysql_host')
       config['mysql_user']       = CNF.get('database','mysql_user')
@@ -212,6 +213,12 @@ def readconfig(file='config.conf',inputs=None):
       config['migrate_mitspieler'] = False
       config['migrate_groups']     = False
       config['migrate_citytags']   = None
+
+   # - Whether the system is allowed to create users or not
+   try:
+      config['allow_create_users'] = CNF.getboolean('migrate','allow_create_users')
+   except:
+      config['allow_create_users'] = False
 
    # ----------------------------------------------------------------
    # - Loading operational and test judgingclass
@@ -286,7 +293,7 @@ def tdate2string( date ):
 # -------------------------------------------------------------------
 # - Manipulate special characters to get propper names 
 # -------------------------------------------------------------------
-def nicename( string ):
+def nicename( string, conversion_table = None ):
    """!Creates a nice username.
    Mainly used for migration where (from the text files of the old
    wetterturnier archive) a few usernames were including special characters,
@@ -301,12 +308,22 @@ def nicename( string ):
    import unicodedata
    import re
    import utils
-   string = re.escape(string).strip()
 
+   # Check whether conversion table is set. If: check if
+   # User is in the conversion table keys. If so, rename
+   string = string.strip()
+   if conversion_table is not None:
+      if string in conversion_table.keys():
+         string = conversion_table[string]
+
+   # Escape dangerous characters
+   string = re.escape(string).strip()
 
    nicename = unicodedata.normalize('NFKD', unicode(string,'ISO-8859-1')) \
                   .encode('ascii', 'ignore')
-   nicename = nicename.replace('/','_')
+   if not "Titisee" in nicename and not "Neustadt" in nicename:
+      nicename = nicename.replace('/','_')
+      nicename = nicename.replace('\/','')
    nicename = nicename.replace('\_','_')
    nicename = nicename.replace('\\A','Ae')
    nicename = nicename.replace('\\O','Oe')
@@ -323,9 +340,9 @@ def nicename( string ):
    nicename = nicename.replace('+','')
    nicename = nicename.replace('\-','-')
    nicename = nicename.replace('\.','')
-   nicename = nicename.replace('\/','')
    nicename = nicename.replace(' ','_')
    nicename = nicename.replace('\e','e')
+   nicename = nicename.replace('?','')
    # - This is only for the Grossmeister
    nicename = nicename.replace('\m','ss')
    if "\\" in nicename:
