@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-27 11:43 on thinkreto
+# - L@ST MODIFIED: 2017-06-27 13:11 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -316,19 +316,25 @@ class database(object):
    # -------------------------------------------------------------------
    # - Get all tournament dates 
    # -------------------------------------------------------------------
-   def all_tournament_dates(self,cityID):
+   def all_tournament_dates(self,cityID=None):
       """!Returns all defined tournament dates ever payed in a city.
       Searches for all unique tournament dates in the bets table and
       returns them as a list.
-      @param cityID. Integer, ID of the city.
+      @param cityID. Integer, ID of the city. If NONE all dates of all
+         cities (unique) will be returned.
       @return A list wil be returned containing a set of integer values where
       each element represents one tournament played for the city. Dates in
       days since 1970-01-01.
       """
 
-      print '  * %s' % 'Searching all tournament dates for city %d' % cityID
-      sql = 'SELECT tdate FROM %swetterturnier_bets ' + \
-            'WHERE cityID = %d GROUP BY tdate'
+      if not cityID:
+         print '  * Loading all available tournament dates'
+         sql = 'SELECT tdate FROM %swetterturnier_bets GROUP BY tdate' % \
+               self.config['mysql_prefix']
+      else:
+         print '  * %s' % 'Searching all tournament dates for city %d' % cityID
+         sql = 'SELECT tdate FROM %swetterturnier_bets WHERE cityID = %d GROUP BY tdate' % \
+               (self.config['mysql_prefix'] ,cityID)
 
       ## - DEVELOPMENT: ONLY DATES 2015+
       #print "[!] RETO: DEVELOPMENT IN all_tournament_dates YOU ARE ONLY"
@@ -337,11 +343,12 @@ class database(object):
       #      'WHERE cityID = %d AND tdate > 16436 GROUP BY tdate'
 
       cur = self.cursor()
-      cur.execute( sql % (self.config['mysql_prefix'], cityID) )
+      cur.execute( sql )
       data = cur.fetchall()
       tdates = []
       for elem in data: tdates.append( elem[0] )
-      print '    Found %d different dates for city %d' % (len(tdates),cityID)
+      tdates.sort()
+      print '    Found %d different dates' % len(tdates)
 
       return tdates
 
