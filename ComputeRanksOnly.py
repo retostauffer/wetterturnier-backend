@@ -1,15 +1,15 @@
 # -------------------------------------------------------------------
-# - NAME:        ComputePoints.py
+# - NAME:        ComputeRanksOnly.py
 # - AUTHOR:      Reto Stauffer
-# - DATE:        2014-09-21
-# - LICENSE: GPL-3, Reto Stauffer, copyright 2014
+# - DATE:        2017-06-27
 # -------------------------------------------------------------------
-# - DESCRIPTION: Compute points for all players. 
+# - DESCRIPTION: Computes ranking based on what is stored in the
+#                wp_wetterturnier_betstat table on "total points"
+#                and updates the database.
 # -------------------------------------------------------------------
-# - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
-#                Adapted from ComputePetrus.py
+# - EDITORIAL:   2017-06-27, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-27 11:47 on thinkreto
+# - L@ST MODIFIED: 2017-06-27 12:58 on thinkreto
 # -------------------------------------------------------------------
 
 import sys, os

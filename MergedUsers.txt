@@ -1,0 +1,4 @@
+
+
+# Folgende spieler sollten gemerged werden oder wurden schon gemerged
+python CheckMergeUsers.py -u Zuberle,Zerle
