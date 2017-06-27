@@ -18,3 +18,12 @@ PyModules/*.pyc
 activate
 # - But ignore virtualenv
 /venv/
+
+# Ignore config.conf file. has to be linked (symbolic link)
+# depending on the machine. This allows to set up a development
+# environment without overwriting the config settings when
+# push/pull the repository.
+config.conf
+
+# Logfiles from the autosubmit tool
+autosubmit/*.log
