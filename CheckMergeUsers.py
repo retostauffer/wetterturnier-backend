@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2017-06-27, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-27 14:02 on thinkreto
+# - L@ST MODIFIED: 2017-06-27 16:00 on thinkreto
 # -------------------------------------------------------------------
 
 import sys, os
@@ -119,9 +119,9 @@ if __name__ == '__main__':
       print "   Merge %s [%d] >>> %s [%d]" % (users[u],userids[u],users[0],userids[0])
       # Update wetterturnier tables
       bets = "UPDATE wp_wetterturnier_bets SET userID = %d WHERE userID = %d" % \
-             (userids[u],userids[0])
+             (userids[0],userids[1])
       betstat = "UPDATE wp_wetterturnier_betstat SET userID = %d WHERE userID = %d" % \
-             (userids[u],userids[0])
+             (userids[0],userids[1])
 
       # Remove information from wp_user and wp_usermeta
       usr     = "DELETE FROM wp_users WHERE ID = %d" % userids[u]
