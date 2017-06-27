@@ -10,7 +10,7 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-27 11:51 on thinkreto
+# - L@ST MODIFIED: 2017-06-27 13:02 on thinkreto
 # -------------------------------------------------------------------
 
 """@package docstring
@@ -55,6 +55,7 @@ def inputcheck(what):
    inputs['input_param']     = None 
    inputs['input_ignore']    = False
    inputs['input_force']     = False
+   inputs['input_usres']     = None
 
    # - Overwrite the defaults if inputs are set
    for o, a in opts:
@@ -115,6 +116,27 @@ def usage(what=None):
       You should set an explcit 'what' type when calling the usage
       so that I can give you a propper exit statement and some
       explanation which input options are allowed.
+      """
+   elif what == "CheckMergeUsers":
+      print """
+      Sorry, wrong usage for type ComputePoints.
+      Allowed inputs for this script are:
+      
+      -u/--user:     A userID or a user_login name. Most 
+                     script accept this and compute the points
+                     or whatever it is for this user only.
+      -c/--city:     City hash to be one of these strings:
+                     Berlin, Wien, Zuerich, Innsbruck, Leipzig. 
+      -a/--alldates  Cannot be combined with the -t/--tdate option.
+                     If set loop over all available dates. 
+      -t/--tdate:    Tournament date in days since 1970-01-01
+      -a/--alldates: ignores -t input. Takes all tournament dates
+                     from the database to compute the points.
+      -f/--force:    Please DO NOT USE. This was for testing
+                     purpuses to bypass some securety features
+                     of the scripts!!!! But these securety
+                     features are there for some reason. So
+                     please do not use.
       """
    else: 
       print """
