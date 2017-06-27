@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-25 14:07 on thinkreto
+# - L@ST MODIFIED: 2017-06-27 11:43 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -156,6 +156,7 @@ class database(object):
       import os
       import utils
 
+
       # - If wpconfig is missing we cannot create the new user.
       #   In this case, stop. This is just for the development
       #   server.
@@ -179,6 +180,16 @@ class database(object):
       if N > 0:
          print '    User %s already existing.' % name
          return
+
+      # - Python wants to create a new user. We do not allow him
+      #   this here (depends on the config file). Stop and print
+      #   some output to check.
+      devel_allow = []
+      if not self.config['allow_create_users'] and not name in devel_allow:
+         print " ---- SCRIPT WANTED TO CREATE A USER BUT IS NOT ALLOWED (config) ----"
+         print "                     Username:   %s" % name
+         import sys;
+         sys.exit(9)
 
       # - We are using php to create the user. Reason:
       #   I havn't found out what wordpress is doing.
@@ -769,11 +780,11 @@ class database(object):
       """
 
       import utils
-      userID = self.get_user_id( utils.nicename( name ) )
+      userID = self.get_user_id( utils.nicename( name, self.config['conversion_table'] ) )
       if not userID:
-          self.create_user( utils.nicename( name) )
+          self.create_user( utils.nicename( name, self.config['conversion_table'] ) )
       # - Now loading the newly crates userID
-      userID = self.get_user_id( utils.nicename( name ) )
+      userID = self.get_user_id( utils.nicename( name,self.config['conversion_table'] ) )
       if not userID:
           utils.exit('OOOH FUCK. Created new user for %s but resulting ID was None in get_user_id_and_create_user_if_necessary.' % name )
 

@@ -82,6 +82,7 @@ class importbets:
       import os
       import utils
 
+      self._file = file
       if not os.path.isfile(file):
          utils.exit('In importbets.loadfilecontent error: cannot find file %s' % file)
 
@@ -309,7 +310,7 @@ class importbets:
                tdate_str = dt.datetime.fromtimestamp( (tdate+tdate_offset)*86400 ).strftime('%Y-%m-%d') 
                time = "%s %s" % (tdate_str,time.split()[1])
             #time = dt.datetime.strptime(time,'%Y-%m-%d %H:%M:%S').strftime('%s')
-            nicename = utils.nicename( username )
+            nicename = utils.nicename( username, self.config['conversion_table'] )
             # - Check if we have found a group
             if not self.db.get_group_id( nicename ) == False:
                nicename = 'GRP_%s' % nicename
@@ -360,7 +361,7 @@ class importbets:
             found = False
             day = None
             # - Convert raw username (in uname) into nicename
-            nicename = utils.nicename( uname )
+            nicename = utils.nicename( uname, self.config['conversion_table'] )
             # - Check if we have found a group
             if not self.db.get_group_id( nicename ) == False:
                nicename = 'GRP_%s' % nicename
@@ -377,8 +378,8 @@ class importbets:
             for line in self.raw_lines:
                 # - Check nicename in line
                 if 'Auswertung' in line:
-                    if uname == utils.nicename( line.split('Spieler')[1].replace(':','').strip() ) \
-                       or uname.replace('GRP_','') == utils.nicename( line.split('Spieler')[1].replace(':','').strip()):
+                    if uname == utils.nicename( line.split('Spieler')[1].replace(':','').strip(), self.config['conversion_table'] ) \
+                       or uname.replace('GRP_','') == utils.nicename( line.split('Spieler')[1].replace(':','').strip(), self.config['conversion_table'] ):
                         found = True
                         print '    Found line %s' % line.replace('\n','').strip()
                         continue
@@ -414,7 +415,14 @@ class importbets:
                 except:
                     print words
                     if self.file_forced: continue
-                    utils.exit('Problems getting points from that line')
+                     
+                    # Log as broken and continue
+                    bid = open(self.config['rawdir']+'/broken_files_identified.txt','a+')
+                    bid.write( "%s\n" % self._file )
+                    bid.close()
+                    return False
+                     
+                    #utils.exit('Problems getting points from that line (%s)' % self._file)
                 if not paramID:
                     utils.exit('Problems extracting parameter or getting paramID from line')
                 
@@ -492,12 +500,15 @@ class importbets:
                    utils.exit('Problems getting points as float from \'%s\'' % rawdata)
 
             # - Convert raw username (in uname) into nicename
-            nicename = utils.nicename( tmp[1] )
+            nicename = utils.nicename( tmp[1], self.config['conversion_table'] )
+
             # - Check if we have found a group
             if not self.db.get_group_id( nicename ) == False:
                nicename = 'GRP_%s' % nicename
+
             # - Now get username 
             userID = self.db.get_user_id_and_create_if_necessary( nicename )
+
             # - Problem detected.
             if not userID:
                utils.exit('Problems loading userID for %s' % nicename)
@@ -572,7 +583,7 @@ class importbets:
 
             # - Getting station name
             rawname = line.split()[0].strip()
-            station_name = utils.nicename( rawname )
+            station_name = utils.nicename( rawname, self.config['conversion_table'] )
             wmo = self.__get_wmo_number__(station_name)
             if not wmo:
                 utils.exit('Cannot find wmo number for station ' + station_name + ' in config file')
@@ -710,7 +721,7 @@ class importbets:
             elif len(line.strip()) == 0:
                 continue
             orig = line.split()[0]
-            username = utils.nicename( orig )
+            username = utils.nicename( orig, self.config['conversion_table'] )
             # - Check if we have found a group
             if not self.db.get_group_id( username ) == False:
                username = 'GRP_%s' % username
@@ -771,14 +782,18 @@ class importbets:
     # ---------------------------------------------------------------
     # - Create user if not existing 
     # ---------------------------------------------------------------
-    def wp_create_user(self,username):
+    ###def wp_create_user(self,username):
 
-        if not self.wp_user_exists(username):
-            cur = self.db.cursor()
-            sql = 'INSERT INTO ' + self.db_users + \
-                  ' (user_login,user_nicename,display_name) ' + \
-                  ' VALUES (\'{0:s}\', \'{0:s}\', \'{0:s}\') '.format(username)
-            cur.execute(sql) 
+    ###    check = self.wp_user_exists(username)
+    ###    if not check and self.allow_create_users:
+    ###        cur = self.db.cursor()
+    ###        sql = 'INSERT INTO ' + self.db_users + \
+    ###              ' (user_login,user_nicename,display_name) ' + \
+    ###              ' VALUES (\'{0:s}\', \'{0:s}\', \'{0:s}\') '.format(username)
+    ###        cur.execute(sql) 
+    ###    elif not check:
+    ###        log.error("MIST")
+    ###        import sys; sys.exit(3)
 
     # ---------------------------------------------------------------
     # - Checks if user exists
