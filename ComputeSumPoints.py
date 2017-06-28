@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-27 11:07 on thinkreto
+# - L@ST MODIFIED: 2017-06-29 01:08 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -54,7 +54,7 @@ def CSP(db,config,cities,tdates):
             extra = '' 
 
          sqlP = 'SELECT userID, cityID, tdate, ' + \
-                'round(sum(points),3) AS points, max(placed) AS submitted ' + \
+                'round(sum(points),1) AS points, max(placed) AS submitted ' + \
                 'FROM %swetterturnier_bets ' + \
                 'WHERE cityID = %d AND tdate = %d %s ' + \
                 'GROUP BY userID, cityID, tdate '
