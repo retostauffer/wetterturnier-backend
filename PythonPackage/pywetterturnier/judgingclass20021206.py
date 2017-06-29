@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-16 13:46 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-29 18:04 on thinkreto
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
@@ -148,7 +148,8 @@ class judging(object):
       if not self.quiet:
          print '    - Using method: %s' % method_to_use
       call = getattr(self,method_to_use)
-      return np.round( call(obs,data,special), 2 )
+      # Round to one digit after the comma
+      return np.round( call(obs,data,special), 1 )
 
 
    # -----------------------------------------------------------------
