@@ -10,7 +10,7 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-27 13:02 on thinkreto
+# - L@ST MODIFIED: 2017-06-29 09:55 on thinkreto
 # -------------------------------------------------------------------
 
 """@package docstring
@@ -18,6 +18,22 @@ Documentation for this module.
 
 More details.
 """
+
+# -------------------------------------------------------------------
+# - Prevent the script to execute some of the routines on certain
+#   tournament days. 
+# -------------------------------------------------------------------
+def datelock(config,tdate):
+   """!To prevent the scripts to re-compute certain things, e.g.
+   the mean bet tips in the archive, this small function is used.
+   Problem: we do not know who was in which group in the past, wherefore
+   the mean bets will get wrong if recomputed.
+   @config the config list from readconfig.
+   @tdate integer. Date as integer, days sincd 1970-01-01.
+   @return Returns boolean true if you are allowed to execute the
+      comoputation and false otherwise."""
+
+   return eval("{0:d} {1:s}".format(tdate,config['datelock']))
 
 # -------------------------------------------------------------------
 # - Parsing input arguments
@@ -235,6 +251,13 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
       config['migrate_mitspieler'] = False
       config['migrate_groups']     = False
       config['migrate_citytags']   = None
+
+   # ----------------------------------------------------------------
+   # - datelock if set
+   try:
+      config['datelock']           = CNF.get('migrate','datelock')
+   except:
+      config['datelock']           = None
 
    # - Whether the system is allowed to create users or not
    try:
