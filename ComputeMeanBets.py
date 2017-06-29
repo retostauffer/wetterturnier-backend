@@ -8,7 +8,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-25 13:40 on thinkreto
+# - L@ST MODIFIED: 2017-06-29 09:53 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -98,6 +98,15 @@ if __name__ == '__main__':
          for tdate in tdates:
 
             print '    Current tdate is: %d' % tdate
+
+            # ----------------------------------------------------------------
+            # - Check if we are allowed to perform the computation of the
+            #   mean bets on this date
+            # ----------------------------------------------------------------
+            check = utils.datelock(config,tdate)
+            if check:
+               print '    Date is \'locked\' (datelock). Dont execute, skip.'
+               continue
 
             # ----------------------------------------------------------------
             # - I do not have the judgingclass before the rule changes in

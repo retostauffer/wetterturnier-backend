@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePoints.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-23 15:48 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-29 09:57 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -69,13 +69,13 @@ if __name__ == '__main__':
                  'ComputePetrus.py',
                  'ComputePersistenz.py',
                  'ComputePoints.py',
-                 'ComputeSumPoints.py',
+                 #'ComputeSumPoints.py',
                  'ComputeDeadman.py']
    else:
       scripts = ['ComputeMeanBets.py',
                  'ComputePetrus.py',
                  'ComputePoints.py',
-                 'ComputeSumPoints.py',
+                 #'ComputeSumPoints.py',
                  'ComputeDeadman.py']
 
 

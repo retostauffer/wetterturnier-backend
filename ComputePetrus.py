@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 09:16 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-29 09:56 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -50,6 +50,16 @@ if __name__ == '__main__':
    print '  * Current tournament is %s' % utils.tdate2string( tdate )
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
+
+   # ----------------------------------------------------------------
+   # - Check if we are allowed to perform the computation of the
+   #   Petrus bets on this date
+   # ----------------------------------------------------------------
+   check = utils.datelock(config,tdate)
+   if check:
+      print '    Date is \'locked\' (datelock). Dont execute.'
+      import sys; sys.exit(0)
+
 
    # ----------------------------------------------------------------
    # - Prepare the Petrus
