@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-12 16:51 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-06-29 09:57 on thinkreto
 # -------------------------------------------------------------------
 
 import sys, os
@@ -80,6 +80,15 @@ if __name__ == '__main__':
       for tdate in tdates:
 
          print '  * Current tournament is %s' % utils.tdate2string( tdate )
+
+         # ----------------------------------------------------------------
+         # - Check if we are allowed to perform the computation of the
+         #   mean bets on this date
+         # ----------------------------------------------------------------
+         check = utils.datelock(config,tdate)
+         if check:
+            print '    Date is \'locked\' (datelock). Dont execute, skip.'
+            continue
 
          # ----------------------------------------------------------
          # - Avoid to change old points!
