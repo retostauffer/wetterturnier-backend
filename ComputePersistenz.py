@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-29, RS: Adapted from ComputeMoses.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-23 20:03 on thinkreto
+# - L@ST MODIFIED: 2017-06-29 09:54 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -84,6 +84,15 @@ if __name__ == '__main__':
 
       print "  * Tournament date to process now: %s (%d)" % (tdate_str,tdate)
       print "    Searching for Observations:     %s (%d)" % (bdate_str,bdate)
+
+      # ----------------------------------------------------------------
+      # - Check if we are allowed to perform the computation of the
+      #   mean bets on this date
+      # ----------------------------------------------------------------
+      check = utils.datelock(config,tdate)
+      if check:
+         print '    Date is \'locked\' (datelock). Dont execute, skip.'
+         continue
 
       # ----------------------------------------------------------------
       # - Compute its mitteltip, one for each station. 
