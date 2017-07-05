@@ -8,7 +8,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-29 09:53 on thinkreto
+# - L@ST MODIFIED: 2017-07-05 10:03 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -96,6 +96,14 @@ if __name__ == '__main__':
          # - Looping trough dates
          # ----------------------------------------------------------------
          for tdate in tdates:
+
+            # Check number of participants for this city, weekend, and group
+            participants = db.get_participants_in_group(groupID,city['ID'],tdate)
+
+            if len(participants) < 2:
+               print "[!] Less than 2 participants for this group/city/tdate."
+               print "    Skip computation of mean bets."
+               continue
 
             print '    Current tdate is: %d' % tdate
 
