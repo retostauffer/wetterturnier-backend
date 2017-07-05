@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-27 13:11 on thinkreto
+# - L@ST MODIFIED: 2017-07-05 10:08 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -38,6 +38,38 @@ class database(object):
       self.db = self.__connect__()
 
       self.prefix = self.config['mysql_prefix']
+
+   
+   # ----------------------------------------------------------------
+   # Getting active players from a certain group for a certain
+   # city and weekend.
+   # ----------------------------------------------------------------
+   def get_participants_in_group(self,groupID,cityID,tdate):
+
+      from datetime import datetime as dt
+      fmt = "%Y-%m-%d %H:%M:%S"
+      bgn = dt.fromtimestamp(tdate).strftime(fmt)
+      end = dt.fromtimestamp(tdate+1).strftime(fmt)
+
+      sql = []
+      sql.append("SELECT gu.userID")
+      sql.append("FROM {0:s}wetterturnier_groupusers AS gu".format(self.prefix))
+      sql.append("LEFT OUTER JOIN wp_wetterturnier_betstat AS bet")
+      sql.append("ON gu.userID=bet.userID")
+      sql.append("where groupID = {0:d} AND tdate = {1:d}".format(groupID,tdate))
+      sql.append("AND bet.cityID = {0:d}".format(cityID))
+      sql.append("AND (gu.until IS NULL OR (gu.since > '{0:s}' AND gu.until < '{1:s}'))".format(bgn,end))
+      sql.append("AND bet.submitted IS NOT NULL")
+
+      ###print "\n".join(sql)
+
+      cur = self.cursor()
+      cur.execute( "\n".join(sql) )
+      res = cur.fetchall()
+      participants = []
+      for rec in res: participants.append( rec[0] )
+
+      return participants
 
    # ----------------------------------------------------------------
    # - Init
