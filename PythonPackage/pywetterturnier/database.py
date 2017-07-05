@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-07-05 10:08 on thinkreto
+# - L@ST MODIFIED: 2017-07-05 08:14 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 
@@ -43,6 +43,12 @@ class database(object):
    # ----------------------------------------------------------------
    # Getting active players from a certain group for a certain
    # city and weekend.
+   # @param groupID. Integer, ID of the group)
+   # @param cityID. Integer, ID of the current city.
+   # @param tdate. Integer, tournament date as integer representation.
+   # @return Returns a list containing the user ID's of the players from
+   #   that specific group who were participating in the tournament for
+   #   the city given. Can be a list of length 0 as well.
    # ----------------------------------------------------------------
    def get_participants_in_group(self,groupID,cityID,tdate):
 
@@ -979,7 +985,7 @@ class database(object):
       cur.execute( sql % ( self.prefix, self.prefix,cityID,tdate,ignore) )
       data = cur.fetchall()
 
-      print data
+      ###print data
       if not data:
          return False
       else:
