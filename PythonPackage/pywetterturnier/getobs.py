@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-25 07:53 on thinkreto
+# - L@ST MODIFIED: 2017-07-06 08:35 on thinkreto
 # -------------------------------------------------------------------
 
 import sys, os
@@ -657,7 +657,7 @@ class getobs( object ):
          import numpy as np
          # - Note: BUFR report is in percent
          value = (np.floor(np.float(N)/100.*8.) + 1 ) * 10
-         if value > 80: value == 80
+         if value > 80: value = 80
       # - Else if record exists but there is no observed
       #   cloud cover we have to assume that the value
       #   should be 0 but is not reported at all. 
