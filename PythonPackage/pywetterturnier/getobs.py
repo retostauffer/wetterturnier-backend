@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-07-06 08:35 on thinkreto
+# - L@ST MODIFIED: 2017-07-08 17:31 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -656,7 +656,7 @@ class getobs( object ):
       if not N == None:
          import numpy as np
          # - Note: BUFR report is in percent
-         value = (np.floor(np.float(N)/100.*8.) + 1 ) * 10
+         value = (np.floor(np.float(N)/100.*8.)) * 10
          if value > 80: value = 80
       # - Else if record exists but there is no observed
       #   cloud cover we have to assume that the value
@@ -798,8 +798,12 @@ class getobs( object ):
       # RR - Precipitation (2 * 12h)
       #      06 today to 06 tomorrow!!
       # ----------------------------------------------------------
-      RR18 = self.load_obs( station.wmo, 18, 'rrr12' )
-      RR06 = self.load_obs( station.wmo, 30, 'rrr12' )
+      # Loading 12h sums
+      RR18    = self.load_obs( station.wmo, 18, 'rrr12' )
+      RR06    = self.load_obs( station.wmo, 30, 'rrr12' )
+      # Loading 24h sums
+      RR06_24 = self.load_obs( station.wmo, 30, 'rrr24' )
+
       # - Check if observations (records) are hete
       check18 = self.check_record( station.wmo, 18 )
       check06 = self.check_record( station.wmo, 30 )
@@ -807,11 +811,15 @@ class getobs( object ):
       # - If observed values RR18/RR06 are empty but the observations
       #   are in the database we have to assume that there was no
       #   precipitation at all. Set these values to -3.0 (no precip).
-      if RR18 == None and check18: RR18 = -3.0
-      if RR06 == None and check06: RR06 = -3.0
+      #   Same for RR06_24
+      if RR18    == None and check18: RR18 = -3.0
+      if RR06    == None and check06: RR06 = -3.0
+      if RR06_24 == None and check06: RR06_24 = -3.0
 
       # - Both observations available: use them
-      if not RR18 == None and not RR06 == None:
+      if not RR06_24 == None:
+         value = RR06_24
+      elif not RR18 == None and not RR06 == None:
          # - Both negative (no precipitation) will
          #   result in Wetterturnier special: -3.0mm.
          if RR18 < 0 and RR06 < 0:
@@ -838,7 +846,6 @@ class getobs( object ):
          # Check if all W1-observations are 10 (no sign. weather reported),
          # class 0/1/2/3/4 (the non-precip-weather-types) or missing.
          # If so, then the sum will be set to -3.0 (dry) rather than 0.0.
-         print value
          if all( item in [None,0,1,2,3,4,10] for item in W1):
             value = -30.
 
