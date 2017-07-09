@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-07-08 17:31 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-07-09 10:54 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 import sys, os
@@ -808,13 +808,19 @@ class getobs( object ):
       check18 = self.check_record( station.wmo, 18 )
       check06 = self.check_record( station.wmo, 30 )
 
+      ####print " ------------- "
+      ####print "RR18     ", RR18
+      ####print "RR06     ", RR06
+      ####print "RR06_24  ", RR06_24
+      ####print "check18  ", check18
+      ####print "check06  ", check06
+
       # - If observed values RR18/RR06 are empty but the observations
       #   are in the database we have to assume that there was no
       #   precipitation at all. Set these values to -3.0 (no precip).
       #   Same for RR06_24
-      if RR18    == None and check18: RR18 = -3.0
-      if RR06    == None and check06: RR06 = -3.0
-      if RR06_24 == None and check06: RR06_24 = -3.0
+      if RR18    == None and check18: RR18 = -30.
+      if RR06    == None and check06: RR06 = -30.
 
       # - Both observations available: use them
       if not RR06_24 == None:
