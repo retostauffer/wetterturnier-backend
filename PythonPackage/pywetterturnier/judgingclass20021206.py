@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-29 18:04 on thinkreto
+# - L@ST MODIFIED: 2017-07-17 18:13 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
@@ -120,6 +120,17 @@ class judging(object):
 
       import utils
       import numpy as np
+
+      # - If obs is none at all: return None
+      if obs is None: return(None)
+      # - Filter non-None obs
+      tmp = []
+      for rec in obs:
+         if not rec is None: tmp.append( rec )
+      
+      if len(tmp) == 0:
+         return [0.] * len(data)
+      obs = tmp
 
       # - If tdate is set: check if this special date is
       #   allowed in this judgingclass or not. Please note
