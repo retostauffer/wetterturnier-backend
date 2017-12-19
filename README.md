@@ -1,4 +1,32 @@
 
+# E-Mail and SMTP Settings
+
+php sendmail does not work on this server as the FU forces
+us to use their STMP server (securety issue). The following
+e-mail account is therefore used:
+
+Hallo Reto,
+
+wir haben euch die mail-Adresse : wetterturnier@met.fu-berlin.de eingerichtet.
+Unser mailserver ist : mail.met.fu-berlin.de
+Das P W ist : DienPw4dWT!1/7
+
+In wordpress nutze ich (Reto) WP-Mail-SMTP mit folgenden Settings:
+* SMTP Host:         mail.met.fu-berlin.de
+* SMTP Port:         25
+* Encryption:        Ust TLS encryption
+* Authentication:    Yes, USE SMTP authentication
+* Username:          wetterturnier
+* Password:          <wie oben>
+
+Benoetigt eine saubere PHPMailer installation am Server.
+
+Bezüglich gewünschter Portfreigaben wende Dich bitte an Stefan (stefan.flecke@fu-berlin.de), er ist unser SystemAdmin.
+
+viele Grüße
+
+Thomas 
+
 # Wetterturnier Backend
 
 This is the repository containing the backend scripts
