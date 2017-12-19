@@ -7,13 +7,13 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-14, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-19 13:27 on prognose2
+# - L@ST MODIFIED: 2017-12-19 13:30 on prognose2
 # -------------------------------------------------------------------
 
 
 import sys
 
-sys.exit('THIS SCRIPT WAS FOR MIGRATIOIN ... ')
+#sys.exit('THIS SCRIPT WAS FOR MIGRATIOIN ... ')
 
 if __name__ == '__main__':
 
