@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-07-17 18:13 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-12-19 14:20 on thinkreto
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
@@ -634,7 +634,7 @@ class judging(object):
       # - For players ABOVE the maximum, compute points:
       # -------------------------------------------------------------
       # - Now take the penalty vector if max is in that range.
-      if max < 0:
+      if max <= 0:
          penalty = full_penalty
       elif max < len(full_penalty):
          penalty = full_penalty[max:]
