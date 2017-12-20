@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePoints.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-29 09:57 on thinkreto
+# - L@ST MODIFIED: 2017-12-20 17:34 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
    - ComputePetrus.py    (computes Petrus as player)
    - ...
    - ComputeSumPoints.py (computes points)
-   - ComputeDeadman.py   (relies on the sumpoints)
+   - ComputeSleepy.py   (relies on the sumpoints)
    
    Script stops if one of the processes has non-zero exit state.
    """
@@ -70,13 +70,13 @@ if __name__ == '__main__':
                  'ComputePersistenz.py',
                  'ComputePoints.py',
                  #'ComputeSumPoints.py',
-                 'ComputeDeadman.py']
+                 'ComputeSleepy.py']
    else:
       scripts = ['ComputeMeanBets.py',
                  'ComputePetrus.py',
                  'ComputePoints.py',
                  #'ComputeSumPoints.py',
-                 'ComputeDeadman.py']
+                 'ComputeSleepy.py']
 
 
    # - Now calling the other scripts using the necessary

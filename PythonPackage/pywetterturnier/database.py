@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-07-05 08:14 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-12-20 17:36 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -414,7 +414,7 @@ class database(object):
    #   to compute and store the points. Returns two lists with ID and values.
    #   This will be used by the judgingclass to compute the points.
    # -------------------------------------------------------------------
-   def get_cityall_bet_data(self,cityID,paramID,tdate,day,nodeadman=True,nullonly=False):
+   def get_cityall_bet_data(self,cityID,paramID,tdate,day,nosleepy=True,nullonly=False):
       """!Returns bets for a given city/parameter/date/day.
       Returns all bets for a given city, parameter for a given bet day of a specified
       tournament. Note that there is no userID. This method returns the bets for all 
@@ -454,8 +454,8 @@ class database(object):
       if nullonly:
          sql += ' AND points IS NULL '
 
-      if nodeadman:
-         deadID = self.get_user_id('Deadman')
+      if nosleepy:
+         deadID = self.get_user_id('Sleepy')
          sql += ' AND userID != %d ' % deadID
       cur.execute( sql % (self.prefix, cityID, paramID, betdate, tdate) ) 
       #####cur.execute( sql % (self.prefix, cityID, paramID, betdate, tdate, 1) ) 
@@ -489,7 +489,7 @@ class database(object):
       Returns a set of bets for a given city, parameter, and bet date for a specified
       tournament date. Note: has different modes.
       @arg If typ == 'all': all users (human forecasters, automated forecasters and
-         group bets) @b EXCLUDING the Deadman will be returned.
+         group bets) @b EXCLUDING the Sleepy will be returned.
       @arg If type == 'user' the bet of a specific user will be returned.
       @arg If type == 'group' the bet of a specific group will be returned.
       User or group (if type == 'user' or 'group') are defined by the input argument ID
@@ -508,7 +508,7 @@ class database(object):
          than 5 betdate is just taken as set. 
       @return Returns a list containing all the bets.
 
-      @todo Reto the deadman does ont get bets - he just gets points. Maybe I can
+      @todo Reto the sleepy does ont get bets - he just gets points. Maybe I can
       disable/remove the 'all' function if I am not using it anymore.
       """
 
@@ -526,8 +526,8 @@ class database(object):
       if bdate <= 5: bdate = tdate + bdate
       cur = self.db.cursor()
 
-      # - Ignore the deadman!
-      deadID = self.get_user_id('Deadman')
+      # - Ignore the sleepy!
+      deadID = self.get_user_id('Sleepy')
 
       # - For Petrus, load all bets for a given
       #   tdate/betdate, city and parameter.
@@ -656,7 +656,7 @@ class database(object):
    #   NOTE: the method inserts or updates the points. For normal 
    #   players we only have to update because the bets are allready
    #   places.
-   #   For the deadman (has no bet values, only points) we need to
+   #   For the sleepy (has no bet values, only points) we need to
    #   set a default 'value' (bet value) because the database expects
    #   a value (no default value set for column value).
    # -------------------------------------------------------------------
@@ -689,14 +689,14 @@ class database(object):
    # -------------------------------------------------------------------
    # - Upsert wetterturnier_betstat table
    # -------------------------------------------------------------------
-   def upsert_deadman_points(self,userID,cityID,tdate,points):
-      """!Helper function to update the points for the Deadman player. 
-      Upserts the betstat database updating the points for the Deadman. 
+   def upsert_sleepy_points(self,userID,cityID,tdate,points):
+      """!Helper function to update the points for the Sleepy player. 
+      Upserts the betstat database updating the points for the Sleepy. 
       Actually for any player. But the userID should be the one from the
-      Deadman here. The Deadman just gets points for the full weekend,
+      Sleepy here. The Sleepy just gets points for the full weekend,
       not points for specific parameters.
 
-      @param userID. Integer, user ID of the @b Deadman user.
+      @param userID. Integer, user ID of the @b Sleepy user.
       @param cityID. Integer, city ID.
       @param paramID. Integer, parameter ID.
       @param tdate. Integer, tournament date. Days since 1970-01-01.
@@ -724,7 +724,7 @@ class database(object):
       @arg if input wmo is an integer value, only the observation for this
          specific station will be returned.
 
-      @param userID. Integer, user ID of the @b Deadman user.
+      @param userID. Integer, user ID of the @b Sleepy user.
       @param cityID. Integer, city ID.
       @param paramID. Integer, parameter ID.
       @param tdate. Integer, tournament date. Days since 1970-01-01.
@@ -956,20 +956,20 @@ class database(object):
 
    # -------------------------------------------------------------------
    # - Compute mean or std points for a city/tdate/day/parameter. 
-   #   NOTE: ignore is a userID, the userID from the deadman.
-   #   We will NOT include the deadman into the computation. This would
+   #   NOTE: ignore is a userID, the userID from the sleepy.
+   #   We will NOT include the sleepy into the computation. This would
    #   lead to an iterative process!
    #   Furthermore we have to exclude the groups by excluding all
    #   users with usernames beginning with 'GRP_'.
    # -------------------------------------------------------------------
-   def get_deadman_points(self,cityID,tdate,ignore):
-      """!Loading the points from the Deadman user.
-      Returns tuple including betdate, parameterID, deadman points
+   def get_sleepy_points(self,cityID,tdate,ignore):
+      """!Loading the points from the Sleepy user.
+      Returns tuple including betdate, parameterID, sleepy points
       for a given city/tournament date.
       Points are computed as follows:
-      @arg Deadman Points = Average(Points) - Standarddeviation(Points)
+      @arg Sleepy Points = Average(Points) - Standarddeviation(Points)
       ... where 'Points' are all Group/User points gained in the tournament
-      @b EXCLUDING the Deadman. If the Deadman would not be excluded the
+      @b EXCLUDING the Sleepy. If the Sleepy would not be excluded the
       points would drift towards -Inf as the average decreases iteratively
       and the standard deviation increases iteratively. 
       @return a tuple tuple as fetched from database. Typically including
