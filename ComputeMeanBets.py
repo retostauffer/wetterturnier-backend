@@ -8,7 +8,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-07-05 10:03 on thinkreto
+# - L@ST MODIFIED: 2017-12-20 18:18 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -72,6 +72,9 @@ if __name__ == '__main__':
 
    # - Create new user
    for group in active_groups:
+
+      # Do NOT compute mitteltips for these guys
+      if group in ["Automaten","Referenztipps"] : continue
 
       # - Each group has its own user which is
       #   GRP_<grupname>. Check if exists or create.
