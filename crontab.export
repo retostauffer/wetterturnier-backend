@@ -38,8 +38,8 @@ MAILTO=""
 #   1) ComputeMeanBets (group bets)
 #   2) ComputePetrus
 #   3) ComputePoints     (computes the points for the players)
-#   4) ComputeDeadman    (deadman is based on the points of the players)
-#   5) ComputeSumPoints  (computes sum of points - necessary for the ranking)
+#   4) ComputeSumPoints  (computes sum of points - necessary for the ranking)
+#   5) ComputeSleepy     (Sleepy is based on the points of the players)
 #   PLEASE NOTE: the source/activae is very important here as the Chain.py
 #   starts ComputePoints, ComputeSumpoints and other scrpits. They are started
 #   using "python" which has to be the python executable from the virtual
