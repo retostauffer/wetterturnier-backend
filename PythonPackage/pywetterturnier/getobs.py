@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-07-09 10:54 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-12-21 17:02 on thinkreto
 # -------------------------------------------------------------------
 
 import sys, os
@@ -158,8 +158,9 @@ class getobs( object ):
 
       parameter = parameter.lower()
       if not parameter in self._columns_:
-         utils.exit("Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
-                  (parameter, self._table_))
+         print "Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
+                  (parameter, self._table_)
+         return None
 
       tmp    = self._date_ + dt.timedelta( 0, hour*3600 )
       datum  = int( tmp.strftime('%Y%m%d') )
@@ -1029,11 +1030,10 @@ class getobs( object ):
 
             # - See if parameter is in NULLCONFIG of the station.
             #   If it is - ignore!
-            if type(stn.nullconfig) == type(list()):
-               if param[key] in stn.nullconfig:
-                  print "    Parameter %s (%d) is in nullconfig of station %d. Skip." % \
-                        (key, param[key], stn.wmo)
-                  continue
+            if not param[key] in stn.getActiveParams( betdate ):
+               print "    Parameter %s (%d) is/was not an active parameter for station %d. Skip." % \
+                     (key, param[key], stn.wmo)
+               continue
 
             # - Else append tuple
             tmp = (stn.wmo, param[key], betdate, now, self.data[stn.wmo][key])

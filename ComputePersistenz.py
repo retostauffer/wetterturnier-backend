@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-29, RS: Adapted from ComputeMoses.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-29 09:54 on thinkreto
+# - L@ST MODIFIED: 2017-12-21 17:02 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -118,12 +118,10 @@ if __name__ == '__main__':
             # -------------------------------------------------------------
             for stn in db.get_stations_for_city( city['ID'] ):
 
-               #print "    Processing station %s (%d)" % (stn.name,stn.wmo)
-               # - If parameter is in nullconfig: IGNORE
-               if not stn.nullconfig == None:
-                  if paramID in stn.nullconfig:
-                     print "    Parameter %s is in nullconfig for station %d: ignore" % (param,stn.wmo)
-                     continue
+               # - If parameter is/was not active: ignore
+               if not paramID in stn.getActiveParams( tdate ):
+                  print "    Parameter %s is/was not an active parmaeter for station %d: ignore" % (param,stn.wmo)
+                  continue
 
                # - The results dict, needed later
                val = db.get_obs_data(city['ID'],paramID,tdate,-1,stn.wmo)
