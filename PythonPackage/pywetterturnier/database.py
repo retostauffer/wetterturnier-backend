@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-20 17:36 on prognose2
+# - L@ST MODIFIED: 2017-12-21 16:54 on thinkreto
 # -------------------------------------------------------------------
 
 
@@ -312,7 +312,7 @@ class database(object):
 
       from stationclass import *
       stations = []
-      for rec in data: stations.append( stationclass(desc,rec) )
+      for rec in data: stations.append( stationclass(desc,rec,self.db,self.config["mysql_prefix"]) )
 
       return stations
 
