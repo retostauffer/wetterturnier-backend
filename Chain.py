@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePoints.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-20 17:34 on prognose2
+# - L@ST MODIFIED: 2017-12-22 18:04 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -48,9 +48,11 @@ if __name__ == '__main__':
    # - Loading tdate (day since 1970-01-01) for the tournament.
    #   Normaly Friday-Tornament (tdate is then Friday) while
    #   the bet-dates are for Saturday and Sunday.
+   is_latest_tournament = False
    if config['input_tdate'] == None:
       config['input_tdate'] = db.current_tournament()
       print '  * Using latest tournament date: %d' % config['input_tdate']
+      is_latest_tournament = True
    else:
       #utils.exit('Sorry, need explicit -t/--tdate input for this script')
       print '  * Using input tdate: %d' % config['input_tdate']
@@ -65,17 +67,23 @@ if __name__ == '__main__':
    # - Compute the Points for all the dudes first
    import subprocess as sub
    if not config['input_alldates']:
-      scripts = ['ComputeMeanBets.py',
-                 'ComputePetrus.py',
-                 'ComputePersistenz.py',
-                 'ComputePoints.py',
-                 #'ComputeSumPoints.py',
-                 'ComputeSleepy.py']
+      if is_latest_tournament:
+         scripts = ['ComputeMeanBets.py',
+                    'ComputePetrus.py',
+                    'ComputeMoses.py',
+                    'ComputePersistenz.py',
+                    'ComputePoints.py',
+                    'ComputeSleepy.py']
+      else:
+         scripts = ['ComputeMeanBets.py',
+                    'ComputePetrus.py',
+                    'ComputePoints.py',
+                    'ComputeSleepy.py']
    else:
       scripts = ['ComputeMeanBets.py',
                  'ComputePetrus.py',
+                 'ComputeMoses.py',
                  'ComputePoints.py',
-                 #'ComputeSumPoints.py',
                  'ComputeSleepy.py']
 
 
