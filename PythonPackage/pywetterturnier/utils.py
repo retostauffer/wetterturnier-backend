@@ -10,7 +10,7 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-29 09:55 on thinkreto
+# - L@ST MODIFIED: 2017-12-22 17:06 on prognose2
 # -------------------------------------------------------------------
 
 """@package docstring
@@ -283,6 +283,16 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
    if not os.path.isdir( config['data_moses'] ):
       print "[WARNING] Could not find directory %s necessary for ComputeMoses" % config['data_moses'] 
       print "          ComputeMoes will crash!"
+   try:
+      config['data_moses_out']   = CNF.get('data','moses_out')
+      # If folder does not exist: ignore
+      if not os.path.isdir( config['data_moses_out'] ):
+         print "[WARNING] Output directory for moses (moses_out=\"{0:s}\")".format(config['data_moses_out'])
+         print "          does not exist, ignore!"
+         config['data_moses_out'] = None
+   except:
+      utils.exit('No [data] modes_out directory set, will not copy files to webserver.')
+      config['data_moses_out']   = None
 
    # ----------------------------------------------------------------
    # - The rawdir is used by archive.py to import old 
