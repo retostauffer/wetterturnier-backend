@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-04 09:33 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2017-12-22 17:50 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -23,6 +23,7 @@ if __name__ == '__main__':
    # - wetterturnier specific packages
    from pywetterturnier import utils
    from pywetterturnier import database
+   from datetime import datetime as dt
    
    # - Evaluating input arguments
    inputs = utils.inputcheck('ComputeMoses')
@@ -60,8 +61,8 @@ if __name__ == '__main__':
    # ----------------------------------------------------------------
    # - Prepare the Moses
    # ----------------------------------------------------------------
-   username = 'Moses2014'
-   db.create_user( username )
+   username = 'Moses'
+   #db.create_user( username )
    moses_userID = db.get_user_id( username )
 
    # ----------------------------------------------------------------
@@ -114,7 +115,9 @@ if __name__ == '__main__':
          return( file )
 
       return( False ) # nothing found
+
    
+
    # ----------------------------------------------------------------
    # - Compute Moses for each tdate 
    # ----------------------------------------------------------------
@@ -134,7 +137,18 @@ if __name__ == '__main__':
          print '  * Found newest modes file %s' % moses_file
          mfid = open(moses_file,'r')
          moses_data = mfid.read().split('\n')
-      
+
+         if config["data_moses_out"]:
+            fid = open("{0:s}/Moses_{1:s}.dat".format(config["data_moses_out"],city["name"]),"w")
+            fid.write( "{0:30s} {1:s}\n".format("Moses coefficients from file",os.path.basename(moses_file)) )
+            fid.write( "{0:30s} {1:s}\n".format("Processed",dt.now().strftime("%Y-%m-%d %H:%M")) )
+            fid.write( "{0:30s} {1:s} ({2:d})\n".format("For city",city["name"],city["ID"]) )
+
+            # Write file 1:1
+            fid.write("\n")
+            fid.write( "\n".join(moses_data) )
+            fid.close()
+
          # -------------------------------------------------------------
          # - Looping over all parameters, search for Moses coefficients
          #   and try to find the bets of the users.
