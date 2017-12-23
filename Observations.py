@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-25 07:53 on thinkreto
+# - L@ST MODIFIED: 2017-12-23 08:35 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -110,8 +110,8 @@ if __name__ == '__main__':
             # - Cloud cover
             obs.prepare('N')
             # - Significant weather
-            obs.prepare('Wv')
-            obs.prepare('Wn')
+            obs.prepare('Wv',special = 'w1 today 07:00 to today 12:00')
+            obs.prepare('Wn',special = 'w1 today 13:00 to today 18:00')
             # - Precipitation
             obs.prepare('RR')
             # - Sunshine
