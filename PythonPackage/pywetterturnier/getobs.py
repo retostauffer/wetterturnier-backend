@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-21 17:02 on thinkreto
+# - L@ST MODIFIED: 2017-12-23 08:41 on prognose2
 # -------------------------------------------------------------------
 
 import sys, os
@@ -712,8 +712,41 @@ class getobs( object ):
          #   In this case we can return a 0.
          if int(w1) == 10:           value = 0
          elif w1 >  10.:             value = None    # automated observation
-         elif w1 >= 1. and w1 <= 4.: value = 0       # 1,2,3 is not used
+         elif w1 >= 1. and w1 <= 3.: value = 0       # 1,2,3 is not used
          else:                       value = w1 * 10 # juchee
+
+      # Live procedure
+      if special is not None and value is None:
+         special = self.special_obs_object( special, self._date_ )
+
+         # Only to this if current time is an hour or more behind
+         # the special.from_date. This means that we only fill in
+         # 07:00 wv values if it is 08:00 or later. Avoids to fill
+         # in 'live' W's in advance (as we return a 0 if no observations
+         # are here as we assume that there was nothing). This time check
+         # is required to distinguish between:  
+         # - no data becuase the time period is in the future and
+         # - no data because not data in the meteo reports
+         doit = (dt.datetime.now() - dt.timedelta(0,3600)) > special.from_date
+         # If parsing was ok
+         if doit and not special.error:
+            # Loading special data from database
+            spvalue = self.load_special_obs( station.wmo, special ) 
+            if not spvalue is None:
+               # Ignore values >= 10
+               spvalue = np.where( spvalue < 10. )
+               # No values? Set to none.
+               if np.size(spvalue) == 0: spvalue = None
+            # If spvalue is not None take maximum of these
+            # observations as the 'best known maximum'.
+            if spvalue is not None:
+               value = np.max(spvalue)
+               if value >= 1. and value <= 3.: value = 0 # 1,2,3 is not used
+            else:
+               value = 0
+         else:
+            print "[!] Had problems parsing the special argument! SKip!"
+
       # - Return value  
       return value
 
@@ -762,6 +795,39 @@ class getobs( object ):
          elif w1 >  10.:             value = None    # automated observation
          elif w1 >= 1. and w1 <= 4.: value = 0       # 1,2,3 is not used
          else:                       value = w1 * 10 # juchee
+
+      # Live procedure
+      if special is not None and value is None:
+         special = self.special_obs_object( special, self._date_ )
+
+         # Only to this if current time is an hour or more behind
+         # the special.from_date. This means that we only fill in
+         # 07:00 wv values if it is 08:00 or later. Avoids to fill
+         # in 'live' W's in advance (as we return a 0 if no observations
+         # are here as we assume that there was nothing). This time check
+         # is required to distinguish between:  
+         # - no data becuase the time period is in the future and
+         # - no data because not data in the meteo reports
+         doit = (dt.datetime.now() - dt.timedelta(0,3600)) > special.from_date
+         # If parsing was ok
+         if doit and not special.error:
+            # Loading special data from database
+            spvalue = self.load_special_obs( station.wmo, special ) 
+            if not spvalue is None:
+               # Ignore values >= 10
+               spvalue = np.where( spvalue < 10. )
+               # No values? Set to none.
+               if np.size(spvalue) == 0: spvalue = None
+            # If spvalue is not None take maximum of these
+            # observations as the 'best known maximum'.
+            if spvalue is not None:
+               value = np.max(spvalue)
+               if value >= 1. and value <= 3.: value = 0 # 1,2,3 is not used
+            else:
+               value = 0
+         else:
+            print "[!] Had problems parsing the special argument! SKip!"
+
       # - Return value  
       return value
 
@@ -1068,14 +1134,17 @@ class getobs( object ):
       """!This class is used to parse the 'special' input arguments
       to get_obs."""
 
-      error = False
-
       def __init__( self, special, date ):
          """!This class is used to parse the 'special' input arguments
          to get_obs.
 
          @param special. String in a very special format. 
          @param date. datetime object (date of the tournament)."""
+
+         ## Keep input args
+         self.date      = date
+         self.special   = special
+
          # Check whether the special option has the correct sytnax.
          # First group: parameter
          # Second group: 'from' statement
@@ -1085,26 +1154,30 @@ class getobs( object ):
          regex = "^([a-zA-Z0-9]+)\s+({0:s})\s+({1:s})\s+to\s+({0:s})\s+({1:s}).*$".format(
                   regex_day,regex_time)
 
-         #print special
-         #print regex
          import re
          mtch = re.match(regex,special)
          if not mtch:
             self.error = True
             return
-         param,from_keyword,from_time,to_keyword,to_time = mtch.groups()
+         else:
+            self.error = False
+         self.parameter,self.from_keyword,self.from_time,self.to_keyword,self.to_time = mtch.groups()
 
          # Compute proper from/to datetime objects
-         self.from_date = self._string_to_date_(from_keyword,from_time,date)
-         self.to_date   = self._string_to_date_(to_keyword,to_time,date)
-         self.parameter = param
+         self.from_date = self._string_to_date_(self.from_keyword, self.from_time, date)
+         self.to_date   = self._string_to_date_(self.to_keyword,   self.to_time,   date)
 
-         # Verbose if set to true
-         if False:
-            print "    Parameter:    {0:s}".format( param )
-            print "    From:         {0:s} {1:s}".format( from_keyword, from_time )
-            print "    To:           {0:s} {1:s}".format( to_keyword, to_time )
-            print "    Date is:      {0:s}".format( date.strftime("%Y-%m-%d %H:%M") )
+
+      # Helper function to show oject content
+      def show( self ):
+         if self.error:
+            print "    Error: not able to extract required information from:"
+            print "           from {0:s} for {1:s}".format( self.special, self.date )
+         else:
+            print "    Parameter:    {0:s}".format( self.parameter )
+            print "    From:         {0:s} {1:s}".format( self.from_keyword, self.from_time )
+            print "    To:           {0:s} {1:s}".format( self.to_keyword,   self.to_time )
+            print "    Date is:      {0:s}".format( self.date.strftime("%Y-%m-%d %H:%M") )
             print "    Yields from:  {0:s}".format( self.from_date.strftime("%Y-%m-%d %H:%M") )
             print "    Yields to:    {0:s}".format( self.to_date.strftime("%Y-%m-%d %H:%M") )
          
