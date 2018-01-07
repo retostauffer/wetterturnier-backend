@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-22 17:50 on prognose2
+# - L@ST MODIFIED: 2018-01-07 16:25 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -284,6 +284,12 @@ if __name__ == '__main__':
                         final_value = np.int(np.round(final_value/10.)*10)
                      else:
                         final_value = np.int(np.round(final_value))
+
+                     # Iv Wv/Wv: if final_value < 4: set to o
+                     if param in ['Wv','Wn'] and final_value > 0. and final_value < 40.:
+                        print "    Wv/Wn is %d due to equation. Setting bet to 0!".format(
+                                 int(final_value) )
+                        final_value = 0.
    
                      print "    Final Moses value for day %d, param %-8s %8d (%d)" % \
                                  (day,param,final_value,counter)
