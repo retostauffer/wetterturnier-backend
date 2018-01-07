@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-07 19:43 on marvin
+# - L@ST MODIFIED: 2018-01-07 19:46 on marvin
 # -------------------------------------------------------------------
 
 
@@ -128,8 +128,8 @@ if __name__ == '__main__':
    #   participated we have to fallback to the Petrus. Loading
    #   Petrus userID first.
    # ----------------------------------------------------------------
-   petrusID = db.get_user_id( "Petrus" )
-   if not petrusID:
+   petrus_userID = db.get_user_id( "Petrus" )
+   if not petrus_userID:
       print "[!] Cannot find \"Petrus\" (User) needed for Moses. Stop script here."
       sys.exit(0)
 
@@ -240,7 +240,7 @@ if __name__ == '__main__':
                      # - If value is False the player did not submit his/her bet!
                      #   Use Petrus fallback.
                      if not value:
-                     	value = db.get_bet_data('user',petrusID,city['ID'],paramID,tdate,day)
+                     	value = db.get_bet_data('user',petrus_userID,city['ID'],paramID,tdate,day)
 
 		     # - Still non-numeric (False): save None. This None
                      #   is important as we are using a re-weighting if
