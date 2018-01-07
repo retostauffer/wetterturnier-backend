@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-22 17:50 on prognose2
+# - L@ST MODIFIED: 2018-01-07 19:42 on marvin
 # -------------------------------------------------------------------
 
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
    # - If moses directory does not exist:
    if not os.path.isdir( config['data_moses'] ):
-      utils.exit("Cannot find directory \"%s\" which should contain " + \
+      utils.exit("Cannot find directory \"{0:s}\" which should contain ".format(config["data_moses"]) + \
                "the necessary coefficient-files for Moses! Stop!")
 
    # - Reading parameter list
@@ -79,44 +79,60 @@ if __name__ == '__main__':
    # ----------------------------------------------------------------
    def get_moses_file(tdate,city,offset=5):
 
+      import re
+      import datetime as dt
+
       # - Searching for the newest moses coefficient
       #   file.
-      moses_files = glob( "%s/moses*.%1spw" % (config['data_moses'], city['name'][0].lower()) )
+      moses_files = glob( "{0:s}/moses*.{1:1s}pw".format(config['data_moses'], city['name'][0].lower()) )
       # - empty?
       if len( moses_files ) == 0:
          print '    %s\n' % 'Cannot find moses coefficients, skip'
          return( False )
 
       # - Else, ake the newest one
-      import datetime as dt
       origin = dt.date(1970,1,1)
       moses_files.sort(reverse=True)
+
+      # - Extract date from file name
+      file_dates = []
       for file in moses_files:
-         try:
-            date = file.split('moses')[1].split('.')[0]
-         except:
-            print '    Problems extracting date from %f in get_moses_files. Skip.' % file
-            continue
+         mtch = re.match( ".*moses([0-9]{6})\.\wpw$", file )
+	 if not mtch is None:
+	    file_dates.append( dt.datetime.strptime( mtch.group(1), "%y%m%d").date() )
 
-         # - Convert the date
-         try:
-            year = 2000 + int(date[0:2])
-            mon  = int(date[2:4])
-            day  = int(date[4:])
-            date = dt.date(year,mon,day)
-         except:
-            print '    Problems converting %s to date, skip' % date
-            continue
-         moses_tdate = (dt.date(year,mon,day)-origin).days
-         if (moses_tdate - offset ) > tdate: continue
+      # Newest moses file
+      newest      = max( file_dates )
+      newest_file = "{0:s}/moses{1:s}.{2:1s}pw".format(
+                    config['data_moses'], newest.strftime("%y%m%d"), city['name'][0].lower() )
+      print "    Newest matching moses file: {0:s} ({1:s})".format(
+                    newest.strftime("%Y-%m-%d"), newest_file )
+
+      # If the file is too old: return FALSE. As the file should be computed
+      # between each tournament it should never be older than 7 days, I take 5 here
+      # just in case.
+      age = (dt.date.today() - newest).days
          
-         # - Else return
-         print '    Found sutable Moses file called %s' % file
-         return( file )
+      # Drop a warning and return False if too old.
+      if age > offset:
+         print "[!] Problems with Moses: coefficient file too old ({0:d} days)".format(age)
+	 print "    Return 'False', Moses wont be computed!"
+         return False
 
-      return( False ) # nothing found
+      # Else return file name of the newest file
+      return newest_file
 
-   
+
+   # ----------------------------------------------------------------
+   # - Moses: if a player used by the moses equation has not
+   #   participated we have to fallback to the Petrus. Loading
+   #   Petrus userID first.
+   # ----------------------------------------------------------------
+   petrusID = db.get_user_id( "Petrus" )
+   if not petrusID:
+      print "[!] Cannot find \"Petrus\" (User) needed for Moses. Stop script here."
+      sys.exit(0)
+
 
    # ----------------------------------------------------------------
    # - Compute Moses for each tdate 
@@ -221,6 +237,14 @@ if __name__ == '__main__':
                      #   and parameter 'paramID' for day 'day'.
                      #   If there are no data, continue!
                      value = db.get_bet_data('user',userID,city['ID'],paramID,tdate,day)
+                     # - If value is False the player did not submit his/her bet!
+                     #   Use Petrus fallback.
+                     if not value:
+                     	value = db.get_bet_data('user',petrusID,city['ID'],paramID,tdate,day)
+
+		     # - Still non-numeric (False): save None. This None
+                     #   is important as we are using a re-weighting if
+                     #   we have, after all, missing values.
                      if type(value) == type(bool()):
                         value = None
                      else:
