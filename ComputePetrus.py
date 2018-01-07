@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-29 09:56 on thinkreto
+# - L@ST MODIFIED: 2018-01-07 14:45 on marvin
 # -------------------------------------------------------------------
 
 
@@ -50,6 +50,12 @@ if __name__ == '__main__':
    print '  * Current tournament is %s' % utils.tdate2string( tdate )
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
+   # - If input city set, then drop all other cities.
+   if not config['input_city'] == None:
+      tmp = []
+      for elem in cities:
+         if elem['name'] == config['input_city']: tmp.append( elem )
+      cities = tmp
 
    # ----------------------------------------------------------------
    # - Check if we are allowed to perform the computation of the
