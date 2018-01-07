@@ -12,9 +12,9 @@
 # - Db stuff
 [database]
 mysql_host   = localhost
-mysql_user   = wpwt 
+mysql_user   = ********
 mysql_pass   = ******** 
-mysql_db     = wpwt 
+mysql_db     = ********
 mysql_prefix = wp_
 
 mysql_obstable = obs.live
