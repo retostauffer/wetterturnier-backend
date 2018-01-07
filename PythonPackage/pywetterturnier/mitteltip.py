@@ -8,7 +8,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-20, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-07 15:25 on marvin
+# - L@ST MODIFIED: 2018-01-07 17:20 on marvin
 # -------------------------------------------------------------------
 
 def mitteltip(db,typ,ID,city,tdate):
@@ -150,10 +150,11 @@ def mitteltip(db,typ,ID,city,tdate):
          n7 = len(np.where(data == 7.)[0])
          n8 = len(np.where(data == 8.)[0])
          n9 = len(np.where(data == 9.)[0])
-         ##print "    n0={0:d},  n4={1:d},  n5={2:d},  n6={3:d},  n7={4:d},  n8={5:d},  n9={6:d}".format(
-         ##       n0, n4, n5, n6, n7, n8, n9 )
-         ##print "    n0+n4 = {0:d},  len(data) = {1:d},  (n0+n4)/len(data): {2:.3f}".format(
-         ##       (n0+n4), len(data), (n0+n4)/len(data))
+         print "    n0={0:d},  n4={1:d},  n5={2:d},  n6={3:d},  n7={4:d},  n8={5:d},  n9={6:d}".format(
+                n0, n4, n5, n6, n7, n8, n9 )
+         print "    n0+n4 = {0:d},  len(data) = {1:d},  (n0+n4)/len(data): {2:.3f}".format(
+                (n0+n4), len(data), (n0+n4)/len(data))
+         print data,"\n"
          # - Decision 0,4 .vs. 5,6,7,8,9
          if float(n0+n4) / float(len(data)) > 0.5:
             if n4 >= n0:
