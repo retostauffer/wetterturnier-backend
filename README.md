@@ -1,4 +1,6 @@
 
+This README.md is fully out of date and has to be rewritten.
+
 # E-Mail and SMTP Settings
 
 php sendmail does not work on this server as the FU forces
@@ -9,7 +11,7 @@ Hallo Reto,
 
 wir haben euch die mail-Adresse : wetterturnier@met.fu-berlin.de eingerichtet.
 Unser mailserver ist : mail.met.fu-berlin.de
-Das P W ist : DienPw4dWT!1/7
+Das P W ist : Di****************
 
 In wordpress nutze ich (Reto) WP-Mail-SMTP mit folgenden Settings:
 * SMTP Host:         mail.met.fu-berlin.de
