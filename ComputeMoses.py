@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-07 19:46 on marvin
+# - L@ST MODIFIED: 2018-01-08 20:40 on marvin
 # -------------------------------------------------------------------
 
 
@@ -111,13 +111,14 @@ if __name__ == '__main__':
       # If the file is too old: return FALSE. As the file should be computed
       # between each tournament it should never be older than 7 days, I take 5 here
       # just in case.
+      if offset == False: return newest_file
       age = (dt.date.today() - newest).days
          
       # Drop a warning and return False if too old.
       if age > offset:
-         print "[!] Problems with Moses: coefficient file too old ({0:d} days)".format(age)
-	 print "    Return 'False', Moses wont be computed!"
-         return False
+          print "[!] Problems with Moses: coefficient file too old ({0:d} days)".format(age)
+          print "    Return 'False', Moses wont be computed!"
+          return False
 
       # Else return file name of the newest file
       return newest_file
@@ -147,7 +148,10 @@ if __name__ == '__main__':
          print '\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID']) 
       
          # - Searching sutable coefficient file
-         moses_file = get_moses_file(tdate,city)
+         #   ... WARNING 200 offset disabled, but we do have a problem
+         #       at the moment to get the newest coefficients, so with offset false
+         #       we are using old files.
+         moses_file = get_moses_file(tdate,city, offset = False )
          if not moses_file: continue
    
          print '  * Found newest modes file %s' % moses_file
@@ -304,8 +308,10 @@ if __name__ == '__main__':
                      final_value = sum_val / sum_coef
    
                      # - Bring to full tens
-                     if param in ['N','ff','Wv','Wn','fx','dd']:
+                     if param in ['N','ff','Wv','Wn','fx']:
                         final_value = np.int(np.round(final_value/10.)*10)
+                     elif param == "dd":
+                        final_value = np.int(np.round(final_value/100.)*100)
                      else:
                         final_value = np.int(np.round(final_value))
    
