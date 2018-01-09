@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-09 21:09 on prognose2
+# - L@ST MODIFIED: 2018-01-09 21:12 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -246,7 +246,7 @@ if __name__ == '__main__':
                      if not value:
                      	value = db.get_bet_data('user',petrus_userID,city['ID'],paramID,tdate,day)
 
-		     # - Still non-numeric (False): save None. This None
+                     # - Still non-numeric (False): save None. This None
                      #   is important as we are using a re-weighting if
                      #   we have, after all, missing values.
                      if type(value) == type(bool()):
