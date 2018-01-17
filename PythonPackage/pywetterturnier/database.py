@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-21 16:54 on thinkreto
+# - L@ST MODIFIED: 2018-01-18 00:03 on marvin
 # -------------------------------------------------------------------
 
 
@@ -15,12 +15,15 @@ import MySQLdb
 import utils
 
 class database(object):
-   """!This is the main database handler class.
+   """This is the main database handler class.
    As soon as an object of this class is initialized python automatically
    (tries) to connect to the database. The database class offers a bunch
    of methods to get/write data into the databae. Not all commands are
    in this class, some SQL statements are defined within the other
    classes and methods.
+
+   Args:
+     config: :class:`utils.readconfig` Database handler
    """
 
    # ----------------------------------------------------------------
@@ -29,9 +32,12 @@ class database(object):
    def __init__(self,config):
       """The database class is handling the connection to the
       mysql database and different calls and stats.
-      @params config. Dict containing all necessary information like
+      :params config. Dict containing all necessary information like
       mysql database, user, password, and database name. Please see
-      @ref utils.readconfig for more details about the config object.
+      :ref utils.readconfig for more details about the config object.
+
+      Args:
+        config (int): foo
       """
 
       self.config = config
@@ -104,20 +110,20 @@ class database(object):
    # - Some methods from mysql 
    # ----------------------------------------------------------------
    def cursor(self):
-      """!Simple wrapper to MySQL.cursor"""
+      """Simple wrapper to MySQL.cursor"""
       return self.db.cursor()
    def execute(self,sql):
-      """!Simple wrapper to MySQL.execute"""
+      """Simple wrapper to MySQL.execute"""
       return self.db.execute(sql)
    def executemany(self,sql,data):
-      """!Simple wrapper to MySQL.executemany"""
+      """Simple wrapper to MySQL.executemany"""
       return self.db.executemany(sql,data)
    def commit(self):
-      """!Simple wrapper to MySQL.commit"""
+      """Simple wrapper to MySQL.commit"""
       self.db.commit()
 
    def check_if_table_exists(self,table):
-      """!Checks wheter a table exists in the database. Note that the
+      """Checks wheter a table exists in the database. Note that the
       table name is the table name without prefix! For example: if you
       wanna check whether wp_users exists the the variable tablename
       has to be 'users' only. The prefix is used as specified in the
@@ -140,7 +146,7 @@ class database(object):
    # - Create a group
    # -------------------------------------------------------------------
    def create_group(self, name, desc ):
-      """!Checks and/or creates group.   
+      """Checks and/or creates group.   
       Checks the Wetterturnier database table @b groups and checks if
       the group is already existing. If existing, the job of this method
       is done. Else a new group will be created.
@@ -172,7 +178,7 @@ class database(object):
    # - Create a group
    # -------------------------------------------------------------------
    def create_user(self, name, password = None ):
-      """!Check and/or create new Wetterturnier user.
+      """Check and/or create new Wetterturnier user.
       Creates a new user. If user already exists, the job of this method is
       done. Return. If not, create new user.
 
@@ -266,7 +272,7 @@ class database(object):
    # - Getting dict containing all active cities in the database. 
    # -------------------------------------------------------------------
    def get_cities(self):
-      """!Loading city information from the database.
+      """Loading city information from the database.
       Loads all active cities from the database which can then be used
       to loop over or whatever you'll do with it. 
 
@@ -299,7 +305,7 @@ class database(object):
    # - Loading stations from database for a given city
    # -------------------------------------------------------------------
    def get_stations_for_city(self,cityID):
-      """!Loading all stations mached to a certain city.
+      """Loading all stations mached to a certain city.
       @param cityID. Integer, ID of the city in the database.
       @return List object containing @b N @ref stationclass.stationclass objects.
       """
@@ -321,7 +327,7 @@ class database(object):
    # - Current tournament
    # -------------------------------------------------------------------
    def current_tournament(self):
-      """!Returns tdate for current tournament.
+      """Returns tdate for current tournament.
       The tdate is the number of days since 1970-01-01. Loading the
       max(tdate) from the bets table.
       If all works as it should bets can only be placed for the upcoming
@@ -355,7 +361,7 @@ class database(object):
    # - Get all tournament dates 
    # -------------------------------------------------------------------
    def all_tournament_dates(self,cityID=None):
-      """!Returns all defined tournament dates ever payed in a city.
+      """Returns all defined tournament dates ever payed in a city.
       Searches for all unique tournament dates in the bets table and
       returns them as a list.
       @param cityID. Integer, ID of the city. If NONE all dates of all
@@ -394,7 +400,7 @@ class database(object):
    # - Given an ID this method returns the city name.
    # -------------------------------------------------------------------
    def get_city_name_by_ID(self,cityID):
-      """!Returns the full city name given a valid cityID. If the city
+      """Returns the full city name given a valid cityID. If the city
       cannot be found in the database False will be returned.
       @params cityID. Integer, required.
       @return Returns city name (string) or False (bool) if the city could
@@ -415,7 +421,7 @@ class database(object):
    #   This will be used by the judgingclass to compute the points.
    # -------------------------------------------------------------------
    def get_cityall_bet_data(self,cityID,paramID,tdate,day,nosleepy=True,nullonly=False):
-      """!Returns bets for a given city/parameter/date/day.
+      """Returns bets for a given city/parameter/date/day.
       Returns all bets for a given city, parameter for a given bet day of a specified
       tournament. Note that there is no userID. This method returns the bets for all 
       users.
@@ -485,7 +491,7 @@ class database(object):
    # - Loading bets. 
    # -------------------------------------------------------------------
    def get_bet_data(self,typ,ID,cityID,paramID,tdate,bdate):
-      """!Returns bet data used to compute e.g., Petrus.
+      """Returns bet data used to compute e.g., Petrus.
       Returns a set of bets for a given city, parameter, and bet date for a specified
       tournament date. Note: has different modes.
       @arg If typ == 'all': all users (human forecasters, automated forecasters and
@@ -616,7 +622,7 @@ class database(object):
    # - Insert or update a bet value of a given user
    # -------------------------------------------------------------------
    def upsert_bet_data(self,userID,cityID,paramID,tdate,bdate,value):
-      """!Helper function to update the bets database.
+      """Helper function to update the bets database.
       Upserts the bets database setting a new 'value' for a given player.
 
       @param userID. Integer, user ID.
@@ -661,7 +667,7 @@ class database(object):
    #   a value (no default value set for column value).
    # -------------------------------------------------------------------
    def upsert_points_data(self,userID,cityID,paramID,tdate,bdate,points):
-      """!Helper function to update the bets database.
+      """Helper function to update the bets database.
       Upserts the bets database updating the points for a given player. 
       This is for the payers. They get points for each of the parameters.
 
@@ -690,7 +696,7 @@ class database(object):
    # - Upsert wetterturnier_betstat table
    # -------------------------------------------------------------------
    def upsert_sleepy_points(self,userID,cityID,tdate,points):
-      """!Helper function to update the points for the Sleepy player. 
+      """Helper function to update the points for the Sleepy player. 
       Upserts the betstat database updating the points for the Sleepy. 
       Actually for any player. But the userID should be the one from the
       Sleepy here. The Sleepy just gets points for the full weekend,
@@ -716,7 +722,7 @@ class database(object):
    # - Loading bets. 
    # -------------------------------------------------------------------
    def get_obs_data(self,cityID,paramID,tdate,bdate,wmo=None):
-      """!Loading observation data from the obs database (the obs which
+      """Loading observation data from the obs database (the obs which
       are already in the format as they are used for the judging).
 
       @arg if input wmo == None: return all obs for all stations for
@@ -771,7 +777,7 @@ class database(object):
    #   code will skip if there are no data.
    # -------------------------------------------------------------------
    def get_parameter_names(self, active = False):
-      """!Returns all parameter names.
+      """Returns all parameter names.
       If input active is set, only active parametres will be returned.
       
       @param active. Boolean, optional. Default is False.
@@ -796,7 +802,7 @@ class database(object):
    # - Returning parameter ID
    # -------------------------------------------------------------------
    def get_parameter_id(self,param):
-      """!Returns parameter ID given a parameter Name.
+      """Returns parameter ID given a parameter Name.
       @param param. String, parameter short name (e.g., TTm)
       @return False if the parameter cannot be found in the database or
          the corresponding integer parameter ID.
@@ -814,7 +820,7 @@ class database(object):
    # - Returns user id. And creates user if necessary.
    # -------------------------------------------------------------------
    def get_user_id_and_create_if_necessary(self, name):
-      """!Returns user ID and create user if necessary.
+      """Returns user ID and create user if necessary.
       All-in-one wonder method. Searching for the user ID of a given
       user. If the user does not exist: create the user first and then
       return the user ID.
@@ -841,7 +847,7 @@ class database(object):
    # - Returning user ID
    # -------------------------------------------------------------------
    def get_user_id(self,user):
-      """!Returns user ID given a username. If the user cannot be found,
+      """Returns user ID given a username. If the user cannot be found,
       the method returns False. There is a vice versa function called
       @ref database.get_username_by_id .
       @param user. String, user name.
@@ -860,7 +866,7 @@ class database(object):
    #   More explicitly: return user_login from the database.
    # -------------------------------------------------------------------
    def get_username_by_id(self,userID):
-      """!Returns username given a user ID.
+      """Returns username given a user ID.
       Returns the username for a given user ID. If the user cannot be found,
       the return value will be False. There is a vice versa function called
       @ref database.get_user_id.
@@ -884,7 +890,7 @@ class database(object):
    # - Returning active groups 
    # -------------------------------------------------------------------
    def get_active_groups(self):
-      """!Returns all active group names from database.
+      """Returns all active group names from database.
       @return list containing string group names of all active groups.
       """
       cur = self.db.cursor()
@@ -902,7 +908,7 @@ class database(object):
    # - Returning user ID
    # -------------------------------------------------------------------
    def get_group_id(self,group):
-      """!Returns group ID given a group name.
+      """Returns group ID given a group name.
       @param group. String, group name.
       @return False if the group cannot be found, else the integer group ID
       """
@@ -920,7 +926,7 @@ class database(object):
    # - Create a groupuser (add user to group as a member)
    # -------------------------------------------------------------------
    def create_groupuser(self, user, group, since, active ):
-      """!Adds an existing user to an existing group.
+      """Adds an existing user to an existing group.
       If the user is already an actie member of the group: don't add him/her again.
       @param user. String, user name.
       @param group. String, group name.
@@ -963,7 +969,7 @@ class database(object):
    #   users with usernames beginning with 'GRP_'.
    # -------------------------------------------------------------------
    def get_sleepy_points(self,cityID,tdate,ignore):
-      """!Loading the points from the Sleepy user.
+      """Loading the points from the Sleepy user.
       Returns tuple including betdate, parameterID, sleepy points
       for a given city/tournament date.
       Points are computed as follows:
@@ -996,7 +1002,7 @@ class database(object):
    # - Close the database 
    # ----------------------------------------------------------------
    def close(self,verbose=True):
-      """!Simple wrapper around MySQLdb.close."""
+      """Simple wrapper around MySQLdb.close."""
 
       if verbose: print '  * Close database'
       self.db.close()

@@ -1,0 +1,11 @@
+
+# Ignore build
+generated
+_build
+_static
+
+# Take
+!.gitignore
+!conf.py
+!*.rst
+!Makefile
