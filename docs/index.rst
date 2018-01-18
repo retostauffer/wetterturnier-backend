@@ -48,7 +48,12 @@ Important blocks
     :hidden:
     :caption: Functions
 
+    function/utils_datelock.rst
+    function/utils_inputcheck.rst
     function/utils_readconfig.rst
+    function/getobs.rst
+    function/mitteltip.rst
+    function/stationclass.rst
 
 .. toctree::
     :maxdepth: 1
@@ -56,6 +61,7 @@ Important blocks
     :caption: Classes
 
     class/database_database.rst
+    class/getobs_getobs.rst
 
 
 

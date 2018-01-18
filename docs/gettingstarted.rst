@@ -8,4 +8,9 @@ Getting Started
 * Cronjob with out logs.
 
 
+Setting up the config file
+---------------------------
+
+.. _config-conf-template:
+
 

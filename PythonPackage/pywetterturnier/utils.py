@@ -10,7 +10,7 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 02:25 on marvin
+# - L@ST MODIFIED: 2018-01-18 20:09 on marvin
 # -------------------------------------------------------------------
 """
 Documentation for this module.
@@ -48,8 +48,7 @@ def inputcheck(what):
    have a look into the usage (most scripts can be called with
    input argument ``-h/--help`` to display the usage).
 
-   Todo:
-      A bug! Input argument what is not in use. Maybe kill it or
+   .. todo:: A bug! Input argument what is not in use. Maybe kill it or
       at least set some defaults.
 
    Args:
@@ -128,8 +127,7 @@ def usage(what=None):
    Args:
       what (:obj:`str`): String to specify which usage should be used.
 
-   Todo:
-      A bug! Change iputcheck, add propper usage.
+   .. todo:: A bug! Change iputcheck, add propper usage.
    """
 
    import utils

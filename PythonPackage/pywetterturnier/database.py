@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 02:17 on marvin
+# - L@ST MODIFIED: 2018-01-18 20:08 on marvin
 # -------------------------------------------------------------------
 
 
@@ -308,8 +308,7 @@ class database(object):
          list: A list containing one dict per city where each dict
          consists of the keys 'name' and 'ID'.
    
-      Todo:
-         Would be nice to return cityclass objects or something. However,
+      .. todo:: Would be nice to return cityclass objects or something. However,
          needs some effort as I have to chnage a few lines of code.
       """
 
@@ -372,8 +371,7 @@ class database(object):
       Return:
          int: Integer date (days since 1970-01-01)
 
-      Todo:
-         Reto just take care of the idea that we cold start two tournaments
+      .. todo:: Reto just take care of the idea that we cold start two tournaments
          in a row. Can this method then handle the requests?
       """
 
@@ -563,8 +561,7 @@ class database(object):
       Returns:
          list: Returns a list containing all the bets.
 
-      Todo:
-         Reto the sleepy does ont get bets - he just gets points. Maybe I can
+      .. todo:: Reto the sleepy does ont get bets - he just gets points. Maybe I can
          disable/remove the 'all' function if I am not using it anymore.
       """
 

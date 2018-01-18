@@ -8,20 +8,28 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-20, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-07 17:20 on marvin
+# - L@ST MODIFIED: 2018-01-18 20:07 on marvin
 # -------------------------------------------------------------------
 
+"""
+Function to compute the mitteltipps. 
+
+.. todo:: Could contain a bit more details!
+"""
 def mitteltip(db,typ,ID,city,tdate):
-   """!Function returning Mitteltips or group bets.
+   """Function returning Mitteltips or group bets.
   
-   @param db. Database handler object, see @ref database.database 
-   @param typ. String. Forwarded to @ref database.database.get_bet_data. Please
-      read the manual there for more information.
-   @param ID. Integer. Forwarded to @ref database.database.get_bet_data. Please
-      read the manual there for more information.
-   @param city. Integer, city ID.
-   @param tdate. Integer, tournament date. Days since 1970-01-01'
-   @return dict containing the mitteltip.
+   Args:
+      db (:class:`database.database`): Database handler object.
+      typ (:obj:`str`): Forwarded to :meth:`database.database.get_bet_data`. Please
+            read the manual there for more information.
+      ID (:obj:`int`): Forwarded to :meth:`database.database.get_bet_data`. Please
+         read the manual there for more information.
+      city (:obj:`int`): Numeric city ID.
+      tdate (:obj:`int`): Tournament date. Days since 1970-01-01'
+   
+   Returns:
+    dict: Contains the mitteltip.
    """
 
    import numpy as np
