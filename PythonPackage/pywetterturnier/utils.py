@@ -10,7 +10,7 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-22 17:06 on prognose2
+# - L@ST MODIFIED: 2018-01-18 00:32 on marvin
 # -------------------------------------------------------------------
 
 """@package docstring
@@ -188,18 +188,20 @@ def usage(what=None):
 # - Reading configuration file
 # -------------------------------------------------------------------
 def readconfig(file='config.conf',inputs=None,conversion_table=None):
-   """!Reading config file. There is a 'global' wetterturnier backend
+   """Reading config file. There is a 'global' wetterturnier backend
    config file which is necessary to handle all the actions.
    This method also checks some parameters. E.g., if a required directory or
    file does not exist, the script stops.
 
-   @args file. String, file name of the config file. Default is config.conf.
-   @args inputs, dict. Usually the input dict from @ref utils.inputcheck.
-   Default is None. If it is adict: all parameters will be added to 
-   the config dict which will be generated in this method.
-   In case a key exists in the config dict (created in here) and is duplicated
-   in the inputs dict the script will stop immediately.
-   @return dict containing all necessary configs.
+   Args:
+      file:    string File name of the config file. Default is ``config.conf``.
+      inputs:  dict   Usually the input dict from :py:meth:`utils.inputcheck`.
+                      Default is None. If it is a dict: all parameters will be added to 
+                      the config dict which will be generated in this method.
+                      In case a key exists in the config dict (created in here) and is duplicated
+                      in the inputs dict the script will stop immediately.
+   Returns:
+      A dict containing all necessary configs.
    """
 
    import sys, os

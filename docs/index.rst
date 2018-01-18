@@ -45,10 +45,17 @@ Important blocks
 .. toctree::
     :maxdepth: 1
     :hidden:
+    :caption: Functions
+
+    function/utils_readconfig.rst
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
     :caption: Classes
 
     class/database_database.rst
-    class/utils_readconfig.rst
+
 
 
 
