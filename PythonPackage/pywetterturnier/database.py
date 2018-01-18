@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 01:26 on marvin
+# - L@ST MODIFIED: 2018-01-18 02:17 on marvin
 # -------------------------------------------------------------------
 
 
@@ -219,9 +219,9 @@ class database(object):
       if the user was added propperly. If not: stop.
 
       Args:
-         name (:obj:`str`): containing the username.
+         name (:obj:`str`): User name. 
          password (:obj:`str`, optional): If set to None the user wont get a password (actually
-         i have to set a password, in this case the user password is just its user name
+         I *have to set* a password, in this case the user password is just its user name
          backwards. E.g., Reto gets paswort oteR.
       """
 
@@ -888,7 +888,7 @@ class database(object):
       See also: :meth:`database.create_user`, :meth:`database.get_user_id`
 
       Args:
-        name (:obj:`str`): Username.
+        name (:obj:`str`): User name.
 
       Returns:
         int: Numeric userID.
@@ -913,9 +913,13 @@ class database(object):
    def get_user_id(self,user):
       """Returns user ID given a username. If the user cannot be found,
       the method returns False. There is a vice versa function called
-      @ref database.get_username_by_id .
-      @param user. String, user name.
-      @return False if user does not exist, else the integer user ID.
+      :py:meth:`database.get_username_by_id`.
+
+      Args:
+        user (:obj:`str`): User name.
+      
+      Returns:
+        bool or int: False if user does not exist, else the integer user ID.
       """
       cur = self.db.cursor()
       cur.execute('SELECT ID FROM %susers WHERE LOWER(user_login) = \'%s\'' % (self.prefix, user.lower()))
@@ -933,9 +937,13 @@ class database(object):
       """Returns username given a user ID.
       Returns the username for a given user ID. If the user cannot be found,
       the return value will be False. There is a vice versa function called
-      @ref database.get_user_id.
-      @param userID. Integer, user ID.
-      @return False if user cannot be identified, else string user name.
+      :py:meth:`database.get_user_id`.
+       
+      Args:
+        userID (:obj:`int`): Numeric user ID.
+    
+      Returns:
+         bool or str: False if user cannot be identified, else string username.
       """
       try:
          userID = int(userID)
@@ -955,7 +963,9 @@ class database(object):
    # -------------------------------------------------------------------
    def get_active_groups(self):
       """Returns all active group names from database.
-      @return list containing string group names of all active groups.
+
+      Returns:
+        list: List of strings containing all active group names.
       """
       cur = self.db.cursor()
       sql = 'SELECT groupName FROM %swetterturnier_groups WHERE active = 1'
@@ -973,8 +983,12 @@ class database(object):
    # -------------------------------------------------------------------
    def get_group_id(self,group):
       """Returns group ID given a group name.
-      @param group. String, group name.
-      @return False if the group cannot be found, else the integer group ID
+
+      Args:
+        group (:obj:`str`): Group name.
+      
+      Returns:
+        bool or int: False if the group cannot be found, else the integer group ID
       """
       cur = self.db.cursor()
       sql = 'SELECT groupID FROM %swetterturnier_groups WHERE groupName = \'%s\''
@@ -992,12 +1006,14 @@ class database(object):
    def create_groupuser(self, user, group, since, active ):
       """Adds an existing user to an existing group.
       If the user is already an actie member of the group: don't add him/her again.
-      @param user. String, user name.
-      @param group. String, group name.
-      @param since. datetime object (normally current time) from when on
-         the user was a member of the group.
-      @param active. Integer, if user is an actie member of the group or not.
-         Typically 1 as you are adding the user in that split second.
+
+      Args:
+         user (:obj:`str`):       User name.
+         group (:obj:`str`):      Group name.
+         since (:obj:`datetime`): Usually current time. Add user to a group.
+                                  the user was a member of the group.
+         active (:obj:`id`):      If user is an actie member of the group or not.
+                                  Typically 1 as you are adding the user in that split second.
       """
    
       uID = self.get_user_id( user )
@@ -1036,13 +1052,19 @@ class database(object):
       """Loading the points from the Sleepy user.
       Returns tuple including betdate, parameterID, sleepy points
       for a given city/tournament date.
-      Points are computed as follows:
-      @arg Sleepy Points = Average(Points) - Standarddeviation(Points)
-      ... where 'Points' are all Group/User points gained in the tournament
-      @b EXCLUDING the Sleepy. If the Sleepy would not be excluded the
+      Points are computed as follows: ``Sleepy Points = Average(Points) - Standarddeviation(Points)``
+      where ``Points`` are all Group/User points gained in the tournament
+      **EXCLUDING** the Sleepy. If the Sleepy would not be excluded the
       points would drift towards -Inf as the average decreases iteratively
       and the standard deviation increases iteratively. 
-      @return a tuple tuple as fetched from database. Typically including
+
+      Args:
+         cityID (:obj:`int`): Numeric city ID.
+         tdate (:obj:`int`):  Tournament date, days since 1970-01-01.
+         ignore (:obj:`int`): Numeric user ID, ID of the user which should
+                              be ignored (e.g., Sleepy's ID).
+      Returns:
+         tuple tuple: Tuple tuple as fetched from database. Typically including
          two tuples, first for Saturday, second for Sunday.
       """
 
@@ -1066,7 +1088,22 @@ class database(object):
    # - Close the database 
    # ----------------------------------------------------------------
    def close(self,verbose=True):
-      """Simple wrapper around MySQLdb.close."""
+      """Simple wrapper around MySQLdb.close.
+      
+      Args:
+         verbose (:obj:`bool`): If set to True a small statement will
+         be printed to stdout.
+      """
 
       if verbose: print '  * Close database'
       self.db.close()
+
+
+
+
+
+
+
+
+
+

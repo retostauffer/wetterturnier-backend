@@ -41,6 +41,7 @@ Important blocks
     :hidden:
 
     gettingstarted.rst
+    Petrus.rst
 
 .. toctree::
     :maxdepth: 1

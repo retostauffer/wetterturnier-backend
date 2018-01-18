@@ -10,13 +10,11 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 00:32 on marvin
+# - L@ST MODIFIED: 2018-01-18 02:25 on marvin
 # -------------------------------------------------------------------
-
-"""@package docstring
+"""
 Documentation for this module.
-
-More details.
+More details should be added.
 """
 
 # -------------------------------------------------------------------
@@ -24,13 +22,17 @@ More details.
 #   tournament days. 
 # -------------------------------------------------------------------
 def datelock(config,tdate):
-   """!To prevent the scripts to re-compute certain things, e.g.
+   """To prevent the scripts to re-compute certain things, e.g.
    the mean bet tips in the archive, this small function is used.
    Problem: we do not know who was in which group in the past, wherefore
    the mean bets will get wrong if recomputed.
-   @config the config list from readconfig.
-   @tdate integer. Date as integer, days sincd 1970-01-01.
-   @return Returns boolean true if you are allowed to execute the
+
+   Args:
+      config (:obj:`dict`): The config list from :meth:`utils.readconfig`.
+      tdate (:obj:`int`): Date as integer, days sincd 1970-01-01.
+
+   Return:
+      bool: Returns True if you are allowed to execute the
       comoputation and false otherwise."""
 
    return eval("{0:d} {1:s}".format(tdate,config['datelock']))
@@ -39,18 +41,20 @@ def datelock(config,tdate):
 # - Parsing input arguments
 # -------------------------------------------------------------------
 def inputcheck(what):
-   """!Checking input arguments for several scripts.
+   """Checking input arguments for several scripts.
    Using the same inputcheck routine for most of the Wetterturnier
    python backend scripts. The arguments are evaluated in here
    and added to a list object which will be returned. Please
    have a look into the usage (most scripts can be called with
-   input argument -h/--help to display the usage).
+   input argument ``-h/--help`` to display the usage).
 
-   @bug Input argument what is not in use. Maybe kill it or
-   at least set some defaults.
+   Todo:
+      A bug! Input argument what is not in use. Maybe kill it or
+      at least set some defaults.
 
-   @args what. String, to handle some specal cases. At the moment
-   the input argument is not used at all!
+   Args:
+      what (:obj:`str`): String to handle some specal cases. At the moment
+      the input argument is not used at all!
    """
 
    import sys, getopt
@@ -119,9 +123,13 @@ def inputcheck(what):
 # - Show the usage and exit.
 # -------------------------------------------------------------------
 def usage(what=None):
-   """!Script usage
+   """Script usage.
 
-   @bug change iputcheck, add propper usage.
+   Args:
+      what (:obj:`str`): String to specify which usage should be used.
+
+   Todo:
+      A bug! Change iputcheck, add propper usage.
    """
 
    import utils
@@ -194,14 +202,14 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
    file does not exist, the script stops.
 
    Args:
-      file:    string File name of the config file. Default is ``config.conf``.
-      inputs:  dict   Usually the input dict from :py:meth:`utils.inputcheck`.
-                      Default is None. If it is a dict: all parameters will be added to 
-                      the config dict which will be generated in this method.
-                      In case a key exists in the config dict (created in here) and is duplicated
-                      in the inputs dict the script will stop immediately.
+      file   (:obj:`str`):  string File name of the config file. Default is ``config.conf``.
+      inputs (:obj:`dict`): Usually the input dict from :meth:`utils.inputcheck`.
+                            Default is None. If it is a dict: all parameters will be added to 
+                            the config dict which will be generated in this method.
+                            In case a key exists in the config dict (created in here) and is duplicated
+                            in the inputs dict the script will stop immediately.
    Returns:
-      A dict containing all necessary configs.
+      dict: A dict containing all necessary configs.
    """
 
    import sys, os
@@ -333,13 +341,16 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
 # - Convert date since 1970-01-01 into a readable string 
 # -------------------------------------------------------------------
 def tdate2string( date ):
-   """! Converts tdate into string of form YYY-MM-DD.
+   """ Converts tdate into string of form YYY-MM-DD.
    Note: a so called tdate is nothing else than an integer value
    indicating the days since 1970-01-01 which is used extensively
    in the wetterturnier (especially to optimize the databases).
 
-   @args date. Integer, days since 1970-01-01
-   @return string of format %Y-%m-%d
+   Args:
+      date (:obj:`int`): Days since 1970-01-01
+
+   Returns:
+      string: Formatted string, format ``%Y-%m-%d``.
    """
 
    from datetime import datetime as dt
@@ -351,15 +362,20 @@ def tdate2string( date ):
 # - Manipulate special characters to get propper names 
 # -------------------------------------------------------------------
 def nicename( string, conversion_table = None ):
-   """!Creates a nice username.
+   """Creates a nice username.
    Mainly used for migration where (from the text files of the old
    wetterturnier archive) a few usernames were including special characters,
    blanks, or other special things. The new Wetterturnier only allows
    propper non-special-character usernames. This function converts
    possibly impropper usernames to its propper equivalent.
 
-   @args string. Possibly impropper user name.
-   @return string with nice username without special characters and shit.
+   Args:
+      string (:obj:`str`): Possibly impropper user name.
+      conversion_table (:obj:`dict`): Dict used for string translation. 
+                           Default None (unused).
+
+   Returns:
+      string: String with nice username without special characters and shit.
    """
 
    import unicodedata
@@ -412,8 +428,11 @@ def nicename( string, conversion_table = None ):
 # - Customized exit handling
 # -------------------------------------------------------------------
 def exit(msg):
-   """!Simple exit wrapper.
+   """Simple exit wrapper.
    Can be used to create kind of user-defined exit handling.
+
+   Args:
+      msg (:obj:`str`): String, the error message which should be dropped (stderr).
    """
 
    import sys

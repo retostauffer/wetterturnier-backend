@@ -3,7 +3,5 @@ utils.readconfig
 
 Readconfig class
 
-.. automodule:: utils
-
-.. autoclass:: readconfig
+.. automodule:: Petrus
     :members:
