@@ -13,3 +13,10 @@
     "placedby","bigint(20) unsigned","NO","","0",""
 
 
+
+* Non-unique key named *wp_wetterturnier_bets_idx_cityID* on ``(cityID)``
+* Non-unique key named *wp_wetterturnier_bets_idx_betdate* on ``(betdate)``
+* **Unique-key** named *userID* on ``(userID, cityID, paramID, tdate, betdate)``
+* Non-unique key named *wp_wetterturnier_bets_idx_tournamentdate* on ``(tdate)``
+
+

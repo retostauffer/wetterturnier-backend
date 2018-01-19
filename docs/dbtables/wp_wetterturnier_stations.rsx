@@ -9,3 +9,8 @@
     "changed","timestamp","NO","","CURRENT_TIMESTAMP","on update CURRENT_TIMESTAMP"
 
 
+
+* **Unique-key** named *wmo* on ``(wmo)``
+* **Unique-key** named *PRIMARY* on ``(ID)``
+
+

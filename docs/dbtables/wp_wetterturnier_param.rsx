@@ -19,3 +19,7 @@
     "unit","varchar(5)","YES","","",""
 
 
+
+* **Unique-key** named *PRIMARY* on ``(paramID, paramName)``
+
+

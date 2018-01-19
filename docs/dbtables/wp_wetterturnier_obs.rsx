@@ -10,3 +10,9 @@
     "value","smallint(6)","YES","","None",""
 
 
+
+* Non-unique key named *wp_wetterturnier_obs_idx_betdate* on ``(betdate)``
+* **Unique-key** named *station* on ``(station, paramID, betdate)``
+* Non-unique key named *wp_wetterturnier_obs_idx_station* on ``(station)``
+
+

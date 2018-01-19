@@ -43,6 +43,7 @@ Important blocks
     gettingstarted.rst
     configfile.rst
     thescripts.rst
+    judgingclass.rst
 
 .. toctree::
     :maxdepth: 1

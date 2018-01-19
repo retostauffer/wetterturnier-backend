@@ -9,7 +9,7 @@
 # - EDITORIAL:   2014-09-19, RS: Created file on thinkreto.
 #                Adapted from ComputePetrus.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-07-05 08:12 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2018-01-19 15:20 on marvin
 # -------------------------------------------------------------------
 
 import sys, os

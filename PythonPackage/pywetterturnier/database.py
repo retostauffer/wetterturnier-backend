@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 20:08 on marvin
+# - L@ST MODIFIED: 2018-01-19 14:28 on marvin
 # -------------------------------------------------------------------
 
 
@@ -208,6 +208,10 @@ class database(object):
       """Check and/or create new Wetterturnier user.
       Creates a new user. If user already exists, the job of this method is
       done. Return. If not, create new user.
+
+      Please note: if a user does not exist this script creates a small php
+      script and executes the php via console. This php script creates the
+      new user via wordpress API.
 
       As we are using wordpress we have to take care
       how we are creating users. To be on the save side I am using the wordpress

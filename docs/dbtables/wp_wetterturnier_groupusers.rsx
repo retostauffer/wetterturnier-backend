@@ -11,3 +11,8 @@
     "active","tinyint(4)","YES","","1",""
 
 
+
+* **Unique-key** named *PRIMARY* on ``(ID)``
+* **Unique-key** named *ID* on ``(ID)``
+
+

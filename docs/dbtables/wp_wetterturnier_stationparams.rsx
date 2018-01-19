@@ -9,3 +9,7 @@
     "until","timestamp","NO","","0000-00-00 00:00:00",""
 
 
+
+* **Unique-key** named *PRIMARY* on ``(ID)``
+
+

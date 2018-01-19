@@ -13,3 +13,9 @@
     "submitted","timestamp","YES","","None",""
 
 
+
+* Non-unique key named *wp_wetterturnier_betstat_cityID* on ``(cityID)``
+* Non-unique key named *wp_wetterturnier_betstat_tdate* on ``(tdate)``
+* **Unique-key** named *data* on ``(userID, cityID, tdate)``
+
+

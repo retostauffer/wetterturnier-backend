@@ -12,14 +12,14 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-19 14:20 on thinkreto
+# - L@ST MODIFIED: 2018-01-19 15:59 on marvin
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
 import numpy as np
 
 class judging(object):
-   """!This is a judgingclass - a class used to compute the points
+   """This is a judgingclass - a class used to compute the points
    a user gets on a specific weekend. Please note that it is possible
    that the rules change somewhen and that there is a second judgingclass.
    
@@ -28,6 +28,10 @@ class judging(object):
    for a specific tournament which falls outside this limits the script
    will stop in the operational mode not to re-compute old bets with
    a wrong judgingclass.
+
+   Args:
+      quiet (:obj:`bool`): Default False, can be set to True to procude
+        some more output.
    """
 
    # ----------------------------------------------------------------
@@ -53,13 +57,11 @@ class judging(object):
    tdate_max = None
 
    def __init__(self,quiet=False):
-      """!Initialize new juding object.
-      @param quiet. Boolean, default is False. Redudes the output
-         to a minimum if set to True. Used for some applications.
-      @note actually I would like to connect this script to a php
-         scrpt to give the users the oportunity to 'test' the 
-         judgingclass. And therefore the script has to be quiet and
-         just prints what I need. Not done yet.
+      """Initialize new juding object.
+
+      Args:
+         quiet (:obj:`bool`): Default is False. Redudes the output
+            to a minimum if set to True. Used for some applications.
       """
 
       if not quiet:
@@ -71,14 +73,25 @@ class judging(object):
    #   Creates list tuple out of two lists.
    # ----------------------------------------------------------------
    def _prepare_for_database_(self,userID,cityID,paramID,tdate,betdate,values):
-      """!Prepares ID/value pairs for database.
+      """Prepares ID/value pairs for database.
       Creates a tuple list which can be used with
-      @b database.database.executemany. Used later with
+      database.database.executemany. Used later with
       the method 'points_to_database' within this class to update
       the bets table.
-      @param userID, cityID, paramID, tdate, betdate. Lists containing integers,
-         all these integers define the 'unique key' in the database.
-      @param values. List containing numeric values connected to the ID's.
+
+      Args:
+        userID (:obj:`list`):  List containing :obj:`int`, numeric user ID.
+        cityID (:obj:`list`):  List containing :obj:`int`, numeric city ID.
+        paramID (:obj:`list`): List containing :obj:`int`, numeric parameter ID.
+        tdate (:obj:`list`):   List containing :obj:`int`, numeric tournament date, days since 1970-01-01.
+        betdate (:obj:`list`): List containing :obj:`int`, numeric betdate, days since 1970-01-01.
+        values (:obj:`list`):  List containing the values (points).
+
+      Returns:
+        list of tuples: Re-structures the inputs to a list. The list has the
+        same length as the input lists but each list element is a tuple containing
+        the inputs. This object is then used for the executemany statement (write
+        data to database).
       """
 
       if not len(userID) == len(values):
@@ -96,10 +109,18 @@ class judging(object):
    # - Inserts data into database. They have to be prepared
    # ----------------------------------------------------------------
    def points_to_database(self,db,userID,cityID,paramID,tdate,betdate,values):
-      """!Updates the bets database.
-      @param userID, cityID, paramID, tdate, betdate. Lists containing integers,
-         all these integers define the 'unique key' in the database.
-      @param values. List containing numeric values connected to the ID's.
+      """Updates the bets database. All inputs are lists and have to be of the
+      same length. (userID, cityID, paramID, tdate, betdate) define the unique
+      ID in the wetterturnier_bets database. Argument values is a list as well
+      containing the compute points.
+
+      Args:
+        userID (:obj:`list`):  List containing :obj:`int`, numeric user ID.
+        cityID (:obj:`list`):  List containing :obj:`int`, numeric city ID.
+        paramID (:obj:`list`): List containing :obj:`int`, numeric parameter ID.
+        tdate (:obj:`list`):   List containing :obj:`int`, numeric tournament date, days since 1970-01-01.
+        betdate (:obj:`list`): List containing :obj:`int`, numeric betdate, days since 1970-01-01.
+        values (:obj:`list`):  List containing the values (points).
       """
 
       # - Prepare tuple list object
@@ -117,6 +138,25 @@ class judging(object):
    #   Stops if there is an undefined class.
    # ----------------------------------------------------------------
    def get_points(self,obs,what,data,special=None,tdate=None):
+      """Compute the points. This is a generic function which is used 
+      to compute the points for all required parameters. The inputs
+      define what has to be computed.
+
+      Args:
+        obs (:obj:``): Observations
+        what (:obj:`str`): Which parameter, this defines the method to be called (internally).
+        special (:obj:`float`): Some rules have 'special' sub-rules. This
+            speical is a float observation required to compute the points.
+        tdate (obj:`int`): tournament date, days since 1970-01-01 or None.
+            Used to test whether or not it is allowed to compute the
+            points for this specific tournament date with this judginclass.
+            Second level securety check not to use the wrong judgingclass
+            for a specific date.
+
+      Returns:
+        np.ndarray with floats: Returns a np.ndarray with the points rounded
+        to one digit.
+      """
 
       import utils
       import numpy as np
@@ -167,6 +207,18 @@ class judging(object):
    # - Compute residuals
    # -----------------------------------------------------------------
    def __residuals__(self,obs,data):
+      """Helper function to compute the residuals.
+      If input 'data' lies in between minimum and maximum of 'obs' this
+      was a perfect hit (and 0.0 will be returned). Else the minimal
+      absolute difference to the closest 'obs' will be returned.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+
+      Returns:
+        np.ndarray of type float: np.ndarray containing the residuals.
+      """
 
       # - Observations min/max. If it is only one value min is
       #   equal to max.
@@ -189,13 +241,40 @@ class judging(object):
    #   - They are using the same method (forwarding)
    # ----------------------------------------------------------------
    def __points_TTm__(self,obs,data,special):
+      """Function to compute points for TTm (maximum temperature).
+      This is only an alias to __points_TTmTTnTTd__ as they all use
+      the same rule.
+      """
       return self.__points_TTmTTnTTd__(obs,data,special,0.3)
    def __points_TTn__(self,obs,data,special):
+      """Function to compute points for TTn (minimum temperature)
+      This is only an alias to __points_TTmTTnTTd__ as they all use
+      the same rule.
+      """
       return self.__points_TTmTTnTTd__(obs,data,special,0.3)
    def __points_TTd__(self,obs,data,special):
+      """Function to compute points for TTd (dew-point temperature)
+      This is only an alias to __points_TTmTTnTTd__ as they all use
+      the same rule.
+      """
       return self.__points_TTmTTnTTd__(obs,data,special,0.2)
    # - Here TTm and TTn are getting computed
    def __points_TTmTTnTTd__(self,obs,data,special,factor):
+      """Rule function to compute points for minimum/maximum temperature
+      and dew-point temperature.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+            These are not used to compute the points in this function.
+        factor (): Factor for the loss of points for non-perfect forecasts.
+            As this factor differs for TTm/TTn and TTd it is specified
+            via input argument.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       if not self.quiet:
          print '    - Called TTm/TTn/TTd point computation method'
@@ -221,6 +300,16 @@ class judging(object):
    # - Compute N (cloud cover) points 
    # ----------------------------------------------------------------
    def __points_N__(self,obs,data,special):
+      """Rule function to compute points for clouod cover.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       if not self.quiet:
          print '    - Called N point computation method'
@@ -260,6 +349,16 @@ class judging(object):
    # - Compute Sd (sunshine duration) points 
    # ----------------------------------------------------------------
    def __points_Sd__(self,obs,data,special):
+      """Rule function to compute points for relative sunshine duration.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       if not self.quiet:
          print '    - Called Sd point computation method'
@@ -300,6 +399,16 @@ class judging(object):
    # - Compute dd (wind direction) 
    # ----------------------------------------------------------------
    def __points_dd__(self,obs,data,special):
+      """Rule function to compute points for wind direction parameter.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       if not self.quiet:
          print '    - Called dd point computation method'
@@ -448,6 +557,16 @@ class judging(object):
    # - Compute ff (mean wind speed) points 
    # ----------------------------------------------------------------
    def __points_ff__(self,obs,data,special):
+      """Rule function to compute points for wind speed.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       if not self.quiet:
          print '    - Called ff point computation method'
@@ -469,6 +588,16 @@ class judging(object):
    # - Compute fx (wind gusts) points 
    # ----------------------------------------------------------------
    def __points_fx__(self,obs,data,special):
+      """Rule function to compute points for gust speed.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       # - Getting min and max from the obs
       data   = np.asarray(data)
@@ -526,11 +655,29 @@ class judging(object):
    #   - They are using the same method (forwarding)
    # ----------------------------------------------------------------
    def __points_Wv__(self,obs,data,special):
+      """Function to compute points for Wv (weather type noon) 
+      This is only an alias to __points_WvWn__ as they all use
+      the same rule.
+      """
       return self.__points_WvWn__(obs,data,special)
    def __points_Wn__(self,obs,data,special):
+      """Function to compute points for Wn (weather type afternoon)
+      This is only an alias to __points_WvWn__ as they all use
+      the same rule.
+      """
       return self.__points_WvWn__(obs,data,special)
    # - Here Wn and WvWn are getting computed
    def __points_WvWn__(self,obs,data,special):
+      """Rule function to compute points for weather types. 
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       if not self.quiet:
          print '    - Called WvWn point computation method'
@@ -579,6 +726,16 @@ class judging(object):
    # - Compute PPP (station pressure) points 
    # ----------------------------------------------------------------
    def __points_PPP__(self,obs,data,special):
+      """Rule function to compute points for reduced surface air pressure.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       if not self.quiet:
          print '    - Called PPP point computation method'
@@ -601,7 +758,16 @@ class judging(object):
    # - Compute RR (precipitation) points 
    # ----------------------------------------------------------------
    def __points_RR__(self,obs,data,special):
+      """Rule function to compute points for precipitation sum.
 
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+      
+      Returns:
+         Returns the corresponding points.
+      """
 
       # - Getting min and max from the obs
       data   = np.asarray(data)
@@ -701,23 +867,6 @@ class judging(object):
       #   print '%5d %5d | bet %5d | resid: %5d | %6.2f  (ded: %6.2f)' % (min,max,data[i], resid[i], points[i], deduction[i])
 
       return points
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

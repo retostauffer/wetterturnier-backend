@@ -13,3 +13,11 @@
     "...","...","...","...","...","..."
 
 
+
+* Non-unique key named *bufr_statnr* on ``(statnr)``
+* Non-unique key named *bufr_datumsec* on ``(datumsec)``
+* Non-unique key named *bufr_datum* on ``(datum)``
+* Non-unique key named *bufr_einspiel* on ``(utime)``
+* **Unique-key** named *bufr_statnr_datumsec_msgtyp* on ``(statnr, datumsec, msgtyp)``
+
+

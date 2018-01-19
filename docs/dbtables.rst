@@ -1,6 +1,8 @@
 Database Tables
 ===============
 
+.. _database-obs:
+
 .. _tables:
 
 live
@@ -38,6 +40,8 @@ and an unnecessary and unused copy of everything).
 
 .. include:: dbtables/archive.rsx
 
+
+.. _database-wetterturnier:
 
 wp_wetterturnier_obs
 --------------------

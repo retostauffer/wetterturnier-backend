@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2018-01-19, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-19 13:22 on marvin
+# - L@ST MODIFIED: 2018-01-19 14:09 on marvin
 # -------------------------------------------------------------------
 
 import logging
@@ -233,9 +233,33 @@ class setup( object ):
         # If there were ignored columns: add ... at the end of the table
         if ignored > 0:
             res.append( "    {:s}".format( ",".join( ["\"...\""]*len(cols) )))
-
-    
         res.append( "\n\n" )
+
+        # Cretae index information
+        dbkeys = {}
+        cur.execute( "SHOW KEYS FROM {0:s};".format(table) )
+        desc = [x[0] for x in cur.description]
+        for rec in cur.fetchall():
+            keyname = rec[desc.index("Key_name")]
+            if not keyname in dbkeys.keys(): dbkeys[keyname] = {}
+            dbkeys[keyname]["non_unique"] = rec[desc.index("Non_unique")]
+            dbkeys[keyname]["col_{:d}".format(rec[desc.index("Seq_in_index")])] = \
+                    rec[desc.index("Column_name")]
+
+        if len(dbkeys) > 0:
+            for name in dbkeys.keys():
+                key_res = ["* Non-unique key" if dbkeys[name]["non_unique"]==1 else "* **Unique-key**"]
+                key_res.append("named *{0:s}* on".format(name))
+                on = []
+                for i in range(0,len(dbkeys[name])-1):
+                    on.append( dbkeys[name]["col_{:d}".format(i+1)] )
+                key_res.append("``({:s})``".format( ", ".join(on) ) )
+
+                res.append( " ".join(key_res) )
+
+        res.append( "\n\n" )
+                    
+
         return "\n".join(res)
     
 # Main script

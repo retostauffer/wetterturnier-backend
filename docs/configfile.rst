@@ -17,7 +17,10 @@ which returns a :obj:`dict` object containing all the required information.
     ``mysql_obstable`` specifies the database where the observations are stored
     (see :ref:`table description <table-live>`).
 [migrate]
-    **This is depricated**. Used to migrate the data from the old wetterturnier
+    **NOTE** do not remove all settings as some are used in the live
+    system, e.g., ``wpconfig`` setting. This is used in :meth:`database.database.create_user`
+    using the wordpress API.
+    **Large parts are depricated**. Used to migrate the data from the old wetterturnier
     system to the new one on `Wetterturnier.de <http://www.wetterturnier.de>`_.
     Only ``datelock`` is still used.
     

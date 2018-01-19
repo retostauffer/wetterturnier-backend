@@ -10,3 +10,7 @@
     "active","tinyint(4)","YES","","1",""
 
 
+
+* **Unique-key** named *PRIMARY* on ``(groupID)``
+
+
