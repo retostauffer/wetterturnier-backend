@@ -85,42 +85,8 @@ you can easily install it manually:
 Some of the major script files and what they do
 ===============================================
 
-ComputePoints.py
-----------------
+The documentation is available on `read the docs <http://wetterturnier-backend.readthedocs.io>`_.
+Please visit the `documentation <http://wetterturnier-backend.readthedocs.io>`_
+where the different main scripts are ducumented in subsection
+`getting started - The Scripts <http://wetterturnier-backend.readthedocs.io/en/latest/thescripts.html>`_.
 
-Computes the points for the bets.
-
-ComputePetrus.py
------------------
-
-Computes Petrus auto bet. During the development
-phase I called it Petros2014 (change this after
-going online). Using mitteltip.py to compute.
-
-ComputeMeanBets.py
--------------------
-
-Computes the group bets based on current active
-members and their groups.
-Using the same library as Petrus (mitteltip.py).
-
-migrate.py
------------
-
-Migrates different stuff. Currently groups, 
-and their users.
-
-current.py
------------
-
-Downloading and parsing the wetterturnier webpage,
-current tournament, and put everything into the
-database. Also creates users if they do not exist.
-Please run migrate.py before so that the gorup-users
-are well known.
-
-config.conf
------------
-
-The configuration file with database settings and
-other information/flags.
