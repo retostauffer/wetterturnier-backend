@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 20:09 on marvin
+# - L@ST MODIFIED: 2018-01-19 12:33 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -27,11 +27,11 @@ class getobs( object ):
    Args:
       config (:obj:`list`): Contains all necessary configs for the
               pywetterturnier package. Please have a look into 
-              See :py:ref:`utils.readconfig` for more details. 
-      db (:py:ref:`database.database`): A pywetterturnier 
-             (:py:ref:`database.database` object handling the database I/O.
+              See :py:meth:`utils.readconfig` for more details. 
+      db (:py:class:`database.database`): A pywetterturnier 
+             (:py:class:`database.database` object handling the database I/O.
       city (:obj:`int`): Numeric city ID.
-      date (:ref:class:`datetime.date` object with the date for which
+      date (:obj:`datetime.datetime.date` object with the date for which
              the request should be made.
    """
 
@@ -84,7 +84,7 @@ class getobs( object ):
 
       Args:
          stations (:obj:`list`): of :py:obj:`stationclass.stationclass` objects.
-         date (:py:ref:`datetime.date`): Date object for which the data should
+         date (:obj:`datetime.datetime.date`): Date object for which the data should
             be retrieved or for which date the day length should be computed.
       
       Returns:

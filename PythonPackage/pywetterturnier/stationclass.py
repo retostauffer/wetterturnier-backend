@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-24, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 20:18 on marvin
+# - L@ST MODIFIED: 2018-01-19 12:24 on marvin
 # -------------------------------------------------------------------
 
 
@@ -30,8 +30,7 @@ class stationclass( object ):
    """
 
    def __init__( self, desc, data, db = None, dbprefix = None ):
-      """
-      Initializing a new stationclss object.
+      """Initializing a new stationclss object.
       """ 
 
       # - Prepare cols
@@ -67,6 +66,9 @@ class stationclass( object ):
    # whether it is None or not).
    # ----------------------------------------------------------------
    def _has_db_connector_( self ):
+      """Checks if the object already contains a db connector (if
+      database connection has been opened or not).
+      """
       if not self.db or not self.dbprefix:     return False
       else:                                    return True
 
@@ -118,8 +120,7 @@ class stationclass( object ):
    # - Helper function. Shows content.
    # ----------------------------------------------------------------
    def show(self):
-      """
-      Small summary function which prints the content of a stationclass
+      """Small summary function which prints the content of a stationclass
       object in a nice way.
       """
 

@@ -1,9 +1,16 @@
 # -------------------------------------------------------------------
-# - NAME:        config.conf 
+# - NAME:        config.conf.template 
 # - AUTHOR:      Reto Stauffer
 # - DATE:        2014-07-07
 # -------------------------------------------------------------------
-# - DESCRIPTION: Some configs
+# - DESCRIPTION: Template for the config.conf file. By default the
+#                config file is expected to be named config.conf
+#                in the same directory as the python scripts.
+#                You can start making a copy of this file and adjust
+#                the settings (mainly mysql config).
+#
+#                cp config.conf.template config.conf
+#                vim config.conf # edit the settings
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-07-07, RS: Created file.
 # -------------------------------------------------------------------

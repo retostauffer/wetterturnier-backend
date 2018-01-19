@@ -6,9 +6,16 @@ import utils
 import database
 
 class importbets:
-    """! USED TO IMPORT OLD ARCHIVE DATA FROM THE OLD WETTERTURNIER.
+    """USED TO IMPORT OLD ARCHIVE DATA FROM THE OLD WETTERTURNIER.
     AS I WILL NEVER USE THIS ROUTINE AGAIN I DONT DO THE DOCUMENTATION
-    FOR ALL THE METHODS IN HERE."""
+    FOR ALL THE METHODS IN HERE.
+    
+    Args:
+        config (:obj:`dict`): Configuration dict from :meth:`utils.readconfig`.
+        file_forced (:obj:`str`): File to force in.
+
+    .. todo:: Migration script. Remove in the near future!
+    """
 
     data1 = None
     data2 = None

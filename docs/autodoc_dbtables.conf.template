@@ -10,7 +10,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2018-01-19, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-19 11:43 on marvin
+# - L@ST MODIFIED: 2018-01-19 12:09 on marvin
 # -------------------------------------------------------------------
 
 # General config, define output directory. Directory will be created
@@ -21,7 +21,7 @@
 [general]
 
 outdir     = dbtables
-deleteold  = true
+deleteold  = false
 overwrite  = true
 
 
@@ -31,18 +31,20 @@ overwrite  = true
 [database obs]
 
 host       = localhost
-user       = root
-passwd     = suchti
+user       = *******
+passwd     = *******
 dbname     = obs
 
 # Table specification: archive table
 [table obs live]
 table      = live
-caption    = My caption
+caption    = Rolling database for (raw) incoming observations.
+showonly   = statnr,datum,datumsec,stdmin,msgtyp,stint,utime,ucount
 
 [table obs archive]
 table      = archive
-caption    = My second caption
+caption    = Archive table, contains long-term observations (copy of the live table) for specified stations.
+showonly   = statnr,datum,datumsec,stdmin,msgtyp,stint,utime,ucount
 
 # Table specification: live table
 
@@ -51,12 +53,12 @@ caption    = My second caption
 [database wp]
 
 host       = localhost
-user       = root
-passwd     = suchti
+user       = *******
+passwd     = *******
 dbname     = wpwt
 # The wordpress table prefix
 prefix     = wp_
 
 [table wp wetterturnier_obs]
 table      = %prefixwetterturnier_obs
-caption    = Wetterturnier Wordpress Plugin observation table.
+caption    = Wetterturnier Wordpress Plugin observation table which is used to compute the points.

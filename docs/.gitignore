@@ -4,6 +4,9 @@ generated
 _build
 _static
 
+# Ignore config file for autodoc_dbtables
+autodoc_dbtables.conf
+
 # Take
 !.gitignore
 !conf.py

@@ -1,6 +1,13 @@
 The Scripts
 ===========
 
+Chain
+-----
+
+.. _scripts-Chain:
+
+* Chain script
+
 
 Petrus
 -------
@@ -35,6 +42,7 @@ Mean Bets
 ---------
 
 .. _script-MeanBets:
+
 * ComputeMeanBets.py
 
 
@@ -58,4 +66,24 @@ Ranks Only
 .. _script-RanksOnly:
 
 * ComputeRanksOnly.py
+
+Observations
+------------
+
+.. _script-Observations:
+
+* Observations.py
+
+Concuela
+--------
+
+.. _script-Concuela:
+
+* Cleanup database and stuff.
+
+.. todo:: Rename Concuela!
+
+
+
+
 

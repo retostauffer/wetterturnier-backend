@@ -7,19 +7,31 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-14, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2014-09-14 20:41 on sculptor.uberspace.de
+# - L@ST MODIFIED: 2018-01-19 12:48 on marvin
 # -------------------------------------------------------------------
 
 
+"""This script is **outdated** and should not be used. Was used
+to migrate the data from the old wetterturnier system into the new
+one."""
 class migrategroups(object):
+   """Downloading the groups list file from wetterturnier.de,
+   Parse the content and create groups and its users if they
+   are not allready existing.
+
+   Was reading a file called ``raw/migrategroups.txt`` and to migrate
+   groups and group users.
+   
+   Args:
+       config (:obj:`dict`): Config dict from :meth:`utils.readconfig`.
+
+   .. todo:: Remove this file in the near future, was a migration script.
+   """
 
    # ----------------------------------------------------------------
    # - Init
    # ----------------------------------------------------------------
    def __init__(self,config):
-      """Downloading the groups list file from wetterturnier.de,
-      Parse the content and create groups and its users if they
-      are not allready existing."""
 
       from database import database
 
@@ -35,7 +47,8 @@ class migrategroups(object):
    # - Downloading the file
    # ----------------------------------------------------------------
    def __download_file__(self):
-      """Downloading the html file and store locally"""
+      """Downloading the html file and store locally
+      """
 
       import subprocess as sub
       import utils
@@ -58,7 +71,8 @@ class migrategroups(object):
    # - Reading the php file
    # ----------------------------------------------------------------
    def __read_rawfile__(self):
-      """Parsing raw file and import groups and users."""
+      """Parsing raw file and import groups and users.
+      """
 
       import re
       import utils
@@ -112,6 +126,8 @@ class migrategroups(object):
    #   from the list of the tournament website.
    # ----------------------------------------------------------------
    def create_groups_and_users(self):
+      """Create groups and group users in database.
+      """
 
       import utils
 

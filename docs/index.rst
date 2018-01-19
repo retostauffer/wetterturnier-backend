@@ -41,7 +41,8 @@ Important blocks
     :hidden:
 
     gettingstarted.rst
-    Petrus.rst
+    configfile.rst
+    thescripts.rst
 
 .. toctree::
     :maxdepth: 1
@@ -51,9 +52,7 @@ Important blocks
     function/utils_datelock.rst
     function/utils_inputcheck.rst
     function/utils_readconfig.rst
-    function/getobs.rst
     function/mitteltip.rst
-    function/stationclass.rst
 
 .. toctree::
     :maxdepth: 1
@@ -62,7 +61,14 @@ Important blocks
 
     class/database_database.rst
     class/getobs_getobs.rst
+    class/stationclass_stationclass.rst
+    class/migration.rst
 
+.. toctree::
+    :maxdepth: 1
+    :caption: MySQL tables
+
+    dbtables.rst
 
 
 
