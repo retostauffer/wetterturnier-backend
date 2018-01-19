@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-29, RS: Adapted from ComputeMoses.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-21 17:02 on thinkreto
+# - L@ST MODIFIED: 2018-01-19 19:29 on marvin
 # -------------------------------------------------------------------
 
 
@@ -202,7 +202,7 @@ if __name__ == '__main__':
             # - Wv/Wn
             # -------------------------------------------------------
             elif param in ['Wv','Wn']:
-               data = np.asarray(res[param])
+               data = np.asarray(res[param]) / 10
                # - More for 0/4 than for 5/6/7/8/9:
                if np.sum( data < 5 ) > np.sum( data >= 5 ):
                   data = data[data < 5]
