@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-19 14:28 on marvin
+# - L@ST MODIFIED: 2018-01-20 14:13 on marvin
 # -------------------------------------------------------------------
 
 
@@ -694,9 +694,15 @@ class database(object):
 
       sql = 'INSERT INTO %swetterturnier_bets ' + \
             '(userID, cityID, paramID, tdate, betdate, value) VALUES ' + \
-            '(%d, %d, %d, %d, %d, %d) ON DUPLICATE KEY UPDATE value = VALUES(value)'
+            '(%d, %d, %d, %d, %d, %d) ON DUPLICATE KEY UPDATE ' + \
+            'value = IF ( placedby = 0, VALUES(value), value );'
    
       cur.execute( sql % (self.prefix, userID, cityID, paramID, tdate, bdate, value) )
+
+      # Rowcount (affected rows)
+      ###rowcount = cur.rowcount
+      ###if rowcount == 0:
+      ###    print "      [!] Not updated (same value or admin lock)"
 
       # Setting the betstat entry
       sql = 'INSERT INTO %swetterturnier_betstat ' + \
