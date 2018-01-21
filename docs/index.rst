@@ -40,6 +40,7 @@ Important blocks
     :maxdepth: 1
     :hidden:
 
+    overview.rst
     gettingstarted.rst
     configfile.rst
     thescripts.rst

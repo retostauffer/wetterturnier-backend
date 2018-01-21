@@ -90,3 +90,13 @@ Please visit the `documentation <http://wetterturnier-backend.readthedocs.io>`_
 where the different main scripts are ducumented in subsection
 `getting started - The Scripts <http://wetterturnier-backend.readthedocs.io/en/latest/thescripts.html>`_.
 
+
+License Information
+===================
+
+The software in this repository is free software: you can redistribute it
+and/or modify it under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. The full :download:`LICENSE` file is included in the repository
+and/or can be found on `gnu.org <https://www.gnu.org/licenses/gpl-3.0.txt>`_.
+
