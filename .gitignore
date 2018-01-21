@@ -6,6 +6,9 @@ Documentation/*.toc
 
 /wert_*/
 
+# - Ignore local .conf files
+*.conf
+
 # - Ignore some folders
 /raw/
 /test/

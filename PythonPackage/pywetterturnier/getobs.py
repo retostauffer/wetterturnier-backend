@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-08 08:53 on marvin
+# - L@ST MODIFIED: 2018-01-21 11:37 on prognose2
 # -------------------------------------------------------------------
 
 import sys, os
@@ -17,15 +17,28 @@ import datetime as dt
 import numpy as np
 
 class getobs( object ):
+   """Main observation handling class. Loading observations from the
+   'raw' database (Obsdatabase) and computes the observations required
+   for the tournament (e.g, daily sunshine duration or precipitation sums
+   (sum over 24h between pre-specified times).
+   These values are stored into the `Wetterturnier Wordpress Plugin <https://github.com/retostauffer/wp-wetterturnier>`_
+   and used for the penalties/judging.
+   
+   Args:
+      config (:obj:`list`): Contains all necessary configs for the
+              pywetterturnier package. Please have a look into 
+              See :py:meth:`utils.readconfig` for more details. 
+      db (:py:class:`database.database`): A pywetterturnier 
+             (:py:class:`database.database` object handling the database I/O.
+      city (:obj:`int`): Numeric city ID.
+      date (:obj:`datetime.datetime.date` object with the date for which
+             the request should be made.
+   """
 
 
    def __init__(self, config, db, city, date):
-      """!Initialization of the @ref getobs.getobs class.
-      
-      @param config. List, contains all necessary configs for the
-      pywetterturnier package. Please have a look into 
-      @ref utils.readconfig for more details. 
-      @return Returns nothing. Just contains several methods.
+      """
+      Initialization of the @ref getobs.getobs class.
       """
 
       # -------------------------------------------------------------
@@ -62,16 +75,20 @@ class getobs( object ):
    # - Compute maximum day length using the python astral package.
    # ----------------------------------------------------------------
    def get_maximum_Sd( self, stations, date ):
-      """!Computes astronomic (maximum) sun shine duration for a set
+      """Computes astronomic (maximum) sun shine duration for a set
       of stations. Note that the station has to be stored in the database
-      table @b obs.stations. If not, we dont know the position of the   
+      table ``obs.stations``. If not, we dont know the position of the   
       station and therefore we can't compute astronomical sunshine
       duration resulting in a None value.
       Uses external python package @astral.
 
-      @param stations. List of @ref stationclass.stationclass objects.
-      @param datetime object. Day of the observations.
-      @return A dict consisting of WMO station number and
+      Args:
+         stations (:obj:`list`): of :py:obj:`stationclass.stationclass` objects.
+         date (:obj:`datetime.datetime.date`): Date object for which the data should
+            be retrieved or for which date the day length should be computed.
+      
+      Returns:
+         dict: A dict consisting of WMO station number and
       the length of the astronomic day in seconds. 
       """
 
@@ -125,9 +142,15 @@ class getobs( object ):
    # - Loading 
    # ----------------------------------------------------------------
    def get_columns( self, table ):
-      """!Returns database table columns.
-      @param table. String, name of the database table.
-      @return A list of all available table columns.
+      """Returns database table columns.
+
+      Args:
+         table (:obj:`str`): Name of the database table.
+
+      Results:
+         list: A list of all available table columns.
+
+      .. todo:: reference to database required here.
       """
 
       sql = "SHOW COLUMNS FROM %s" % table
@@ -142,16 +165,22 @@ class getobs( object ):
    # - Loading observations
    # ----------------------------------------------------------------
    def load_obs( self, wmo, hour, parameter ):
-      """!Loading a specific observation from the database.
+      """Loading a specific observation from the database.
       The date for which the observation should be valid and the
       name of the database are coming from the public attributes of the
       class (@ref getobs.getobs).
 
-      @param wmo. Numeric, WMO station number.
-      @param hour. Integer, hour for which the observation should
-      be valid [0,...,24].
-      @return Either a numeric value or None if the cell in the
-      database was empty (NULL).
+      Args:
+         wmo (:obj:`int`):  Numeric WMO station number.
+         hour (:obj:`int`): Hour for which the observation should
+                            be valid [0,...,24], in UTC.
+         parameter (:obj:`str`): Parameter name (short name) for which
+                            observations should be loaded.
+
+      Returns:
+         :obj:`float` or NULL: NULL will be returned if the database
+            is empty or the parameter could not have been found, Else
+            the numeric value is returned by this method.
       """
 
       from pywetterturnier import utils
@@ -192,15 +221,19 @@ class getobs( object ):
    # - Loading special observations 
    # ----------------------------------------------------------------
    def load_special_obs( self, wmo, special ):
-      """!Loading a specific observation from the database.
+      """Loading a specific observation from the database.
       The date for which the observation should be valid and the
       name of the database are coming from the public attributes of the
-      class (@ref getobs.getobs).
+      class (see :class:`getobs.getobs`).
 
-      @param wmo. Numeric, WMO station number.
-      @param special. Object of type special_obs_object.
-      @return Either a numeric value or None if the cell in the
-      database was empty (NULL).
+      Args:
+         wmo (:obj:`int`): WMO station number.
+         special (:class:`getobs.getobs.special_obs_class`): Selector for handling
+                special requests (modifies the time-selector).
+      
+      Returns:
+         float: Either a numeric value or None if the cell in the
+         database was empty (NULL).
       """
 
       from pywetterturnier import utils
@@ -252,15 +285,18 @@ class getobs( object ):
    #   content of the colums. 
    # ----------------------------------------------------------------
    def check_record( self, wmo, hour ):
-      """!Checks if database record exists. Just checks if for the   
+      """Checks if database record exists. Just checks if for the   
       current date/time/station combination a row exists in the database
       and not what a specific cell contains. Note: date, and table name
       are coming from the public attributes of @ref getobs.getobs .
 
-      @param wmo. Integer, WMO station number.
-      @param hour. Integer, hour time shift relative to the 'date', 00:00 UTC.
-         As an example: hour=30 means that we are checking 'tomorrow 06:00 UTC'.
-      @return Boolean value. False if no such row exists, else True.
+      Args:
+         wmo (:obj:`int`): WMO station number.
+         hour (:obj:`int`): Hour time shift relative to the 'date', 00:00 UTC.
+              As an example: hour=30 means that we are checking 'tomorrow 06:00 UTC'.
+
+      Returns:
+         bool: False if no such row exists, else True.
       """
 
       datumsec   = self._date_ + dt.timedelta( 0, hour*3600 )
@@ -279,12 +315,14 @@ class getobs( object ):
    # - Adding value
    # ----------------------------------------------------------------
    def _add_obs_value_(self,parameter,wmo,value):
-      """!Adds a loaded observation to the final data object stored on the
-      parent @ref getobs.getobs object. Appends all data to the
-      public attribute getobs.getobs.data .
-      @param parameter. String, wetterturnier parameter shortname.
-      @param wmo. Integer, WMO station number.
-      @param value. Either a numeric value or None.
+      """Adds a loaded observation to the final data object stored on the
+      parent :class:`getobs.getobs` object. Appends all data to the
+      public attribute :attr:`getobs.getobs.data`.
+
+      Args:
+         parameter (:obj:`str`): Parameter shortname.
+         wmo (:obj:`int`): WMO station number.
+         value (:obj:`float`): Either a numeric value or None.
       """
 
       # - If value is none: return
@@ -304,16 +342,34 @@ class getobs( object ):
    #   parameters like TTm, TTn, ... 
    # ----------------------------------------------------------------
    def prepare( self, parameter,special=None):
-      """!Prepares the different observed parameters like TTn, TTm, N,
-      and so on. Note that the script will ignore a wrong specified
+      """Prepares the different observed parameters like ``TTn``, ``TTm``, ``N``,
+      and so on (depending on what's defined in the database table
+      ``params``). Note that the script will ignore a wrong specified
       or unknown parameter as the internal method then does not exist. 
       The date will be taken from the public arguments of the parent
-      class @ref getobs.getobs.
+      class :class`getobs.getobs`.
+      The additional data (specified via ``special`` input argument will only
+      be used when the final value is not yet available.
 
-      @param parameter. String, shortname of the Wetterturnier parameters. 
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return No return. Appends data to internal object. 
+      Args:
+         parameter (:obj:`str`): shortname of the Wetterturnier parameters. 
+         special   (:obj:`str`): String with a very specific format. This is to
+            compute some live observations such as min/max.
+
+      Examples:
+         Prepare weather type parameter ``Wv``, in addition select database
+         column ``w1`` and select all available observations between 07:00 today
+         and 18:00 of the requested date (today), see input argument
+         ``date`` on :obj:`getobs.getobs`.
+
+         ``x.prepare( "Wv", "w1 today 07:00 to today 12:00" )``
+
+         Compute minimum temperature ``TTn``, in addition select
+         database column ``T`` between yesterday 18:00 and today 06:00.
+
+         ``x.prepare( "TTn", "T yesterday 18:00 to today 6:00" )``
+
+      .. todo:: Reference to database table param.
       """
 
       try:
@@ -337,16 +393,18 @@ class getobs( object ):
    # - Prepare TTm
    # ----------------------------------------------------------------
    def _prepare_fun_TTm_(self,station,special):
-      """!Helper function for TTM, maximum temperature. Returns 18 UTC maximum
+      """Helper function for TTM, maximum temperature. Returns 18 UTC maximum
       temperature, either from column tmax12 or - if tmax12 not available
       but tmax24 exists - maximum temperature from tmax24.
       Temperature will be in 1/10 degrees Celsius.
 
-      @param station. Object of class @ref stationclass.stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
@@ -387,14 +445,16 @@ class getobs( object ):
    # - Prepare TTn
    # ----------------------------------------------------------------
    def _prepare_fun_TTn_(self,station,special):
-      """!Helper function for TTN, minimum temperature. Returns 06 UTC minimum
+      """Helper function for TTN, minimum temperature. Returns 06 UTC minimum
       temperature. Simply the tmin12 column at 06 UTC in 1/10 degrees Celsius.
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
@@ -423,14 +483,16 @@ class getobs( object ):
    # - Prepare TTd
    # ----------------------------------------------------------------
    def _prepare_fun_TTd_(self,station,special):
-      """!Helper function for dew point temperature. Returns 12 UTC observed
+      """Helper function for dew point temperature. Returns 12 UTC observed
       dew point temperature from database column td in 1/10 degrees Celsius.
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -443,14 +505,16 @@ class getobs( object ):
    # - Prepare PPP
    # ----------------------------------------------------------------
    def _prepare_fun_PPP_(self,station,special):
-      """!Helper function for mean sea level pressure at 12 UTC.
+      """Helper function for mean sea level pressure at 12 UTC.
       Based on database column pmsl. Return value will be in 1/10 hPa.
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -467,22 +531,28 @@ class getobs( object ):
    # - Prepare dd
    # ----------------------------------------------------------------
    def _prepare_fun_dd_(self,station,special):
-      """!Helper function for the wind direction at 12 UTC from database
+      """Helper function for the wind direction at 12 UTC from database
       column dd. Values will be returned in 1/10 degrees but rounded
       to full 10 degrees. E.g., observed '138' degrees will be converted
       into '1400' (1/10 degrees, rounded to full 10 degrees). 
       Special case: also depends on database column ff. The following
       cases will be used:
-      @arg 1) if dd not observed/received: @b return None
-      @arg 2) if dd==0 and ff==0:          @b return 0.0
-      @arg 3) if dd==0 and ff>0:           @b return None (variable wind direction)
-      @arg 4) else:                        @b return value
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      1) if dd not observed/received: **return None**
+
+      2) if dd==0 and ff==0:          **return 0.0**
+
+      3) if dd==0 and ff>0:           **return None (variable wind direction)**
+
+      4) else:                        **return value**
+
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -509,20 +579,17 @@ class getobs( object ):
    # - Prepare ff
    # ----------------------------------------------------------------
    def _prepare_fun_ff_(self,station,special):
-      """!Helper function for the wind speed at 12 UTC. Based on database
+      """Helper function for the wind speed at 12 UTC. Based on database
       column ff. Values will be in 1/10 knots but rounded to full knots.
       E.g., if 3.2m/s observed -> 6.22kt -> Return value will be 60. 
+
       Args:
-         parameter (string): string with parameter short name (e.g., TTm, N, RR)
-         station (class): stationclass object. 
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
       Returns:
-         numeric: observed value if loading data was successful 
-         None: if observation not available or nor recorded
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -537,24 +604,30 @@ class getobs( object ):
    # - Loading fx (maximum wind gust over last 1h, 6 to 6 UTC)
    # ----------------------------------------------------------------
    def _prepare_fun_fx_(self,station,special):
-      """!Helper function for the maximum gust speed (fx > 25kt).
+      """Helper function for the maximum gust speed (fx > 25kt).
       Based on database column fx1. Return value will be in 1/10 knots but
       rounded to full knots. 
       E.g., if 21.2m/s observed -> 41.21kt -> Return value will be 410. 
       Special cases:
-      @arg 1) no observation available but +30h
-           observation (row) is in database:
-           Assume that there were no gusts at all:      @b return 0
-      @arg 2) no observations available and +30h
-            observation (row) not yet in database:      @b return None 
-      @arg 3) observation available, below 25 knots:    @b return 0 
-      @arg 4) observation available, >= 25 knots:       @b return value
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      1) no observation available but +30h
+         observation (row) is in database:
+         Assume that there were no gusts at all:   **return 0**
+
+      2) no observations available and +30h
+         observation (row) not yet in database:    **return None**
+
+      3) observation available, below 25 knots:    **return 0**
+
+      4) observation available, >= 25 knots:       **return value**
+
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # - Timestamps
@@ -635,20 +708,25 @@ class getobs( object ):
    # - Prepare N
    # ----------------------------------------------------------------
    def _prepare_fun_N_(self,station,special):
-      """!Helper function for cloud cover at 12 UTC. Return value
+      """Helper function for cloud cover at 12 UTC. Return value
       will be in 1/10 octas, rounded to full octas [0,10,20,30,...,80]. 
       Observations based on database column cc.
-      @arg 1) if observation is available:       @b return value
-      @arg 2) if observation not recorded but
-            12 UTC database entry exists we
-            assume that there were no clouds:     @b return 0
-      @arg 3) else:                               @b return None
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      1) if observation is available:       **return value**
+
+      2) if observation not recorded but
+         12 UTC database entry exists we
+         assume that there were no clouds:  **return 0**
+
+      3) else:                              **return None**
+
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -674,33 +752,43 @@ class getobs( object ):
    # - Prepare Wv
    # ----------------------------------------------------------------
    def _prepare_fun_Wv_(self,station,special):
-      """!Helper function for significant weather observatioins between
+      """Helper function for significant weather observatioins between
       06 UTC and 12 UTC (forenoon) based on database table w1.
       Value will be in 1/10 levels [0,10,20,...,90].
-         1) if observation not recorded but
-            12 UTC database entry exists we
-            assume that there were no clouds       return 0
-         2) if observation not recorded and
-            12 UTC database entry not available    return None
-         3) If observation is = 10 (no sign weather)
-            we can return class 0                  @b return 0
-         4) observation here BUT 
-            the observed value is > 10 (note:
-            BUFR messages, > 10 are for automated
-            significant weather instruments)       return None 
-         5) If observation is 1, 2, or 3: set to 0
-            as 1, 2, 3 are not used in the WT      return 0
-         6) else                                   return value
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      1) if observation not recorded but
+         12 UTC database entry exists we
+         assume that there were no clouds        **return 0**
+
+      2) if observation not recorded and
+         12 UTC database entry not available     **return None**
+
+      3) If observation is = 10 (no sign weather)
+         we can return class 0                   **return 0**
+
+      4) observation here BUT 
+         the observed value is > 10 (note:
+         BUFR messages, > 10 are for automated
+         significant weather instruments)        **return None**
+
+      5) If observation is 1, 2, or 3: set to 0
+         as 1, 2, 3 are not used in the WT       **return 0**
+
+      6) else                                    **return value**
+
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       check12 = self.check_record( station.wmo, 12 )
-      w1 = self.load_obs( station.wmo, 12, 'w1' )
+      w1      = self.load_obs( station.wmo, 12, 'w1' )
+      rrr6    = self.load_obs( station.wmo, 12, 'rrr6' )
+
       # - Not observed
       if w1 == None:
          if check12:    value = 0
@@ -714,6 +802,11 @@ class getobs( object ):
          elif w1 >  10.:             value = None    # automated observation
          elif w1 >= 1. and w1 <= 3.: value = 0       # 1,2,3 is not used
          else:                       value = w1 * 10 # juchee
+
+         # If we have an rrr6 observation which is negative but
+         # Weather type v4 is a precipitation class: set to 0!
+         if not rrr6 is None:
+            if rrr6 < 0. and w1 >= 5.: value = 0.
 
       # Live procedure
       if special is not None and value is None:
@@ -747,6 +840,7 @@ class getobs( object ):
          else:
             print "[!] Had problems parsing the special argument! SKip!"
 
+
       # - Return value  
       return value
 
@@ -755,33 +849,43 @@ class getobs( object ):
    # - Prepare Wn
    # ----------------------------------------------------------------
    def _prepare_fun_Wn_(self,station,special):
-      """!Helper function for significant weather observatioins between
+      """Helper function for significant weather observatioins between
       12 UTC and 18 UTC (afternoon). Based on database table w1.
       Value will be in 1/10 levels [0,10,20,...,90].
-         1) if observation not recorded but
-            18 UTC database entry exists we
-            assume that there were no clouds:      @b return 0
-         2) if observation not recorded and
-            18 UTC database entry not available:   @b return None
-         3) If observation is = 10 (no sign weather)
-            we can return class 0                  @b return 0
-         4) observation here BUT 
-            the observed value is > 10 (note:
-            BUFR messages, > 10 are for automated
-            significant weather instruments):      @b return None 
-         5) If observation is 1, 2, or 3: set to 0
-            as 1, 2, 3 are not used in the WT      return 0
-         6) else:                                @b return value
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      1) if observation not recorded but
+         18 UTC database entry exists we
+         assume that there were no clouds:      **return 0**
+
+      2) if observation not recorded and
+         18 UTC database entry not available:   **return None**
+
+      3) If observation is = 10 (no sign weather)
+         we can return class 0                  **return 0**
+
+      4) observation here BUT 
+         the observed value is > 10 (note:
+         BUFR messages, > 10 are for automated
+         significant weather instruments):      **return None**
+
+      5) If observation is 1, 2, or 3: set to 0
+         as 1, 2, 3 are not used in the WT      **return 0**
+
+      6) else:                                  **return value**
+
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       check18 = self.check_record( station.wmo, 18 )
-      w1 = self.load_obs( station.wmo, 18, 'w1' )
+      w1      = self.load_obs( station.wmo, 18, 'w1' )
+      rrr6    = self.load_obs( station.wmo, 18, 'rrr6' )
+
       # - Not observed
       if w1 == None:
          if check18:    value = 0. 
@@ -795,6 +899,11 @@ class getobs( object ):
          elif w1 >  10.:             value = None    # automated observation
          elif w1 >= 1. and w1 <= 4.: value = 0       # 1,2,3 is not used
          else:                       value = w1 * 10 # juchee
+
+         # If we have an rrr6 observation which is negative but
+         # Weather type v4 is a precipitation class: set to 0!
+         if not rrr6 is None:
+            if rrr6 < 0. and w1 >= 5.: value = 0.
 
       # Live procedure
       if special is not None and value is None:
@@ -836,7 +945,7 @@ class getobs( object ):
    # - Loading RR
    # ----------------------------------------------------------------
    def _prepare_fun_RR_(self,station,special):
-      """!Helper function for 24h sum of precipitation based on
+      """Helper function for 24h sum of precipitation based on
       database column 'rrr12' at +18 and +30h (as the reported
       observations are 12h sums this means from 06 UTC today
       to 06 UTC tomorrow). Returns precipitation in 1/10 mm
@@ -846,19 +955,24 @@ class getobs( object ):
       the W1 observations for the time period of interest. If
       there is no sign. precipitation weather recorded in W1
       (w1 = 5, 6, 7, 8 or 9) the value will be set to -3.0.
-      @arg First: if database entry for 18 UTC is here but
-           there is no recorded amount of precipitation we
-           have to assume that there was no precipitation.
-           The same for +30h (06 UTC next day).
-      @arg Second:
-           If observed precipitation amount is negative (some
-           stations send -0.1mm/12h for no precipitation) we
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+
+      First: if database entry for 18 UTC is here but
+      there is no recorded amount of precipitation we
+      have to assume that there was no precipitation.
+      The same for +30h (06 UTC next day).
+
+      Second:
+      If observed precipitation amount is negative (some
+      stations send -0.1mm/12h for no precipitation) we
+
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       # ----------------------------------------------------------
@@ -930,23 +1044,28 @@ class getobs( object ):
    # - Loading sunshine. 
    # ----------------------------------------------------------------
    def _prepare_fun_Sd_(self,station,special):
-      """!Helper function for relative sun shine duration for the
+      """Helper function for relative sun shine duration for the
       full day. Will be returned in 1/10 percent rounded to
       full percent (34% will result in 340.).
-      @arg 1) if 24h sum is available on 'sunday' on 06 UTC we will 
-              take this value.
-      @arg 2) if 06UTC sunday is not available but we have a sunday
-              value at 00 UTC: take this one.
-      @arg 3) else sum up the 'sun' 1h-rly obs. WARNING: seems that
-              'none' is either 'no sun' or 'not reported'. I can't
-              decide which one is which one at the moment. I just
-              take none = 0 and sum up.
 
-      @param station. Object of class stationclass.
-      @param special. String with a very specific format. This is to
-         compute some live observations such as min/max.
-      @return numeric or None. Returns observed value if loading data
-         was successful, or None if observation not available or nor recorded
+      1) if 24h sum is available on 'sunday' on 06 UTC we will 
+         take this value.
+
+      2) if 06UTC sunday is not available but we have a sunday
+         value at 00 UTC: take this one.
+
+      3) else sum up the 'sun' 1h-rly obs. WARNING: seems that
+         'none' is either 'no sun' or 'not reported'. I can't
+         decide which one is which one at the moment. I just
+         take none = 0 and sum up.
+
+      Args:
+         station (:obj:`stationclass.stationclass): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
       """
 
       from pywetterturnier import utils
@@ -1003,7 +1122,7 @@ class getobs( object ):
    # - Show loaded data
    # ----------------------------------------------------------------
    def show( self ):
-      """!Shows a summary of the current @ref getobs.getobs class.
+      """Shows a summary of the current @ref getobs.getobs class.
       Was mainly used for development purposes. Shows data and stuff
       stored on class attributes.
       """
@@ -1045,8 +1164,8 @@ class getobs( object ):
    # - Save to database
    # ----------------------------------------------------------------
    def write_to_db( self ):
-      """!Write prepared observations to database. Writes all prepared
-      observations which are stored in the parent @ref getobs.getobs class
+      """Write prepared observations to database. Writes all prepared
+      observations which are stored in the parent :class:`getobs.getobs`
       to the Wetterturnier database.
       """
 
@@ -1131,15 +1250,16 @@ class getobs( object ):
    # Small helper class for the 'special observation usage'
    # ----------------------------------------------------------------
    class special_obs_object(object):
-      """!This class is used to parse the 'special' input arguments
-      to get_obs."""
+      """This class is used to parse the `'special`' input arguments
+      to :meth:`getobs.getobs.load_special_obs``."""
 
       def __init__( self, special, date ):
-         """!This class is used to parse the 'special' input arguments
+         """This class is used to parse the 'special' input arguments
          to get_obs.
 
          @param special. String in a very special format. 
-         @param date. datetime object (date of the tournament)."""
+         @param date. datetime object (date of the tournament).
+         """
 
          ## Keep input args
          self.date      = date

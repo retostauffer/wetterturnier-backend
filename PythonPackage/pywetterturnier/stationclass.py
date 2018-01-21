@@ -7,21 +7,30 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-24, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-21 16:58 on thinkreto
+# - L@ST MODIFIED: 2018-01-19 12:24 on marvin
 # -------------------------------------------------------------------
 
 
+"""Class to handle stations. Stations are used for the observations. While
+user forecasts are linked to a specific city which can contain one or more
+stations the observations itself are only valid for a very specific station.
+This class allows to handle specific stations.
+"""
 class stationclass( object ):
-   """!A small class holding all infors for a specific WMO station."""
+   """A small class holding all infos for a specific WMO station.
 
-   def __init__( self, desc, data, db = None, dbprefix = None ):
-      """!Initializing a new stationclss object.
-      @param desc. List/tuple of strings, value description of the values
+   Args:
+      desc (:obj:`list`): List/tuple of strings, value description of the values
          in input data.
-      @param data. List/tuple of values corresponding to input desc.
-      @param db. Default None, can be the database handler. The internal
+      data (:obj:`list`): Values corresponding to input desc.
+      db (:obj:`Non` or :class:`database.database`): Default None,
+          can be the database handler. The internal
          function self._has_db_connector_ can be used to check if the
          database handler has been set or not.
+   """
+
+   def __init__( self, desc, data, db = None, dbprefix = None ):
+      """Initializing a new stationclss object.
       """ 
 
       # - Prepare cols
@@ -57,6 +66,9 @@ class stationclass( object ):
    # whether it is None or not).
    # ----------------------------------------------------------------
    def _has_db_connector_( self ):
+      """Checks if the object already contains a db connector (if
+      database connection has been opened or not).
+      """
       if not self.db or not self.dbprefix:     return False
       else:                                    return True
 
@@ -65,12 +77,19 @@ class stationclass( object ):
    # tournament date!
    # ----------------------------------------------------------------
    def getActiveParams( self, tdate ):
-      """!Returns active parameters for a specific city for a specific
+      """Returns active parameters for a specific city for a specific
       tourmanet date. This is important as they active parameters can
       change over time while the system still has to know which ones
-      have been active/inactive over the past.
-      @param tdate. Integer, tournament date as days since 1970-01-01.
-      @return Returns a list of ..."""
+      have obeen active/inactive over the past.
+
+      Args:
+         tdate (:obj:`int`): Turnament date as days since 1970-01-01.
+
+      Returns:
+         list: Returns a list of ...
+
+      .. todo:: Document return list format.
+      """
 
       # Check if database connection is set or not
       if not self._has_db_connector_():
@@ -101,8 +120,9 @@ class stationclass( object ):
    # - Helper function. Shows content.
    # ----------------------------------------------------------------
    def show(self):
-      """!Small summary function which prints the content of a stationclass
-      object in a nice way."""
+      """Small summary function which prints the content of a stationclass
+      object in a nice way.
+      """
 
       from datetime import datetime as dt
       import json
@@ -114,15 +134,5 @@ class stationclass( object ):
       print "    - City ID:              %d" % self.cityID
       print "    - Last changed:         %s" % self.changed.strftime('%Y-%m-%d %H:%M')
       
-
-
-
-
-
-
-
-
-
-
 
 

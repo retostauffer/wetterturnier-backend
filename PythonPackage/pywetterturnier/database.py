@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-21 16:54 on thinkreto
+# - L@ST MODIFIED: 2018-01-20 14:13 on marvin
 # -------------------------------------------------------------------
 
 
@@ -15,23 +15,23 @@ import MySQLdb
 import utils
 
 class database(object):
-   """!This is the main database handler class.
+   """This is the main database handler class.
    As soon as an object of this class is initialized python automatically
    (tries) to connect to the database. The database class offers a bunch
    of methods to get/write data into the databae. Not all commands are
    in this class, some SQL statements are defined within the other
    classes and methods.
+   Please see :py:meth:utils.readconfig for more details about the config object.
+
+   Args:
+     config (:py:meth:`utils.readconfig`): Database handler
    """
 
    # ----------------------------------------------------------------
-   # - Init
    # ----------------------------------------------------------------
    def __init__(self,config):
       """The database class is handling the connection to the
       mysql database and different calls and stats.
-      @params config. Dict containing all necessary information like
-      mysql database, user, password, and database name. Please see
-      @ref utils.readconfig for more details about the config object.
       """
 
       self.config = config
@@ -41,16 +41,22 @@ class database(object):
 
    
    # ----------------------------------------------------------------
-   # Getting active players from a certain group for a certain
-   # city and weekend.
-   # @param groupID. Integer, ID of the group)
-   # @param cityID. Integer, ID of the current city.
-   # @param tdate. Integer, tournament date as integer representation.
-   # @return Returns a list containing the user ID's of the players from
-   #   that specific group who were participating in the tournament for
-   #   the city given. Can be a list of length 0 as well.
    # ----------------------------------------------------------------
    def get_participants_in_group(self,groupID,cityID,tdate):
+      """Active players in a specific group.
+      Getting active players from a certain group for a certain
+      city and weekend.
+      
+      Args:
+         groupID (:obj:`int`): ID of the group.
+         cityID  (:obj:`int`): ID of the current city.
+         tdate   (:obj:`int`): tournament date as integer representation.
+      
+      Returns:
+         list: List containing the user ID's of the players from
+         that specific group who were participating in the tournament for
+         the city given. Can be a list of length 0 as well.
+      """
 
       from datetime import datetime as dt
       fmt = "%Y-%m-%d %H:%M:%S"
@@ -68,7 +74,6 @@ class database(object):
       sql.append("AND bet.submitted IS NOT NULL")
 
       ###print "\n".join(sql)
-
       cur = self.cursor()
       cur.execute( "\n".join(sql) )
       res = cur.fetchall()
@@ -78,13 +83,13 @@ class database(object):
       return participants
 
    # ----------------------------------------------------------------
-   # - Init
    # ----------------------------------------------------------------
    def __connect__(self):
       """Open database connection.
       In case python is not able to open the database connection
       the script will stop immediately.
-      @return Returns a MySQLdb object (database handler).
+      Returns:
+          MySQLdb: Database handler object.
       """
 
       print '  * Establishing database connection'
@@ -101,30 +106,55 @@ class database(object):
 
 
    # ----------------------------------------------------------------
-   # - Some methods from mysql 
+   # Convenient helper functions to MySQLdb.
    # ----------------------------------------------------------------
    def cursor(self):
-      """!Simple wrapper to MySQL.cursor"""
+      """Simple wrapper to `MySQL.cursor`
+      
+      Returns:
+          MySQLdb.curser: Object, database cursor.
+      """
       return self.db.cursor()
    def execute(self,sql):
-      """!Simple wrapper to MySQL.execute"""
+      """Simple wrapper to `MySQL.execute`
+      
+      Args:
+           sql (string): SQL statement to be executed.
+      Returns:
+           tuple: Return from `MySQLdb.execute`.
+      """
       return self.db.execute(sql)
    def executemany(self,sql,data):
-      """!Simple wrapper to MySQL.executemany"""
+      """Simple wrapper to `MySQL.executemany`.
+
+      Args:
+         sql  (:obj:`str`): MySQL query statement.
+         data (:obj:`tuple` or :obj:`list`): Object to be forwarded to `MySQL.executemany`.
+
+      Returns:
+         Return from :meth:`MySQLdb.executemany`.
+      """
       return self.db.executemany(sql,data)
    def commit(self):
-      """!Simple wrapper to MySQL.commit"""
+      """Simple wrapper to :meth:`MySQL.commit`."""
       self.db.commit()
 
+
+   # ----------------------------------------------------------------
+   # - Check if table exists
+   # ----------------------------------------------------------------
    def check_if_table_exists(self,table):
-      """!Checks wheter a table exists in the database. Note that the
+      """Checks wheter a table exists in the database. Note that the
       table name is the table name without prefix! For example: if you
       wanna check whether wp_users exists the the variable tablename
       has to be 'users' only. The prefix is used as specified in the
       config file.
-      @param table. Character string, table name without prefix.
-      @return True if table exists, False if not."""
 
+      Args:
+         table (:obj:`str`): Table name **without** prefix.
+      Returns:
+         bool: True if table exists, False if not.
+      """
       cur = self.db.cursor()
       sql = "SELECT count(*) FROM information_schema.tables WHERE " + \
             "table_schema = '{0:s}' AND table_name = '{1:s}{2:s}';".format(
@@ -136,17 +166,20 @@ class database(object):
       else:
          return True
 
-   # -------------------------------------------------------------------
+
+   # ----------------------------------------------------------------
    # - Create a group
    # -------------------------------------------------------------------
    def create_group(self, name, desc ):
-      """!Checks and/or creates group.   
-      Checks the Wetterturnier database table @b groups and checks if
+      """Checks and/or creates group.   
+      Checks the Wetterturnier database table ``groups`` and checks if
       the group is already existing. If existing, the job of this method
       is done. Else a new group will be created.
       Used for the migration of the groups in the old Wetterturnier archive.
-      @param name. String, group name.
-      @param desc. String, group description.
+
+      Args:
+         name (:obj:`str`): Group name.
+         desc (:obj:`str`): Group description.
       """ 
    
       c_sql = 'SELECT count(*) FROM %swetterturnier_groups WHERE ' + \
@@ -169,12 +202,16 @@ class database(object):
 
 
    # -------------------------------------------------------------------
-   # - Create a group
+   # - Create a user
    # -------------------------------------------------------------------
    def create_user(self, name, password = None ):
-      """!Check and/or create new Wetterturnier user.
+      """Check and/or create new Wetterturnier user.
       Creates a new user. If user already exists, the job of this method is
       done. Return. If not, create new user.
+
+      Please note: if a user does not exist this script creates a small php
+      script and executes the php via console. This php script creates the
+      new user via wordpress API.
 
       As we are using wordpress we have to take care
       how we are creating users. To be on the save side I am using the wordpress
@@ -185,9 +222,10 @@ class database(object):
       After doing that the script is using @ref database.get_user_id to check
       if the user was added propperly. If not: stop.
 
-      @param name. String containing the username.
-      @param password, optional. If set to None the user wont get a password (actually
-         i have to set a password, in this case the user password is just its user name
+      Args:
+         name (:obj:`str`): User name. 
+         password (:obj:`str`, optional): If set to None the user wont get a password (actually
+         I *have to set* a password, in this case the user password is just its user name
          backwards. E.g., Reto gets paswort oteR.
       """
 
@@ -266,15 +304,16 @@ class database(object):
    # - Getting dict containing all active cities in the database. 
    # -------------------------------------------------------------------
    def get_cities(self):
-      """!Loading city information from the database.
+      """Loading city information from the database.
       Loads all active cities from the database which can then be used
       to loop over or whatever you'll do with it. 
 
-      @return list. A list containing one dict per city where each dict
-      consists of the keys 'name' and 'ID'.
+      Returns:
+         list: A list containing one dict per city where each dict
+         consists of the keys 'name' and 'ID'.
    
-      @todo Would be nice to return cityclass objects or something. However,
-      needs some effort as I have to chnage a few lines of code.
+      .. todo:: Would be nice to return cityclass objects or something. However,
+         needs some effort as I have to chnage a few lines of code.
       """
 
       print '  * %s' % 'looking active cities'
@@ -299,9 +338,13 @@ class database(object):
    # - Loading stations from database for a given city
    # -------------------------------------------------------------------
    def get_stations_for_city(self,cityID):
-      """!Loading all stations mached to a certain city.
-      @param cityID. Integer, ID of the city in the database.
-      @return List object containing @b N @ref stationclass.stationclass objects.
+      """Loading all stations mached to a certain city.
+
+      Args:
+         cityID (:obj:`int`): ID of the city in the database.
+
+      Returns:
+         list: List object containing `N` :py:obj:`stationclass.stationclass` objects.
       """
 
       sql = "SELECT * FROM %swetterturnier_stations WHERE cityID = %d" % (self.prefix,cityID)
@@ -321,18 +364,19 @@ class database(object):
    # - Current tournament
    # -------------------------------------------------------------------
    def current_tournament(self):
-      """!Returns tdate for current tournament.
+      """Returns tdate for current tournament.
       The tdate is the number of days since 1970-01-01. Loading the
-      max(tdate) from the bets table.
+      ``max(tdate)`` from the bets table.
       If all works as it should bets can only be placed for the upcoming
       tournament. And this method is used to compute e.g., the points and
       stuff. Therefore we just have to know which are the newest bets and
       loop over them.
 
-      @return Integer date (days since 1970-01-01)
+      Return:
+         int: Integer date (days since 1970-01-01)
 
-      @todo Reto just take care of the idea that we cold start two tournaments
-      in a row. Can this method then handle the requests?
+      .. todo:: Reto just take care of the idea that we cold start two tournaments
+         in a row. Can this method then handle the requests?
       """
 
       import numpy as np
@@ -355,14 +399,18 @@ class database(object):
    # - Get all tournament dates 
    # -------------------------------------------------------------------
    def all_tournament_dates(self,cityID=None):
-      """!Returns all defined tournament dates ever payed in a city.
+      """Returns all defined tournament dates ever payed in a city.
       Searches for all unique tournament dates in the bets table and
       returns them as a list.
-      @param cityID. Integer, ID of the city. If NONE all dates of all
+
+      Args:
+         cityID (:obj:`int`): ID of the city. If NONE all dates of all 
          cities (unique) will be returned.
-      @return A list wil be returned containing a set of integer values where
-      each element represents one tournament played for the city. Dates in
-      days since 1970-01-01.
+
+      Returns:
+         list: A list wil be returned containing a set of integer values where
+         each element represents one tournament played for the city. Dates in
+         days since 1970-01-01.
       """
 
       if not cityID:
@@ -394,11 +442,16 @@ class database(object):
    # - Given an ID this method returns the city name.
    # -------------------------------------------------------------------
    def get_city_name_by_ID(self,cityID):
-      """!Returns the full city name given a valid cityID. If the city
+      """Returns the full city name given a valid cityID. If the city
       cannot be found in the database False will be returned.
-      @params cityID. Integer, required.
-      @return Returns city name (string) or False (bool) if the city could
-         not be found in the database."""
+      
+      Args:
+         cityID (:obj:`int`): Numeric city ID.
+
+      Returns
+         str: City name (:obj:`str`) or False (:obj:`bool`) if the city could
+         not be found in the database.
+      """
       sql = "SELECT name FROM {0:s}{1:s} WHERE ID = {2:d}".format(
          self.config['mysql_prefix'],"wetterturnier_cities",cityID)
       cur = self.cursor(); cur.execute(sql)
@@ -406,7 +459,6 @@ class database(object):
       if len(res) == 0: return False
       return str(res[0])
 
-      print sql
    
    # -------------------------------------------------------------------
    # - Returns alllllll bets for a given tdate and
@@ -415,19 +467,21 @@ class database(object):
    #   This will be used by the judgingclass to compute the points.
    # -------------------------------------------------------------------
    def get_cityall_bet_data(self,cityID,paramID,tdate,day,nosleepy=True,nullonly=False):
-      """!Returns bets for a given city/parameter/date/day.
+      """Returns bets for a given city/parameter/date/day.
       Returns all bets for a given city, parameter for a given bet day of a specified
       tournament. Note that there is no userID. This method returns the bets for all 
       users.
 
-      @param cityID. Integer, ID of the city.
-      @param paramID. Integer, parameter ID.
-      @param tdate. Integer, tournament date (if tournament starts on Friday, this is
-         the date of this friday). Days since 1970-01-01.
-      @param day: Integer. [1/2] where 1 means tdate+1 (leading to a Saturday if
-         tdate is a Friday). 2 means Sunday. Value between 0 and 5, however, only
-         1 and 2 are useful as we do not have bets for the other days. 
-      @return Returns a set of lists containing the 'unique key identifier' for
+      Args:
+         cityID (:obj:`int`):  Numeric ID of the city.
+         paramID (:obj:`int`): Integer, parameter ID.
+         tdate (:obj:`int`)    tournament date (if tournament starts on Friday, this is
+                               date of this friday). Days since 1970-01-01.
+         day (:obj:`int`): [1/2] where 1 means tdate+1 (leading to a Saturday if
+                               tdate is a Friday). 2 means Sunday. Value between 0 and 5, however, only
+                               1 and 2 are useful as we do not have bets for the other days. 
+      Returns:
+         Returns a set of lists containing the 'unique key identifier' for
          the database and the 'value' to update the database.  
          Namely: userID, cityID, paramID, tdate, betdate and values.
       """
@@ -485,31 +539,34 @@ class database(object):
    # - Loading bets. 
    # -------------------------------------------------------------------
    def get_bet_data(self,typ,ID,cityID,paramID,tdate,bdate):
-      """!Returns bet data used to compute e.g., Petrus.
+      """Returns bet data used to compute e.g., Petrus.
       Returns a set of bets for a given city, parameter, and bet date for a specified
       tournament date. Note: has different modes.
-      @arg If typ == 'all': all users (human forecasters, automated forecasters and
-         group bets) @b EXCLUDING the Sleepy will be returned.
-      @arg If type == 'user' the bet of a specific user will be returned.
-      @arg If type == 'group' the bet of a specific group will be returned.
-      User or group (if type == 'user' or 'group') are defined by the input argument ID
-      which is the userID or the groupID.
 
+      Args:
+         typ (:obj:`str`):  If ``typ == 'all'``: all users (human forecasters, automated forecasters and
+                            group bets) **EXCLUDING** the Sleepy will be returned.
+                            If ``type == 'user'`` the bet of a specific user will be returned.
+                            If ``type == 'group'`` the bet of a specific group will be returned.
+                            User or group (if type == 'user' or 'group') are defined by the input argument ID
+                            which is the userID or the groupID.
+        
+         typ (:obj:`str`):     Ane of type ``'all'``, ``'user'``, or ``'group'``.
+         ID (:obj:`int`):      Ignored when ``type = 'all'``. Else the input has to be of type ineger
+                               defining the userID (for ``type = 'user'``) or groupID (for ``type = 'gruop'``).
+         cityID (:obj:`int`):  Numeric ID of the city.
+         paramID (:obj:`int`): Numeric parameter ID.
+         tdate (:obj:`int`):   Tournament date (if tournament starts on Friday, this is
+                               the date of this Friday). Days since 1970-01-01.
+         betdate (:obj:`int`): If value is lower equal 5: assume that the real betdate
+                               is tdate + betdate (1: next day, 2: two days ahead, ...). If betdate is bigger
+                               than 5 betdate is just taken as set. 
 
-      @param typ. String, one of type 'all', 'user', or 'group'.
-      @param ID. Ignored when type = 'all'. Else the input has to be of type ineger
-         defining the userID (for type = 'user') or groupID (for type = 'gruop').
-      @param cityID. Integer, ID of the city.
-      @param paramID. Integer, parameter ID.
-      @param tdate. Integer, tournament date (if tournament starts on Friday, this is
-         the date of this friday). Days since 1970-01-01.
-      @param betdate: Integer. If value is lower equal 5: assume that the real betdate
-         is tdate + betdate (1: next day, 2: two days ahead, ...). If betdate is bigger
-         than 5 betdate is just taken as set. 
-      @return Returns a list containing all the bets.
+      Returns:
+         list: Returns a list containing all the bets.
 
-      @todo Reto the sleepy does ont get bets - he just gets points. Maybe I can
-      disable/remove the 'all' function if I am not using it anymore.
+      .. todo:: Reto the sleepy does ont get bets - he just gets points. Maybe I can
+         disable/remove the 'all' function if I am not using it anymore.
       """
 
       import numpy as np
@@ -616,16 +673,17 @@ class database(object):
    # - Insert or update a bet value of a given user
    # -------------------------------------------------------------------
    def upsert_bet_data(self,userID,cityID,paramID,tdate,bdate,value):
-      """!Helper function to update the bets database.
+      """Helper function to update the bets database.
       Upserts the bets database setting a new 'value' for a given player.
 
-      @param userID. Integer, user ID.
-      @param cityID. Integer, city ID.
-      @param paramID. Integer, parameter ID.
-      @param tdate. Integer, tournament date. Days since 1970-01-01.
-      @param betdate. Integer, bet (forecast) date. Days since 1970-01-01.
-      @param value. Integer bet/forecast value. Note that the value has to be scaled
-         already as we store e.g. temperature in 1/10th of degrees celsius. 
+      Args:
+         userID   (:obj:`int`): User ID.
+         cityID   (:obj:`int`): City ID.
+         paramID  (:obj:`int`): Parameter ID.
+         tdate    (:obj:`int`): Tournament date. Days since 1970-01-01.
+         betdate  (:obj:`int`): Bet (forecast) date. Days since 1970-01-01.
+         value    (:obj:`int`): Bet/forecast value. Note that the value has to be scaled
+                                already as we store e.g. temperature in 1/10th of degrees celsius. 
       """
 
       # - bdate is either a bet date (days since 1970-01-01) or
@@ -636,9 +694,15 @@ class database(object):
 
       sql = 'INSERT INTO %swetterturnier_bets ' + \
             '(userID, cityID, paramID, tdate, betdate, value) VALUES ' + \
-            '(%d, %d, %d, %d, %d, %d) ON DUPLICATE KEY UPDATE value = VALUES(value)'
+            '(%d, %d, %d, %d, %d, %d) ON DUPLICATE KEY UPDATE ' + \
+            'value = IF ( placedby = 0, VALUES(value), value );'
    
       cur.execute( sql % (self.prefix, userID, cityID, paramID, tdate, bdate, value) )
+
+      # Rowcount (affected rows)
+      ###rowcount = cur.rowcount
+      ###if rowcount == 0:
+      ###    print "      [!] Not updated (same value or admin lock)"
 
       # Setting the betstat entry
       sql = 'INSERT INTO %swetterturnier_betstat ' + \
@@ -661,16 +725,17 @@ class database(object):
    #   a value (no default value set for column value).
    # -------------------------------------------------------------------
    def upsert_points_data(self,userID,cityID,paramID,tdate,bdate,points):
-      """!Helper function to update the bets database.
+      """Helper function to update the bets database.
       Upserts the bets database updating the points for a given player. 
       This is for the payers. They get points for each of the parameters.
 
-      @param userID. Integer, user ID.
-      @param cityID. Integer, city ID.
-      @param paramID. Integer, parameter ID.
-      @param tdate. Integer, tournament date. Days since 1970-01-01.
-      @param betdate. Integer, bet (forecast) date. Days since 1970-01-01.
-      @param points. Numeric, points the player got for that specific entry.
+      Args:
+         userID   (:obj:`int`):   user ID.
+         cityID   (:obj:`int`):   City ID.
+         paramID  (:obj:`int`):   Parameter ID.
+         tdate    (:obj:`int`):   Tournament date. Days since 1970-01-01.
+         betdate  (:obj:`int`):   Bet (forecast) date. Days since 1970-01-01.
+         points   (:obj:`float`): Points the player got for that specific entry.
       """
 
       # - bdate is either a bet date (days since 1970-01-01) or
@@ -690,18 +755,19 @@ class database(object):
    # - Upsert wetterturnier_betstat table
    # -------------------------------------------------------------------
    def upsert_sleepy_points(self,userID,cityID,tdate,points):
-      """!Helper function to update the points for the Sleepy player. 
+      """Helper function to update the points for the Sleepy player. 
       Upserts the betstat database updating the points for the Sleepy. 
       Actually for any player. But the userID should be the one from the
       Sleepy here. The Sleepy just gets points for the full weekend,
       not points for specific parameters.
 
-      @param userID. Integer, user ID of the @b Sleepy user.
-      @param cityID. Integer, city ID.
-      @param paramID. Integer, parameter ID.
-      @param tdate. Integer, tournament date. Days since 1970-01-01.
-      @param betdate. Integer, bet (forecast) date. Days since 1970-01-01.
-      @param points. Numeric, points the player got for that specific entry.
+      Args:
+         userID   (:obj:`int`):   User ID of the **Sleepy** user.
+         cityID   (:obj:`int`):   City ID.
+         paramID  (:obj:`int`):   Parameter ID.
+         tdate    (:obj:`int`):   Tournament date. Days since 1970-01-01.
+         betdate  (:obj:`int`):   Bet (forecast) date. Days since 1970-01-01.
+         points   (:obj:`float`): Points the player got for that specific entry.
       """
 
       sql = 'INSERT INTO %swetterturnier_betstat ' + \
@@ -716,22 +782,22 @@ class database(object):
    # - Loading bets. 
    # -------------------------------------------------------------------
    def get_obs_data(self,cityID,paramID,tdate,bdate,wmo=None):
-      """!Loading observation data from the obs database (the obs which
+      """Loading observation data from the obs database (the obs which
       are already in the format as they are used for the judging).
+      If input ``wmo == None``: return all obs for all stations for a given
+      city/parameter/tdate/bdate. If input wmo is an integer value, only
+      the observation for this specific station will be returned.
 
-      @arg if input wmo == None: return all obs for all stations for
-         a given city/parameter/tdate/bdate.
-      @arg if input wmo is an integer value, only the observation for this
-         specific station will be returned.
+      Args:
+         userID   (:obj:`int`): User ID of the @b Sleepy user.
+         cityID   (:obj:`int`): City ID.
+         paramID  (:obj:`int`): Parameter ID.
+         tdate    (:obj:`int`): Tournament date. Days since 1970-01-01.
+         betdate  (:obj:`int`): Bet (forecast) date. Days since 1970-01-01.
+         wmo      (:obj:`int` or :obj:`None`): None (which is default) or WMO station number.
 
-      @param userID. Integer, user ID of the @b Sleepy user.
-      @param cityID. Integer, city ID.
-      @param paramID. Integer, parameter ID.
-      @param tdate. Integer, tournament date. Days since 1970-01-01.
-      @param betdate. Integer, bet (forecast) date. Days since 1970-01-01.
-      @param wmo. Integer, optional. Either None (which is default) or WMO station number.
-
-      @return: Returns either a list containing numeric values (if wmo == None)
+      Returns:
+         list or float: Returns either a list containing numeric values (if wmo == None)
          or a single numeric value. If there are no data at all, a boolean
          False will be returned.
       """ 
@@ -771,12 +837,16 @@ class database(object):
    #   code will skip if there are no data.
    # -------------------------------------------------------------------
    def get_parameter_names(self, active = False):
-      """!Returns all parameter names.
+      """Returns all parameter names.
       If input active is set, only active parametres will be returned.
       
-      @param active. Boolean, optional. Default is False.
-      @return False if no parameters can be found. Else a list will
-         be returned containing the parameter shortnames as strings.
+      Args:
+        active (:obj:`bool`, optional): If True only active parameters will
+        be returned.
+
+      Return:
+        list or bool: False if no parameters can be found. Else a list will
+        be returned containing the parameter shortnames as strings.
       """
       cur = self.db.cursor()
       if active:
@@ -796,9 +866,13 @@ class database(object):
    # - Returning parameter ID
    # -------------------------------------------------------------------
    def get_parameter_id(self,param):
-      """!Returns parameter ID given a parameter Name.
-      @param param. String, parameter short name (e.g., TTm)
-      @return False if the parameter cannot be found in the database or
+      """Returns parameter ID given a parameter Name.
+
+      Args:
+         param (:obj:`str`): Parameter short name (e.g., TTm)
+
+      Return:
+         False if the parameter cannot be found in the database or
          the corresponding integer parameter ID.
       """
       cur = self.db.cursor()
@@ -814,14 +888,17 @@ class database(object):
    # - Returns user id. And creates user if necessary.
    # -------------------------------------------------------------------
    def get_user_id_and_create_if_necessary(self, name):
-      """!Returns user ID and create user if necessary.
+      """Returns user ID and create user if necessary.
       All-in-one wonder method. Searching for the user ID of a given
       user. If the user does not exist: create the user first and then
       return the user ID.
-      @see database.create_user
-      @see database.get_user_id
-      @param name. String, user name.
-      @return Integer value with userID.
+      See also: :meth:`database.create_user`, :meth:`database.get_user_id`
+
+      Args:
+        name (:obj:`str`): User name.
+
+      Returns:
+        int: Numeric userID.
       """
 
       import utils
@@ -841,11 +918,15 @@ class database(object):
    # - Returning user ID
    # -------------------------------------------------------------------
    def get_user_id(self,user):
-      """!Returns user ID given a username. If the user cannot be found,
+      """Returns user ID given a username. If the user cannot be found,
       the method returns False. There is a vice versa function called
-      @ref database.get_username_by_id .
-      @param user. String, user name.
-      @return False if user does not exist, else the integer user ID.
+      :py:meth:`database.get_username_by_id`.
+
+      Args:
+        user (:obj:`str`): User name.
+      
+      Returns:
+        bool or int: False if user does not exist, else the integer user ID.
       """
       cur = self.db.cursor()
       cur.execute('SELECT ID FROM %susers WHERE LOWER(user_login) = \'%s\'' % (self.prefix, user.lower()))
@@ -860,12 +941,16 @@ class database(object):
    #   More explicitly: return user_login from the database.
    # -------------------------------------------------------------------
    def get_username_by_id(self,userID):
-      """!Returns username given a user ID.
+      """Returns username given a user ID.
       Returns the username for a given user ID. If the user cannot be found,
       the return value will be False. There is a vice versa function called
-      @ref database.get_user_id.
-      @param userID. Integer, user ID.
-      @return False if user cannot be identified, else string user name.
+      :py:meth:`database.get_user_id`.
+       
+      Args:
+        userID (:obj:`int`): Numeric user ID.
+    
+      Returns:
+         bool or str: False if user cannot be identified, else string username.
       """
       try:
          userID = int(userID)
@@ -884,8 +969,10 @@ class database(object):
    # - Returning active groups 
    # -------------------------------------------------------------------
    def get_active_groups(self):
-      """!Returns all active group names from database.
-      @return list containing string group names of all active groups.
+      """Returns all active group names from database.
+
+      Returns:
+        list: List of strings containing all active group names.
       """
       cur = self.db.cursor()
       sql = 'SELECT groupName FROM %swetterturnier_groups WHERE active = 1'
@@ -902,9 +989,13 @@ class database(object):
    # - Returning user ID
    # -------------------------------------------------------------------
    def get_group_id(self,group):
-      """!Returns group ID given a group name.
-      @param group. String, group name.
-      @return False if the group cannot be found, else the integer group ID
+      """Returns group ID given a group name.
+
+      Args:
+        group (:obj:`str`): Group name.
+      
+      Returns:
+        bool or int: False if the group cannot be found, else the integer group ID
       """
       cur = self.db.cursor()
       sql = 'SELECT groupID FROM %swetterturnier_groups WHERE groupName = \'%s\''
@@ -920,14 +1011,16 @@ class database(object):
    # - Create a groupuser (add user to group as a member)
    # -------------------------------------------------------------------
    def create_groupuser(self, user, group, since, active ):
-      """!Adds an existing user to an existing group.
+      """Adds an existing user to an existing group.
       If the user is already an actie member of the group: don't add him/her again.
-      @param user. String, user name.
-      @param group. String, group name.
-      @param since. datetime object (normally current time) from when on
-         the user was a member of the group.
-      @param active. Integer, if user is an actie member of the group or not.
-         Typically 1 as you are adding the user in that split second.
+
+      Args:
+         user (:obj:`str`):       User name.
+         group (:obj:`str`):      Group name.
+         since (:obj:`datetime`): Usually current time. Add user to a group.
+                                  the user was a member of the group.
+         active (:obj:`id`):      If user is an actie member of the group or not.
+                                  Typically 1 as you are adding the user in that split second.
       """
    
       uID = self.get_user_id( user )
@@ -963,16 +1056,22 @@ class database(object):
    #   users with usernames beginning with 'GRP_'.
    # -------------------------------------------------------------------
    def get_sleepy_points(self,cityID,tdate,ignore):
-      """!Loading the points from the Sleepy user.
+      """Loading the points from the Sleepy user.
       Returns tuple including betdate, parameterID, sleepy points
       for a given city/tournament date.
-      Points are computed as follows:
-      @arg Sleepy Points = Average(Points) - Standarddeviation(Points)
-      ... where 'Points' are all Group/User points gained in the tournament
-      @b EXCLUDING the Sleepy. If the Sleepy would not be excluded the
+      Points are computed as follows: ``Sleepy Points = Average(Points) - Standarddeviation(Points)``
+      where ``Points`` are all Group/User points gained in the tournament
+      **EXCLUDING** the Sleepy. If the Sleepy would not be excluded the
       points would drift towards -Inf as the average decreases iteratively
       and the standard deviation increases iteratively. 
-      @return a tuple tuple as fetched from database. Typically including
+
+      Args:
+         cityID (:obj:`int`): Numeric city ID.
+         tdate (:obj:`int`):  Tournament date, days since 1970-01-01.
+         ignore (:obj:`int`): Numeric user ID, ID of the user which should
+                              be ignored (e.g., Sleepy's ID).
+      Returns:
+         tuple tuple: Tuple tuple as fetched from database. Typically including
          two tuples, first for Saturday, second for Sunday.
       """
 
@@ -996,7 +1095,22 @@ class database(object):
    # - Close the database 
    # ----------------------------------------------------------------
    def close(self,verbose=True):
-      """!Simple wrapper around MySQLdb.close."""
+      """Simple wrapper around MySQLdb.close.
+      
+      Args:
+         verbose (:obj:`bool`): If set to True a small statement will
+         be printed to stdout.
+      """
 
       if verbose: print '  * Close database'
       self.db.close()
+
+
+
+
+
+
+
+
+
+
