@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-19 12:33 on marvin
+# - L@ST MODIFIED: 2018-01-21 11:41 on prognose2
 # -------------------------------------------------------------------
 
 import sys, os
@@ -774,7 +774,10 @@ class getobs( object ):
       5) If observation is 1, 2, or 3: set to 0
          as 1, 2, 3 are not used in the WT       **return 0**
 
-      6) else                                    **return value**
+      6) else (except *):                       **return value**
+
+      7*) Special rule: if Wv>=5 and there is a valid 6-hour
+         precipitation report rrr6<0: set Wv to 0.
 
       Args:
          station (:obj:`stationclass.stationclass): Station handler.
@@ -786,7 +789,9 @@ class getobs( object ):
       """
 
       check12 = self.check_record( station.wmo, 12 )
-      w1 = self.load_obs( station.wmo, 12, 'w1' )
+      w1      = self.load_obs( station.wmo, 12, 'w1' )
+      rrr6    = self.load_obs( station.wmo, 12, 'rrr6' )
+
       # - Not observed
       if w1 == None:
          if check12:    value = 0
@@ -800,6 +805,11 @@ class getobs( object ):
          elif w1 >  10.:             value = None    # automated observation
          elif w1 >= 1. and w1 <= 3.: value = 0       # 1,2,3 is not used
          else:                       value = w1 * 10 # juchee
+
+         # If we have an rrr6 observation which is negative but
+         # Weather type v4 is a precipitation class: set to 0!
+         if not rrr6 is None:
+            if rrr6 < 0. and w1 >= 5.: value = 0.
 
       # Live procedure
       if special is not None and value is None:
@@ -833,6 +843,7 @@ class getobs( object ):
          else:
             print "[!] Had problems parsing the special argument! SKip!"
 
+
       # - Return value  
       return value
 
@@ -863,7 +874,10 @@ class getobs( object ):
       5) If observation is 1, 2, or 3: set to 0
          as 1, 2, 3 are not used in the WT      **return 0**
 
-      6) else:                                  **return value**
+      6) else (except *):                       **return value**
+
+      7*) Special rule: if Wn>=5 and there is a valid 6-hour
+         precipitation report rrr6<0: set Wn to 0.
 
       Args:
          station (:obj:`stationclass.stationclass): Station handler.
@@ -875,7 +889,9 @@ class getobs( object ):
       """
 
       check18 = self.check_record( station.wmo, 18 )
-      w1 = self.load_obs( station.wmo, 18, 'w1' )
+      w1      = self.load_obs( station.wmo, 18, 'w1' )
+      rrr6    = self.load_obs( station.wmo, 18, 'rrr6' )
+
       # - Not observed
       if w1 == None:
          if check18:    value = 0. 
@@ -889,6 +905,11 @@ class getobs( object ):
          elif w1 >  10.:             value = None    # automated observation
          elif w1 >= 1. and w1 <= 4.: value = 0       # 1,2,3 is not used
          else:                       value = w1 * 10 # juchee
+
+         # If we have an rrr6 observation which is negative but
+         # Weather type v4 is a precipitation class: set to 0!
+         if not rrr6 is None:
+            if rrr6 < 0. and w1 >= 5.: value = 0.
 
       # Live procedure
       if special is not None and value is None:

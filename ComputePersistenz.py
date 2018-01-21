@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-29, RS: Adapted from ComputeMoses.py
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-19 19:29 on marvin
+# - L@ST MODIFIED: 2018-01-20 13:15 on prognose2
 # -------------------------------------------------------------------
 
 
@@ -213,6 +213,7 @@ if __name__ == '__main__':
                # - Else there were more 5/6/7/8 values.
                else:
                   data = data[data >= 5]
+                  print data
                   # - More stratiform 
                   if np.sum( data <= 7 ) > np.sum( data > 7 ):
                      data = data[data <= 7]
