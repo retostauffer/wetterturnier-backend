@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-21 11:37 on prognose2
+# - L@ST MODIFIED: 2018-01-21 11:41 on prognose2
 # -------------------------------------------------------------------
 
 import sys, os
@@ -774,7 +774,10 @@ class getobs( object ):
       5) If observation is 1, 2, or 3: set to 0
          as 1, 2, 3 are not used in the WT       **return 0**
 
-      6) else                                    **return value**
+      6) else (except *):                       **return value**
+
+      7*) Special rule: if Wv>=5 and there is a valid 6-hour
+         precipitation report rrr6<0: set Wv to 0.
 
       Args:
          station (:obj:`stationclass.stationclass): Station handler.
@@ -871,7 +874,10 @@ class getobs( object ):
       5) If observation is 1, 2, or 3: set to 0
          as 1, 2, 3 are not used in the WT      **return 0**
 
-      6) else:                                  **return value**
+      6) else (except *):                       **return value**
+
+      7*) Special rule: if Wn>=5 and there is a valid 6-hour
+         precipitation report rrr6<0: set Wn to 0.
 
       Args:
          station (:obj:`stationclass.stationclass): Station handler.
