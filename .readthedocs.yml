@@ -10,7 +10,7 @@ formats:
 # are not available on the system itself.
 # This requirements file specifies the packages we need to have
 # installed in a virtual environment to be able to render our docs.
-#requirements_file: docs/requirements.txt
+requirements_file: docs/requirements.txt
 
 # This is default, we want to build the last image. Does not have
 # to be set, but ... why not.
@@ -23,7 +23,5 @@ build:
 # such that we can install our requirements.
 python:
     version: 2.7
-    setup_py_install: false
-
-
+    #setup_py_install: false
 
