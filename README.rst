@@ -1,32 +1,30 @@
+What  is "Wetterturnier"
+-------------------------
 
-This README.md is fully out of date and has to be rewritten.
+The "Berliner Wetterturnier" as it has been known as in the beginning was
+launched in the year 2000 at the Institute of Meteorology at the FU Berlin.
+Since 2005 five cities in Central Europe are included.
 
-E-Mail and SMTP Settings
-========================
+`Wetterturnier <http://wetterturnier.de>`_ is a platform where *hobby meteorologists*,
+*experts* and *statistical forecast model developer* battle against each other. The
+goal is to predict a set of meteorological variables, such as sunshine duration, wind speed,
+or temperature as good as possible for the consecutive two days.
 
-php sendmail does not work on this server as the FU forces
-us to use their STMP server (securety issue). The following
-e-mail account is therefore used:
+*This plugin is the frontend core* of the whole system providing full wordpress integration
+(user management, messaging services, forums) and the platform where our users can *submit
+their forecasts/bets*. Furthermore this plugin provides live ranking tables, a leader-board,
+a data archive, and access to a set of important data sets such as observations and forecast maps.
 
-Hallo Reto,
+.. image:: docs/images/screenshot_frontend.png
+   :width: 800px
+   :height: 396px
+   :scale: 100 %
+   :alt: Screenshot Frontend
+   :align: center
 
-wir haben euch die mail-Adresse : wetterturnier@met.fu-berlin.de eingerichtet.
-Unser mailserver ist : mail.met.fu-berlin.de
-Das P W ist : Di****************
-
-In wordpress nutze ich (Reto) WP-Mail-SMTP mit folgenden Settings:
-* SMTP Host:         mail.met.fu-berlin.de
-* SMTP Port:         25
-* Encryption:        Ust TLS encryption
-* Authentication:    Yes, USE SMTP authentication
-* Username:          wetterturnier
-* Password:          <wie oben>
-
-Benoetigt eine saubere PHPMailer installation am Server.
-
-viele Gruessee
-
-Thomas 
+Please note that this is only one part of the system. To get the whole system running
+the `Wetterturnier Wordpress Plugin <https://github.com/retostauffer/wp-wetterturnier>`_.
+For more information please visit the `documentation on readthedocs <http://wetterturnier-backend.readthedocs.io/en/latest/overview.html>_`.
 
 Wetterturnier Backend
 =====================
@@ -90,7 +88,6 @@ Please visit the `documentation <http://wetterturnier-backend.readthedocs.io>`_
 where the different main scripts are ducumented in subsection
 `getting started - The Scripts <http://wetterturnier-backend.readthedocs.io/en/latest/thescripts.html>`_.
 
-
 License Information
 ===================
 
@@ -99,4 +96,15 @@ and/or modify it under the terms of the GNU General Public License as published
 by the Free Software Foundation, either version 3 of the License, or (at your
 option) any later version. The full :download:`LICENSE` file is included in the repository
 and/or can be found on `gnu.org <https://www.gnu.org/licenses/gpl-3.0.txt>`_.
+
+Code of Conduct
+===============
+
+We care about oterhs, their attitude, and their ideology wherefore we follow the
+[Contributor Covenant][codhomepage] *code of conduct*. The full code of conduct
+is included in the repository. If you wanna share ideas and/or contribute to this
+repository please follow these rules.
+
+[cochomepage]: http://contributor-covenant.org
+[cocversion]: http://contributor-covenant.org/version/1/4/
 
