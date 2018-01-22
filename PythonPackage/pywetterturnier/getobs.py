@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-21 18:19 on prognose2
+# - L@ST MODIFIED: 2018-01-22 11:53 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -271,10 +271,10 @@ class getobs( object ):
 
       # Return 'None' if no data have been found or a list
       # of integers else.
-      if len(tmp) == 0:
+      if len(data) == 0:
          return None
       else:
-         return tmp
+         return data
 
 
 
@@ -752,216 +752,137 @@ class getobs( object ):
    # - Prepare Wv
    # ----------------------------------------------------------------
    def _prepare_fun_Wv_(self,station,special):
-      """Helper function for significant weather observatioins between
-      06 UTC and 12 UTC (forenoon) based on database table w1.
-      Value will be in 1/10 levels [0,10,20,...,90].
-
-      1) if observation not recorded but
-         12 UTC database entry exists we
-         assume that there were no clouds        **return 0**
-
-      2) if observation not recorded and
-         12 UTC database entry not available     **return None**
-
-      3) If observation is = 10 (no sign weather)
-         we can return class 0                   **return 0**
-
-      4) observation here BUT 
-         the observed value is > 10 (note:
-         BUFR messages, > 10 are for automated
-         significant weather instruments)        **return None**
-
-      5) If observation is 1, 2, or 3: set to 0
-         as 1, 2, 3 are not used in the WT       **return 0**
-
-      6) else (except *):                       **return value**
-
-      disabled: 7*) Special rule: if Wv>=5 and there is a valid 6-hour
-         precipitation report rrr6<0: set Wv to 0.
+      """Helper function for significant weather for noon between
+      0700 UTC and 1200 UTC. Uses :meth:`_get_proper_WvWn_` method,
+      the detailed rules can be found in the method description from
+      the helper class (:meth:`_get_proper_WvWn_`).
 
       Args:
          station (:obj:`stationclass.stationclass): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
-
-      .. todo:: Clean code! Disable 'special' and take the 'special' rule
-           as default rule. Always take maximum w1 btw. 0700 and 1200 if
-           W1 in [1-9]. Currently only a quick fix by Reto, Jan 20, 2018.
+         float: Returns None if no valid Wv/Wn could have been computed, else
+         a float between 00. and 90. (for Wv/Wn = [0,1,2,3,...,9] as [0.,10.,...,90.])
+         will be returned.
       """
 
-      check12 = self.check_record( station.wmo, 12 )
-      w1      = self.load_obs( station.wmo, 12, 'w1' )
-      rrr6    = self.load_obs( station.wmo, 12, 'rrr6' )
+      special_w1 = self.special_obs_object("w1 today 07:00 to today 12:00",self._date_)
+      special_ww = self.special_obs_object("ww today 07:00 to today 12:00",self._date_)
+      w1         = self.load_special_obs( station.wmo, special_w1 )
+      ww         = self.load_special_obs( station.wmo, special_ww )
 
-      # - Not observed
-      if w1 == None:
-         if check12:    value = 0
-         else:          value = None
-      # - Observed 
-      else:
-         # - If there is no significant weather, the BUFR reports a
-         #   code 10 on w1/w2 (no sign weather phaenomena).
-         #   In this case we can return a 0.
-         if int(w1) == 10:           value = 0
-         elif w1 >  10.:             value = None    # automated observation
-         elif w1 >= 1. and w1 <= 3.: value = 0       # 1,2,3 is not used
-         else:                       value = w1 * 10 # juchee
-
-         #### If we have an rrr6 observation which is negative but
-         #### Weather type v4 is a precipitation class: set to 0!
-         ###if not rrr6 is None:
-         ###   if rrr6 < 0. and w1 >= 5.: value = 0.
-
-      # Live procedure
-      if special is not None:
-         special = self.special_obs_object( special, self._date_ )
-
-         # Only to this if current time is an hour or more behind
-         # the special.from_date. This means that we only fill in
-         # 07:00 wv values if it is 08:00 or later. Avoids to fill
-         # in 'live' W's in advance (as we return a 0 if no observations
-         # are here as we assume that there was nothing). This time check
-         # is required to distinguish between:  
-         # - no data becuase the time period is in the future and
-         # - no data because not data in the meteo reports
-         doit = (dt.datetime.now() - dt.timedelta(0,3600)) > special.from_date
-         # If parsing was ok
-         if doit and not special.error:
-            # Loading special data from database
-            spvalue = self.load_special_obs( station.wmo, special ) 
-            if not spvalue is None:
-               tmp = []
-               for x in spvalue:
-                  if not x[0]: continue
-                  if x[0] >= 10: continue
-                  tmp.append( x[0] )
-               spvalue = tmp
-               # No values? Set to none.
-               if np.size(spvalue) == 0: spvalue = None
-            # If spvalue is not None take maximum of these
-            # observations as the 'best known maximum'.
-            if spvalue is not None:
-               value = np.max(spvalue)
-               if value >= 1. and value <= 3.: value = 0 # 1,2,3 is not used
-            else:
-               value = 0
-            value = value * 10.
-         else:
-            print "[!] Had problems parsing the special argument! SKip!"
-
-      # - Return value  
-      return value
-
+      print w1, ww
+      print "Setting Wv to ",self._get_proper_WvWn_( w1, ww ) 
+      return self._get_proper_WvWn_( w1, ww )
 
    # ----------------------------------------------------------------
    # - Prepare Wn
    # ----------------------------------------------------------------
    def _prepare_fun_Wn_(self,station,special):
-      """Helper function for significant weather observatioins between
-      12 UTC and 18 UTC (afternoon). Based on database table w1.
-      Value will be in 1/10 levels [0,10,20,...,90].
-
-      1) if observation not recorded but
-         18 UTC database entry exists we
-         assume that there were no clouds:      **return 0**
-
-      2) if observation not recorded and
-         18 UTC database entry not available:   **return None**
-
-      3) If observation is = 10 (no sign weather)
-         we can return class 0                  **return 0**
-
-      4) observation here BUT 
-         the observed value is > 10 (note:
-         BUFR messages, > 10 are for automated
-         significant weather instruments):      **return None**
-
-      5) If observation is 1, 2, or 3: set to 0
-         as 1, 2, 3 are not used in the WT      **return 0**
-
-      6) else (except *):                       **return value**
-
-      disabled: 7*) Special rule: if Wn>=5 and there is a valid 6-hour
-         precipitation report rrr6<0: set Wn to 0.
+      """Helper function for significant weather for afternoon between
+      1300 UTC and 1800 UTC. Uses :meth:`_get_proper_WvWn_` method,
+      the detailed rules can be found in the method description from
+      the helper class (:meth:`_get_proper_WvWn_`).
 
       Args:
          station (:obj:`stationclass.stationclass): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
-
-      .. todo:: Clean code! Disable 'special' and take the 'special' rule
-           as default rule. Always take maximum w1 btw. 1300 and 1800 if
-           W1 in [1-9]. Currently only a quick fix by Reto, Jan 20, 2018.
+         float: Returns None if no valid Wv/Wn could have been computed, else
+         a float between 00. and 90. (for Wv/Wn = [0,1,2,3,...,9] as [0.,10.,...,90.])
+         will be returned.
       """
 
-      check18 = self.check_record( station.wmo, 18 )
-      w1      = self.load_obs( station.wmo, 18, 'w1' )
-      rrr6    = self.load_obs( station.wmo, 18, 'rrr6' )
+      special_w1 = self.special_obs_object("w1 today 13:00 to today 18:00",self._date_)
+      special_ww = self.special_obs_object("ww today 13:00 to today 18:00",self._date_)
+      w1         = self.load_special_obs( station.wmo, special_w1 )
+      ww         = self.load_special_obs( station.wmo, special_ww )
 
-      # - Not observed
-      if w1 == None:
-         if check18:    value = 0. 
-         else:          value = None
-      # - Observed 
-      else:
-         # - If there is no significant weather, the BUFR reports a
-         #   code 10 on w1/w2 (no sign weather phaenomena).
-         #   In this case we can return a 0.
-         if int(w1) == 10:           value = 0
-         elif w1 >  10.:             value = None    # automated observation
-         elif w1 >= 1. and w1 <= 4.: value = 0       # 1,2,3 is not used
-         else:                       value = w1 * 10 # juchee
+      print w1, ww
+      print "Setting Wn to ",self._get_proper_WvWn_( w1, ww ) 
+      return self._get_proper_WvWn_( w1, ww )
 
-         ##### If we have an rrr6 observation which is negative but
-         ##### Weather type v4 is a precipitation class: set to 0!
-         ####if not rrr6 is None:
-         ####   if rrr6 < 0. and w1 >= 5.: value = 0.
 
-      # Live procedure
-      if special is not None:
-         special = self.special_obs_object( special, self._date_ )
+   # ----------------------------------------------------------------
+   # ----------------------------------------------------------------
+   def _get_proper_WvWn_( self, inw1, inww ):
+      """Helper class to properly prepare Wv and Wn.
+      Returns highest observed value "w1" where observed w1=1,2,3 will
+      be set to w1=0. In additioin, www is considered if and only if
+      we have a valid value for w1.
 
-         # Only to this if current time is an hour or more behind
-         # the special.from_date. This means that we only fill in
-         # 07:00 wv values if it is 08:00 or later. Avoids to fill
-         # in 'live' W's in advance (as we return a 0 if no observations
-         # are here as we assume that there was nothing). This time check
-         # is required to distinguish between:  
-         # - no data becuase the time period is in the future and
-         # - no data because not data in the meteo reports
-         doit = (dt.datetime.now() - dt.timedelta(0,3600)) > special.from_date
-         # If parsing was ok
-         if doit and not special.error:
-            # Loading special data from database
-            spvalue = self.load_special_obs( station.wmo, special ) 
-            if not spvalue is None:
-               tmp = []
-               for x in spvalue:
-                  if not x[0]: continue
-                  if x[0] >= 10: continue
-                  tmp.append( x[0] )
-               spvalue = tmp
-               # No values? Set to none.
-               if np.size(spvalue) == 0: spvalue = None
-            # If spvalue is not None take maximum of these
-            # observations as the 'best known maximum'.
-            if spvalue is not None:
-               value = np.max(spvalue)
-               if value >= 1. and value <= 3.: value = 0 # 1,2,3 is not used
-            else:
-               value = 0
-            value = value * 10.
-         else:
-            print "[!] Had problems parsing the special argument! SKip!"
+      Special rule using ww 20-29 AND we have a valid w1
+      ww   setto   if     desc
+      20   5       w1<5   nach Spruehregen oder Schneegriesel
+      21   6       w1<6   nach Regen
+      22   7       w1<7   nach Schneefall
+      23   7       w1<7   nach Schneeregen oder Eiskoernern
+      24   6       w1<6   nach gefrierendem Regen
+      25   6       w1<6   nach Regenschauer
+      26   7       w1<7   nach Schneeschauer
+      27   8       w1<8   nach Graupel- oder Hagelschauer
+      28   4       w1<4   nach Nebel
+      29   9       w1<9   nach Gewitter
+
+      Args:
+        inw1 (:obj:`list`): List of all observed w1 values (may contain
+            None values and 'missing observation' numbers (e.g, w1=10)
+        inww (:obj:`list`): List of all observed ww values (may contain
+            None values and 'missing observation'  numbers (e.g., ww=508).
+
+      Returns:
+        float: Returns a single value between 0 and 90 (w1=0 to we=90, multiplied
+        by 10 as it will be stored in the databases) or None if no valid w1
+        is available.
+      """
+
+      inw1 = [] if inw1 is None else inw1
+      inww = [] if inww is None else inww
+
+      # No data for w1? Return None
+      if len(inw1) == 0:    return None
+
+      # remove Nons form data if there are any
+      w1 = []
+      for x in inw1:
+          if not x is None: w1.append(x)
+      ww = []
+      for x in inww:
+          if not x is None: ww.append(x)
+
+      # Convert to numpy array for further analysis
+      w1 = np.asarray( w1 )
+      ww = np.asarray( ww )
+
+      # Remove missing observations
+      w1         = w1[ np.where( w1 < 10) ]
+      # Find highest w1, w1 1/2/3 will be set to 0
+      w1 = np.max(w1) if len(w1) > 0 else None
+      w1 = w1 if not w1 in [1,2,3] else 0
+
+      # Only checking 20-29
+      ww = ww[ np.where( np.logical_and(ww >= 20,ww<=29) ) ]
+      ww = ww if len(ww) > 0 else None
+
+      # Special rule using ww 20-29 AND we have a valid w1
+      if w1 is not None and ww is not None:
+          # If w1 < 4 but ww=28 reported: set w1 to 4
+          if w1 < 4 and np.any( np.in1d([28],ww) ):          w1 = 4
+          # If w1 < 5 but ww 20 reported: set w1 to 5
+          if w1 < 5 and np.any( np.in1d([20],ww) ):          w1 = 5
+          # If w1 < 6 but ww 21, 24 or 25 reported: set w1 to 6
+          if w1 < 6 and np.any( np.in1d([21,24,25],ww) ):    w1 = 6
+          # If w1 < 7 but ww 22, 23 or 26 reported: set w1 to 7
+          if w1 < 7 and np.any( np.in1d([22,23,26],ww) ):    w1 = 7
+          # If w1 < 8 but ww 27 reported: set w1 to 8
+          if w1 < 8 and np.any( np.in1d([27],ww) ):          w1 = 8
+          # If w1 < 9 but ww 29 reported: set w1 to 9
+          if w1 < 8 and np.any( np.in1d([29],ww) ):          w1 = 9
 
       # - Return value  
-      return value
+      return None if w1 is None else float(w1)*10.
 
 
    # ----------------------------------------------------------------
