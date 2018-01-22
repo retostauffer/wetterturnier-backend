@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-24, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-19 12:24 on marvin
+# - L@ST MODIFIED: 2018-01-22 12:04 on marvin
 # -------------------------------------------------------------------
 
 
@@ -23,8 +23,8 @@ class stationclass( object ):
       desc (:obj:`list`): List/tuple of strings, value description of the values
          in input data.
       data (:obj:`list`): Values corresponding to input desc.
-      db (:obj:`Non` or :class:`database.database`): Default None,
-          can be the database handler. The internal
+      db (:obj:`None` or :class:`database.database`): Default None,
+         can be the database handler. The internal
          function self._has_db_connector_ can be used to check if the
          database handler has been set or not.
    """

@@ -11,6 +11,8 @@ parameters forecasted).
 
 .. autoclass:: getobs::getobs
     :members:
+    :special-members:
+    :private-members:
 
 
 Nested class :class:`getobs.getobs.special_obs_object`

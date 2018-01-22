@@ -189,16 +189,3 @@ observations between 06 and 18 UTC' as a best guess for the maximum temperature.
 As soon as the final observation is available we will use the final value.
 
 
-Concuela
---------
-
-.. _script-Concuela:
-
-* Cleanup database and stuff.
-
-.. todo:: Rename Concuela!
-
-
-
-
-

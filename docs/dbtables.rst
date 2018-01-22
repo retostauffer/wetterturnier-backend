@@ -17,12 +17,9 @@ additional columns if there are data. ``...`` in the table indicate the data
 columns (e.g,. temperature observations, cloud cover observations, ...).
 
 The ``live`` table is a rolling database containing the latest observations for
-all incoming stations. The script :ref:`Concuela.py <script-Concuela>` cleans the database from time
-to time moving the observations for some specific stations into the
-:ref:`archive <table-archive>` database table and deletes all others.
-
-.. todo:: Rename Concuela!
-
+all incoming stations. This is a rolling database, older observations are deleted
+from time to time whereof the data for some selected stations are moved into the
+:ref:`archive <table-archive>` database table.
 
 .. include:: dbtables/live.rsx
 

@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-21, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-19 15:59 on marvin
+# - L@ST MODIFIED: 2018-01-22 12:04 on marvin
 # -------------------------------------------------------------------
 
 # - Need numpy everywhere
@@ -143,7 +143,7 @@ class judging(object):
       define what has to be computed.
 
       Args:
-        obs (:obj:``): Observations
+        obs (:obj:`...`): Observations
         what (:obj:`str`): Which parameter, this defines the method to be called (internally).
         special (:obj:`float`): Some rules have 'special' sub-rules. This
             speical is a float observation required to compute the points.
