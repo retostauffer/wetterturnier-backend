@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-22 12:12 on marvin
+# - L@ST MODIFIED: 2018-01-22 12:13 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -810,7 +810,7 @@ class getobs( object ):
    def _get_proper_WvWn_( self, inw1, inww ):
       """Helper class to properly prepare Wv and Wn.
       Returns highest observed value "w1" where observed w1=1,2,3 will
-      be set to w1=0. In additioin, www is considered if and only if
+      be set to w1=0. In additioin, ww is considered if and only if
       we have a valid value for w1.
 
       Special rule using ww 20-29 if repored AND we have a valid w1.
