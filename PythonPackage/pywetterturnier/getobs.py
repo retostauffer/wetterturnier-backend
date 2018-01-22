@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-22 12:13 on marvin
+# - L@ST MODIFIED: 2018-01-22 12:51 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -815,25 +815,25 @@ class getobs( object ):
 
       Special rule using ww 20-29 if repored AND we have a valid w1.
 
-      If ww=20 set w1=5 if w1 valid nand w1<5 (nach Spruehregen oder Schneegriesel)
+      If ww=20 set w1=5 if w1 valid and w1<5 (nach Spruehregen oder Schneegriesel)
 
-      If ww=21 set w1=6 if w1 valid nand w1<6 (nach Regen)
+      If ww=21 set w1=6 if w1 valid and w1<6 (nach Regen)
 
-      If ww=22 set w1=7 if w1 valid nand w1<7 (nach Schneefall)
+      If ww=22 set w1=7 if w1 valid and w1<7 (nach Schneefall)
 
-      If ww=23 set w1=7 if w1 valid nand w1<7 (nach Schneeregen oder Eiskoernern)
+      If ww=23 set w1=7 if w1 valid and w1<7 (nach Schneeregen oder Eiskoernern)
 
-      If ww=24 set w1=6 if w1 valid nand w1<6 (nach gefrierendem Regen)
+      If ww=24 set w1=6 if w1 valid and w1<6 (nach gefrierendem Regen)
 
-      If ww=25 set w1=6 if w1 valid nand w1<6 (nach Regenschauer)
+      If ww=25 set w1=6 if w1 valid and w1<6 (nach Regenschauer)
 
-      If ww=26 set w1=7 if w1 valid nand w1<7 (nach Schneeschauer)
+      If ww=26 set w1=7 if w1 valid and w1<7 (nach Schneeschauer)
 
-      If ww=27 set w1=8 if w1 valid nand w1<8 (nach Graupel- oder Hagelschauer)
+      If ww=27 set w1=8 if w1 valid and w1<8 (nach Graupel- oder Hagelschauer)
 
-      If ww=28 set w1=4 if w1 valid nand w1<4 (nach Nebel)
+      If ww=28 set w1=4 if w1 valid and w1<4 (nach Nebel)
 
-      If ww=29 set w1=9 if w1 valid nand w1<9 (nach Gewitter)
+      If ww=29 set w1=9 if w1 valid and w1<9 (nach Gewitter)
 
       Args:
         inw1 (:obj:`list`): List of all observed w1 values (may contain
