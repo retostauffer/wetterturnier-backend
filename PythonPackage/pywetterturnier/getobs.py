@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-22 11:53 on marvin
+# - L@ST MODIFIED: 2018-01-22 12:12 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -26,8 +26,8 @@ class getobs( object ):
    
    Args:
       config (:obj:`list`): Contains all necessary configs for the
-              pywetterturnier package. Please have a look into 
-              See :py:meth:`utils.readconfig` for more details. 
+             pywetterturnier package. Please have a look into 
+             See :py:meth:`utils.readconfig` for more details. 
       db (:py:class:`database.database`): A pywetterturnier 
              (:py:class:`database.database` object handling the database I/O.
       city (:obj:`int`): Numeric city ID.
@@ -89,7 +89,7 @@ class getobs( object ):
       
       Returns:
          dict: A dict consisting of WMO station number and
-      the length of the astronomic day in seconds. 
+         the length of the astronomic day in seconds. 
       """
 
       import astral
@@ -399,7 +399,7 @@ class getobs( object ):
       Temperature will be in 1/10 degrees Celsius.
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
@@ -449,12 +449,12 @@ class getobs( object ):
       temperature. Simply the tmin12 column at 06 UTC in 1/10 degrees Celsius.
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
       """
 
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
@@ -487,12 +487,12 @@ class getobs( object ):
       dew point temperature from database column td in 1/10 degrees Celsius.
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -509,12 +509,12 @@ class getobs( object ):
       Based on database column pmsl. Return value will be in 1/10 hPa.
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -547,12 +547,12 @@ class getobs( object ):
       4) else:                        **return value**
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -584,12 +584,12 @@ class getobs( object ):
       E.g., if 3.2m/s observed -> 6.22kt -> Return value will be 60. 
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -622,12 +622,12 @@ class getobs( object ):
       4) observation available, >= 25 knots:       **return value**
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
       """
 
       # - Timestamps
@@ -721,12 +721,12 @@ class getobs( object ):
       3) else:                              **return None**
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
-        float: Returns observed value if loading data was successful
-        or None if observation not available or nor recorded.
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
       """
 
       # - Loading td valid at 12 UTC 
@@ -758,7 +758,7 @@ class getobs( object ):
       the helper class (:meth:`_get_proper_WvWn_`).
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
@@ -786,7 +786,7 @@ class getobs( object ):
       the helper class (:meth:`_get_proper_WvWn_`).
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
@@ -813,18 +813,27 @@ class getobs( object ):
       be set to w1=0. In additioin, www is considered if and only if
       we have a valid value for w1.
 
-      Special rule using ww 20-29 AND we have a valid w1
-      ww   setto   if     desc
-      20   5       w1<5   nach Spruehregen oder Schneegriesel
-      21   6       w1<6   nach Regen
-      22   7       w1<7   nach Schneefall
-      23   7       w1<7   nach Schneeregen oder Eiskoernern
-      24   6       w1<6   nach gefrierendem Regen
-      25   6       w1<6   nach Regenschauer
-      26   7       w1<7   nach Schneeschauer
-      27   8       w1<8   nach Graupel- oder Hagelschauer
-      28   4       w1<4   nach Nebel
-      29   9       w1<9   nach Gewitter
+      Special rule using ww 20-29 if repored AND we have a valid w1.
+
+      If ww=20 set w1=5 if w1 valid nand w1<5 (nach Spruehregen oder Schneegriesel)
+
+      If ww=21 set w1=6 if w1 valid nand w1<6 (nach Regen)
+
+      If ww=22 set w1=7 if w1 valid nand w1<7 (nach Schneefall)
+
+      If ww=23 set w1=7 if w1 valid nand w1<7 (nach Schneeregen oder Eiskoernern)
+
+      If ww=24 set w1=6 if w1 valid nand w1<6 (nach gefrierendem Regen)
+
+      If ww=25 set w1=6 if w1 valid nand w1<6 (nach Regenschauer)
+
+      If ww=26 set w1=7 if w1 valid nand w1<7 (nach Schneeschauer)
+
+      If ww=27 set w1=8 if w1 valid nand w1<8 (nach Graupel- oder Hagelschauer)
+
+      If ww=28 set w1=4 if w1 valid nand w1<4 (nach Nebel)
+
+      If ww=29 set w1=9 if w1 valid nand w1<9 (nach Gewitter)
 
       Args:
         inw1 (:obj:`list`): List of all observed w1 values (may contain
@@ -911,7 +920,7 @@ class getobs( object ):
       stations send -0.1mm/12h for no precipitation) we
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
@@ -1004,7 +1013,7 @@ class getobs( object ):
          take none = 0 and sum up.
 
       Args:
-         station (:obj:`stationclass.stationclass): Station handler.
+         station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
       
       Returns:
@@ -1201,8 +1210,9 @@ class getobs( object ):
          """This class is used to parse the 'special' input arguments
          to get_obs.
 
-         @param special. String in a very special format. 
-         @param date. datetime object (date of the tournament).
+         Args:
+            special (:obj:`str`): String in a very special format. 
+            date (:obj:`datetime.date`): Date object (date of the tournament).
          """
 
          ## Keep input args
