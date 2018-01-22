@@ -224,3 +224,82 @@ The following astral call is used (excerpt from
     daylen = daylen / 60.
 
 
+
+PrepareMOS
+-----------
+
+Klaus Knuepffer is submitting some MOS forecasts for some
+stations to the wetterturnier server on ``knuepffer@prognose2.met.fu-berlin.de``.
+This small script checks for the latest MOS forecast files,
+takes the latest 3 forecast runs, parses the ASCII data and creates
+a `json` file. The output is written to the `referrerdata/mos` directory
+on the webserver where the frontend acesses the data and provides the
+MOS forecasts to our users.
+
+## Who it runs
+
+The job is triggered once an hour via cronjob on ``retos@prognose2``.
+The corresponding call is:
+
+.. code-block:: bash
+    */60 * * * * cd /home/retos/MOS && timeout 120 python PrepareMOS.py &> /home/retos/cronlog/MOS.log
+
+The following input files will be considered, parsed, prepared ...
+
+* ``/home/knuepffer/abgabe/all.YYmmddHH``
+
+... and stored into the following json file.
+
+* ``/var/www/html/referrerdata/mos/mos.json``
+
+The output file contains a single JSON string of the following form:
+
+.. code-block:: python
+
+    [parameters] (
+       [0] => N
+       [1] => rSd
+       [2] => dd
+       [3] => ff
+       [4] => fx
+       [5] => Wv
+       [6] => Wn
+       [7] => PPP
+       [8] => TTm
+       [9] => TTn
+       [10] => TTd
+       [11] => RR
+    )
+    [data_1499936400] (
+       [WIEN] (
+          [DWD-ICON-MOS] (
+             [TTm] (
+                     [0] => 21.5
+                     [1] => 24.9
+             )
+             [Wv] (
+                     [0] => 8
+                     [1] => 0
+             )
+             ...
+          )
+          [<next model>] ( ... )
+          [<next model>] ( ... )
+       )
+       [<next city] ( ... )
+    )
+    [<next mos run>] ( ... )
+
+``[parameters]`` contains a list of all parameters and the order they should be
+displayed. The data consists of a set of 4-layer nexted data. The first layer
+``[data_1499936400]`` indicates the data block with MOS initial time
+``1499936400`` (unix timestamp).
+
+Each data block consists of a set of locations (``[WIEN]``) which can contain
+one or more different MOS forecasts (``[DWD-ICON-MOS]``).  Each MOS
+(``[data_XXXXX][LOCATION][MOS]``) then contains the forecasts given the
+parameter name (e.g., ``[TTm]``, ``[Wv]``) and the corresponding values.  On
+the frontend the JSON-file is parsed within the script
+``wp-wetterturnier/user/views/mosforecasts.php`` and displayed as a table.
+
+
