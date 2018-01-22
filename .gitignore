@@ -13,6 +13,9 @@ Documentation/*.toc
 /raw/
 /test/
 
+# - Output file from AstralTable.py 
+AstralTable.txt
+
 # - Ignore python compiled files
 PyModules/*.pyc
 *.pyc

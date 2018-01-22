@@ -188,4 +188,39 @@ One of the forecast parameters is the maximum air temperature between
 observations between 06 and 18 UTC' as a best guess for the maximum temperature.
 As soon as the final observation is available we will use the final value.
 
+AstralTable
+-----------
+
+.. _script-AstralTable:
+
+Small script to procude the "maximum possible daylength table" for all stations
+defined in the database. Procudes an output file containing the day length in hours
+for each station for each day of the year (takes 2016, as 2016 was a leap year, such
+that also February 29th is included). Uses the same method
+:meth:`getobs.get_maximum_Sd` as the backend to convert the observed sunshine duration
+into relative sunshine duration.
+
+Creates an output file :file:`AstralTable.txt` alongside the python script which can then
+be published/uploaded whereever you want to have it.
+
+.. code-block:: bash
+
+    ## Simply call the script
+    ## Keep care of using the python virtualenv if you do use one
+    python AstralTable.py
+
+The following astral call is used (excerpt from 
+:meth:`getobs.get_maximum_Sd`:
+
+.. code-block:: bash
+
+    ## Setting up location using station longitude/latitude
+    loc = astral.Location( (nam,'Region',lat,lon,'Europe/London',elevation) )
+    ## Compute sunshine/daylength duration for a specific date
+    res = loc.sun(local=True,date=date)
+    ## Extract daylength as maximum sunshine duration possible between
+    ## sunrise and sunset.
+    daylen = int(res['sunset'].strftime('%s')) - int(res['sunrise'].strftime('%s'))
+    daylen = daylen / 60.
+
 

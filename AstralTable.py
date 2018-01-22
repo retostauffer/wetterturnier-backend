@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2018-01-08, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-22 15:42 on marvin
+# - L@ST MODIFIED: 2018-01-22 18:10 on marvin
 # -------------------------------------------------------------------
 
 
@@ -94,15 +94,32 @@ if __name__ == "__main__":
 
    ofile = open("AstralTable.txt","w")
 
-   ofile.write( "# ------------------------------------------------\n" )
-   ofile.write( "# Maximum day length in hours as used in the\n" )
-   ofile.write( "# Wetterturnier (wetterturnier.de) for the computation\n" )
-   ofile.write( "# of the relative sunshine duration. Innsbruck is based\n" )
-   ofile.write( "# on an `empirical` data table, all other cities use the\n" )
-   ofile.write( "# astronomical sunrise/sunset from the python astral\n" )
-   ofile.write( "# package.\n" )
-   ofile.write( "# Table created: {0:1s}\n".format( dt.date.today().strftime("%Y-%m-%d")) )
-   ofile.write( "# ------------------------------------------------\n" )
+
+   header = """# -----------------------------------------------------------------------------------
+# Contains the day length (in hours) for all stations used in the Wetterturnier.
+# This table has been generated statically using the backend script 'AstralTable.py'
+# and might be re-generated when stations are removed and/or added.
+#
+# This day length is used to convert the observed sunshine duration into relative
+# sunshine duration (in percent) as used on Wetterturnier.de as one of the parameters
+# to be forecasted. This output file uses 2016 to compute the day length (a leap year)
+# such that February 29 is included as well.
+#
+# To be more explicit, the python astral package is called using the following lines:
+#
+#   ## Setting up location using station longitude/latitude
+#   loc = astral.Location( (nam,'Region',lat,lon,'Europe/London',elevation) )
+#   ## Compute sunshine/daylength duration for a specific date
+#   res = loc.sun(local=True,date=date)
+#   ## Extract day length as maximum sunshine duration possible between
+#   ## sunrise and sunset.
+#   daylen = int(res['sunset'].strftime('%s')) - int(res['sunrise'].strftime('%s'))
+#   daylen = daylen / 60.
+#
+# This file has been created {0:1s}
+# -----------------------------------------------------------------------------------
+"""
+   ofile.write( header.format(dt.date.today().strftime("%Y-%m-%d")) )
 
    # - Show results
    # - First: header line with city name
