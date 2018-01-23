@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-23 11:27 on marvin
+# - L@ST MODIFIED: 2018-01-23 20:49 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -753,12 +753,11 @@ class getobs( object ):
    # ----------------------------------------------------------------
    def _prepare_fun_Wv_(self,station,special):
       """Helper function for significant weather for noon between
-      0600 UTC and 1200 UTC.
-      w1 (current weather) between 0600 UTC and 1200 UTC is used, the
-      past weather (ww) observations from the same time period are used
-      to identify "current weather" while ww between 0700 UTC to 1200 UTC
-      is used to check the "past weather" (ww=20 to ww=29).
-      Uses :meth:`_get_proper_WvWn_` method,
+      0600 UTC and 1200 UTC.  w1 (current weather) at 1200 UTC is used (main
+      obs time, w1 contains weathr over last 6 hours), the past weather (ww)
+      observations for 0600 UTC to 1200 UTC are used to identify "current
+      weather" while ww between 0700 UTC to 1200 UTC is used to check the "past
+      weather" (ww=20 to ww=29).  Uses :meth:`_get_proper_WvWn_` method,
       the detailed rules can be found in the method description from
       the helper class (:meth:`_get_proper_WvWn_`).
 
@@ -774,11 +773,10 @@ class getobs( object ):
 
       # Note: difference between special_ww and special_wX is that special_ww does
       # NOT include 0600 UTC (used for Nachwetter), special_wX does.
-      special_w1 = self.special_obs_object("w1 today 06:00 to today 12:00",self._date_)
-      special_wX = self.special_obs_object("ww today 06:00 to today 12:00",self._date_)
       special_ww = self.special_obs_object("ww today 07:00 to today 12:00",self._date_)
+      special_wX = self.special_obs_object("ww today 06:00 to today 12:00",self._date_)
 
-      w1         = self.load_special_obs( station.wmo, special_w1 )
+      w1         = self.load_obs( station.wmo, 12, 'w1' )
       ww         = self.load_special_obs( station.wmo, special_ww )
       wX         = self.load_special_obs( station.wmo, special_wX )
 
@@ -789,12 +787,11 @@ class getobs( object ):
    # ----------------------------------------------------------------
    def _prepare_fun_Wn_(self,station,special):
       """Helper function for significant weather for afternoon between
-      1200 UTC and 1800 UTC.
-      w1 (current weather) between 1200 UTC and 1800 UTC is used, the
-      past weather (ww) observations from the same time period are used
-      to identify "current weather" while ww between 1300 UTC to 1800 UTC
-      is used to check the "past weather" (ww=20 to ww=29).
-      Uses :meth:`_get_proper_WvWn_` method,
+      1200 UTC and 1800 UTC.  w1 (current weather) at 1800 UTC is used (main
+      obs time, w1 contains weathr over last 6 hours), the past weather (ww)
+      observations for 1200 UTC to 1800 UTC are used to identify "current
+      weather" while ww between 1300 UTC to 1800 UTC is used to check the "past
+      weather" (ww=20 to ww=29).  Uses :meth:`_get_proper_WvWn_` method,
       the detailed rules can be found in the method description from
       the helper class (:meth:`_get_proper_WvWn_`).
 
@@ -810,11 +807,10 @@ class getobs( object ):
 
       # Note: difference between special_ww and special_wX is that special_ww does
       # NOT include 1200 UTC (used for Nachwetter), special_wX does.
-      special_w1 = self.special_obs_object("w1 today 12:00 to today 18:00",self._date_)
-      special_wX = self.special_obs_object("ww today 12:00 to today 18:00",self._date_)
       special_ww = self.special_obs_object("ww today 13:00 to today 18:00",self._date_)
+      special_wX = self.special_obs_object("ww today 12:00 to today 18:00",self._date_)
 
-      w1         = self.load_special_obs( station.wmo, special_w1 )
+      w1         = self.load_obs( station.wmo, 18, 'w1' )
       ww         = self.load_special_obs( station.wmo, special_ww )
       wX         = self.load_special_obs( station.wmo, special_wX )
 
@@ -823,7 +819,7 @@ class getobs( object ):
 
    # ----------------------------------------------------------------
    # ----------------------------------------------------------------
-   def _get_proper_WvWn_( self, inw1, inww, inwX ):
+   def _get_proper_WvWn_( self, w1, inww, inwX ):
       """Helper class to properly prepare Wv and Wn.
       Returns highest observed value "w1" where observed w1=1,2,3 will
       be set to w1=0. In additioin, ww is considered in two ways:
@@ -856,8 +852,8 @@ class getobs( object ):
       If ww=29 set w1=9 if w1 valid and w1<9 (nach Gewitter)
 
       Args:
-        inw1 (:obj:`list`): List of all observed w1 values (may contain
-            None values and 'missing observation' numbers (e.g, w1=10)
+        inw1 (:obj:`int`): Observed w1 value (may contain
+            None or 'missing observation' numbers (e.g, w1=10)
         inww (:obj:`list`): List of all observed ww values (may contain
             None values and 'missing observation'  numbers (e.g., ww=508).
             Similar to inwX but contains less data (not including leading hour).
@@ -870,18 +866,18 @@ class getobs( object ):
         is available.
       """
 
-      inw1 = [] if inw1 is None else inw1
       inww = [] if inww is None else inww
       inwX = [] if inwX is None else inwX
 
-      # No data for w1? Return None
-      if len(inw1) == 0:    return None
+      # No valid w1? Return.
+      if w1 is None: return None
+      if w1 >= 10:   return None
+
+      # Set 1/2/3 to 0, else take w1
+      w1 = 0 if w1 <= 3 else w1
 
       # remove Nons form data if there are any
       # Furthermore, scale wX (floor!)
-      w1 = []
-      for x in inw1:
-          if not x is None: w1.append(x)
       ww = []
       for x in inww:
           if not x is None: ww.append(x)
@@ -890,17 +886,10 @@ class getobs( object ):
           if not x is None: wX.append( np.floor(x/10.) )
 
       # Convert to numpy array for further analysis
-      w1 = np.asarray( w1 )
       ww = np.asarray( ww )
       wX = np.asarray( wX )
 
-      # Remove missing observations
-      w1         = w1[ np.where( w1 < 10) ]
-      # Find highest w1, w1 1/2/3 will be set to 0
-      w1 = np.max(w1) if len(w1) > 0 else None
-      w1 = w1 if not w1 in [1,2,3] else 0
-
-      print "    [max w1] Set to ",w1,
+      print "   Observed w1 is ",w1,
 
       # Only checking 20-29
       ww = ww[ np.where( np.logical_and(ww >= 20,ww<=29) ) ]
