@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-20 14:13 on marvin
+# - L@ST MODIFIED: 2018-01-22 21:46 on marvin
 # -------------------------------------------------------------------
 
 
@@ -776,6 +776,7 @@ class database(object):
       cur = self.db.cursor()
    
       cur.execute( sql % (self.prefix, userID, cityID, tdate, points) )
+      print "   Updated rows:  {:d}".format(cur.rowcount)
       self.db.commit()
 
 
