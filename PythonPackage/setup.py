@@ -44,6 +44,7 @@ setup(name='pywetterturnier',     # This is the package name
           'numpy',
           'MySQL-python', # MySQL connection
           'importlib',    # Used to load the judgingclasses dynamically
+          'pytz',         # Required by astral
           'astral',       # Used to compute astronomic sunshine duration
       ],
       czip_safe=False)

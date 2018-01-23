@@ -107,6 +107,7 @@ if __name__ == '__main__':
          # - Insert Sleepy points
          print '    Inserting Sleepy points for %d' % tdate
          print "    UPSERT: user %d, city %d, tdate %d, points %f " % (userID,city['ID'],tdate,points)
+
          db.upsert_sleepy_points(userID,city['ID'],tdate,points)
 
    

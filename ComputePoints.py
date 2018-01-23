@@ -93,9 +93,9 @@ if __name__ == '__main__':
          # ----------------------------------------------------------
          # - Avoid to change old points!
          # ----------------------------------------------------------
-         if not config['input_force'] and tdate <= 16423:
+         if not config['input_force'] and tdate <= 17532:
             print "\n       SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP"
-            print "       |  do NOT change points before 2015   |"
+            print "       |  do NOT change points before 2018   |"
             print "       SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP\n"
             continue
 

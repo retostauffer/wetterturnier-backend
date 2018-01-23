@@ -776,6 +776,7 @@ class database(object):
       cur = self.db.cursor()
    
       cur.execute( sql % (self.prefix, userID, cityID, tdate, points) )
+      self.db.commit()
 
 
    # -------------------------------------------------------------------

@@ -15,6 +15,14 @@ requires valid group bets.
     the code the scripts would look way smoother and the chain script
     could be a simple sequential call (obj.dothis,obj.dothat,obj.done).
 
+TestPoints
+-----------
+
+.. _script-TestPoints:
+
+Is interfaced by the webserver (needs to be executable for the apache user).
+Computes the points and returns them. Can be used by the users to see how
+much points they would get given a certain forecast/observation.
 
 Chain
 -----
