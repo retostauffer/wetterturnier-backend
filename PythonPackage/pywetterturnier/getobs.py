@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-23 20:49 on marvin
+# - L@ST MODIFIED: 2018-01-23 22:29 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -753,7 +753,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    def _prepare_fun_Wv_(self,station,special):
       """Helper function for significant weather for noon between
-      0600 UTC and 1200 UTC.  w1 (current weather) at 1200 UTC is used (main
+      0600 UTC and 1200 UTC.  w1 (past weather) at 1200 UTC is used (main
       obs time, w1 contains weathr over last 6 hours), the past weather (ww)
       observations for 0600 UTC to 1200 UTC are used to identify "current
       weather" while ww between 0700 UTC to 1200 UTC is used to check the "past
@@ -780,14 +780,16 @@ class getobs( object ):
       ww         = self.load_special_obs( station.wmo, special_ww )
       wX         = self.load_special_obs( station.wmo, special_wX )
 
-      return self._get_proper_WvWn_( w1, ww, wX )
+      Wv = self._get_proper_WvWn_( w1, ww, wX )
+      print "    Final value for Wn, station ",station.wmo," is ", Wv
+      return  0 if Wv is None else Wv
 
    # ----------------------------------------------------------------
    # - Prepare Wn
    # ----------------------------------------------------------------
    def _prepare_fun_Wn_(self,station,special):
       """Helper function for significant weather for afternoon between
-      1200 UTC and 1800 UTC.  w1 (current weather) at 1800 UTC is used (main
+      1200 UTC and 1800 UTC.  w1 (past weather) at 1800 UTC is used (main
       obs time, w1 contains weathr over last 6 hours), the past weather (ww)
       observations for 1200 UTC to 1800 UTC are used to identify "current
       weather" while ww between 1300 UTC to 1800 UTC is used to check the "past
@@ -814,7 +816,9 @@ class getobs( object ):
       ww         = self.load_special_obs( station.wmo, special_ww )
       wX         = self.load_special_obs( station.wmo, special_wX )
 
-      return self._get_proper_WvWn_( w1, ww, wX )
+      Wn = self._get_proper_WvWn_( w1, ww, wX )
+      print "    Final value for Wn, station ",station.wmo," is ", Wn
+      return  0 if Wn is None else Wn
 
 
    # ----------------------------------------------------------------
@@ -889,7 +893,7 @@ class getobs( object ):
       ww = np.asarray( ww )
       wX = np.asarray( wX )
 
-      print "   Observed w1 is ",w1,
+      print "    Observed w1 is ",w1,
 
       # Only checking 20-29
       ww = ww[ np.where( np.logical_and(ww >= 20,ww<=29) ) ]
