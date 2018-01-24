@@ -895,22 +895,22 @@ class getobs( object ):
         is available.
       """
 
-      ww_now = [] if ww_now is None else ww_now 
-      ww_now = [] if ww_now is None else ww_now 
+      ww_now   = [] if ww_now   is None else ww_now 
+      ww_after = [] if ww_after is None else ww_after 
 
       # For ww_now consider all except 20-29
       tmp = ww_now; ww_now = []
       for x in tmp:
-          if not x in [None,range(20,30)]: ww_now.append(x)
+          if not x in range(20,30) and not x is None: ww_now.append(x)
       tmp = ww_after; ww_after = []
       # For ww_after (Nachwetter; including leading hour) take only 20-29!
       for x in tmp:
           if     x in range(20,30): ww_after.append(x)
 
 
-      ##print "      [Input]  w1:       ", w1
-      ##print "               ww_now:   ", ww_now
-      ##print "               ww_after: ", ww_after
+      #print "      [Input]  w1:       ", w1
+      #print "               ww_now:   ", ww_now
+      #print "               ww_after: ", ww_after
 
       # If wmoww input argument to this class has been set: convert all
       # observed w1/ww flags into the new ones.
