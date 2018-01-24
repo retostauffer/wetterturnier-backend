@@ -776,16 +776,17 @@ class getobs( object ):
          will be returned.
       """
 
-      # Note: difference between special_ww and special_wX is that special_ww does
-      # NOT include 0600 UTC (used for Nachwetter), special_wX does.
-      special_ww = self.special_obs_object("ww today 07:00 to today 12:00",self._date_)
-      special_wX = self.special_obs_object("ww today 06:00 to today 12:00",self._date_)
+      # Note: difference between special_now and special_after is that special_after does
+      # NOT include 1200 UTC (used for Nachwetter), special_now does.
+      special_now   = self.special_obs_object("ww today 06:00 to today 12:00",self._date_)
+      special_after = self.special_obs_object("ww today 07:00 to today 12:00",self._date_)
 
       w1         = self.load_obs( station.wmo, 12, 'w1' )
-      ww         = self.load_special_obs( station.wmo, special_ww )
-      wX         = self.load_special_obs( station.wmo, special_wX )
+      ww_now     = self.load_special_obs( station.wmo, special_now   )
+      ww_after   = self.load_special_obs( station.wmo, special_after )
 
-      Wv = self._get_proper_WvWn_( w1, ww, wX )
+      print " ------------------------------------- "
+      Wv = self._get_proper_WvWn_( w1, ww_now, ww_after )
       print "    Final value for Wn, station ",station.wmo," is ", Wv
       return  0 if Wv is None else Wv
 
@@ -812,17 +813,16 @@ class getobs( object ):
          will be returned.
       """
 
-      # Note: difference between special_ww and special_wX is that special_ww does
-      # NOT include 1200 UTC (used for Nachwetter), special_wX does.
-      special_ww = self.special_obs_object("ww today 13:00 to today 18:00",self._date_)
-      special_wX = self.special_obs_object("ww today 12:00 to today 18:00",self._date_)
+      # Note: difference between special_now and special_after is that special_after does
+      # NOT include 1200 UTC (used for Nachwetter), special_now does.
+      special_now   = self.special_obs_object("ww today 12:00 to today 18:00",self._date_)
+      special_after = self.special_obs_object("ww today 13:00 to today 18:00",self._date_)
 
       w1         = self.load_obs( station.wmo, 18, 'w1' )
-      ww         = self.load_special_obs( station.wmo, special_ww )
-      wX         = self.load_special_obs( station.wmo, special_wX )
+      ww_now     = self.load_special_obs( station.wmo, special_now   )
+      ww_after   = self.load_special_obs( station.wmo, special_after )
 
-      Wn = self._get_proper_WvWn_( w1, ww, wX )
-      print "    Final value for Wn, station ",station.wmo," is ", Wn
+      Wn = self._get_proper_WvWn_( w1, ww_now, ww_after )
       return  0 if Wn is None else Wn
 
 
@@ -845,21 +845,21 @@ class getobs( object ):
          will be returned.
       """
 
-      # Note: difference between special_ww and special_wX is that special_ww does
-      # NOT include 0600 UTC (used for Nachwetter), special_wX does.
-      special_ww = self.special_obs_object("ww today 07:00 to tomorrow 06:00",self._date_)
-      special_wX = self.special_obs_object("ww today 06:00 to tomorrow 06:00",self._date_)
+      # Note: difference between special_now and special_after is that special_after does
+      # NOT include 0600 UTC (used for Nachwetter), special_now does.
+      special_after = self.special_obs_object("ww today 07:00 to tomorrow 06:00",self._date_)
+      special_now   = self.special_obs_object("ww today 06:00 to tomorrow 06:00",self._date_)
 
-      ww         = self.load_special_obs( station.wmo, special_ww )
-      wX         = self.load_special_obs( station.wmo, special_wX )
+      ww_after   = self.load_special_obs( station.wmo, special_after )
+      ww_now     = self.load_special_obs( station.wmo, special_now   )
 
-      return self._get_proper_WvWn_( None, ww, wX, returnlist = True )
+      return self._get_proper_WvWn_( None, ww_now, ww_after, returnlist = True )
 
 
 
    # ----------------------------------------------------------------
    # ----------------------------------------------------------------
-   def _get_proper_WvWn_( self, w1, inww, inwX, returnlist = False ):
+   def _get_proper_WvWn_( self, w1, ww_now, ww_after, returnlist = False ):
       """Helper class to properly prepare Wv and Wn.
       Returns highest observed value "w1" where observed w1=1,2,3 will
       be set to w1=0. In additioin, ww is considered in two ways:
@@ -869,36 +869,19 @@ class getobs( object ):
       including the leading hour and is used to extract 'current weather' from
       the ww observations. 
 
-      Special rule using ww 20-29 if repored AND we have a valid w1.
-
-      If ww=20 set w1=5 if w1 valid and w1<5 (nach Spruehregen oder Schneegriesel)
-
-      If ww=21 set w1=6 if w1 valid and w1<6 (nach Regen)
-
-      If ww=22 set w1=7 if w1 valid and w1<7 (nach Schneefall)
-
-      If ww=23 set w1=7 if w1 valid and w1<7 (nach Schneeregen oder Eiskoernern)
-
-      If ww=24 set w1=6 if w1 valid and w1<6 (nach gefrierendem Regen)
-
-      If ww=25 set w1=6 if w1 valid and w1<6 (nach Regenschauer)
-
-      If ww=26 set w1=7 if w1 valid and w1<7 (nach Schneeschauer)
-
-      If ww=27 set w1=8 if w1 valid and w1<8 (nach Graupel- oder Hagelschauer)
-
-      If ww=28 set w1=4 if w1 valid and w1<4 (nach Nebel)
-
-      If ww=29 set w1=9 if w1 valid and w1<9 (nach Gewitter)
+      Please see documentation of :meth:`utils.wmowwConversion` and check the
+      config file (:file:`wmo_ww.conf`) to see what will be converted into what.
 
       Args:
         inw1 (:obj:`int`): Observed w1 value (may contain
             None or 'missing observation' numbers (e.g, w1=10)
-        inww (:obj:`list`): List of all observed ww values (may contain
+        ww_now (:obj:`list`): List of all observed ww values (may contain
             None values and 'missing observation'  numbers (e.g., ww=508).
-            Similar to inwX but contains less data (not including leading hour).
-        inwX (:obj:`list`): List of all observed ww values (may contain
+            Similar to ww_after but contains less data (not including leading hour).
+            From this list values 20-29 will be neglected!
+        ww_after (:obj:`list`): List of all observed ww values (may contain
             None values and 'missing observation'  numbers (e.g., ww=508).
+            From this list only values 20-19 will be consisered!
         returnlist (:obj:`bool`): If set to true not only one single value will
             be returned but a list of all observed w1/ww/wX whch are considiered
             in this method. Is used for the raincheck where we don't want to have
@@ -912,54 +895,48 @@ class getobs( object ):
         is available.
       """
 
-      inww = [] if inww is None else inww
-      inwX = [] if inwX is None else inwX
+      ww_now = [] if ww_now is None else ww_now 
+      ww_now = [] if ww_now is None else ww_now 
 
-      print "      [Input]      ", w1, inww, inwX
+      # For ww_now consider all except 20-29
+      tmp = ww_now; ww_now = []
+      for x in tmp:
+          if not x in [None,range(20,30)]: ww_now.append(x)
+      tmp = ww_after; ww_after = []
+      # For ww_after (Nachwetter; including leading hour) take only 20-29!
+      for x in tmp:
+          if     x in range(20,30): ww_after.append(x)
 
-      ## No valid w1? Return.
-      #if w1 is None: return None
 
-      # remove Nons form data if there are any
-      # Furthermore, scale wX (floor!)
-      ww = []
-      for x in inww:
-          if not x is None: ww.append(x)
-      wX = []
-      # For wx (including leading hour) take only 20-29!
-      for x in inwX:
-          if x in range(20,30): wX.append(x)
+      ##print "      [Input]  w1:       ", w1
+      ##print "               ww_now:   ", ww_now
+      ##print "               ww_after: ", ww_after
 
       # If wmoww input argument to this class has been set: convert all
       # observed w1/ww flags into the new ones.
       if self.wmoww:
-          w1 = self.wmoww.convert( "w1", w1 )
-          ww = [ self.wmoww.convert( "ww", x ) for x in ww ]
-          wX = [ self.wmoww.convert( "ww", x ) for x in wX ]
-          print "      [Converted]   ",w1, ww, wX
+          w1       =   self.wmoww.convert( "w1", w1 )
+          ww_now   = [ self.wmoww.convert( "ww", x ) for x in ww_now   ]
+          ww_after = [ self.wmoww.convert( "ww", x ) for x in ww_after ]
+          #print "      [Converted]   ",w1, ww_now, ww_after
 
       # If list return is requested: do so.
       if returnlist:
           w1 = [] if w1 is None else [w1]
-          return w1 + ww + wX
+          return w1 + ww_now + ww_after
 
       # Convert to numpy array for further analysis
-      ww = np.asarray( ww )
-      wX = np.asarray( wX )
+      ww_now   = np.asarray( ww_now   )
+      ww_after = np.asarray( ww_after )
 
+      ww_now   = None if len(ww_now) == 0 else ww_now
+      ww_after = None if len(ww_after) == 0 else ww_after
 
-      print "      Observed w1 is ",w1,
-
-      # Only checking 20-29
-      ww = ww[ np.where( np.logical_and(ww >= 20,ww<=29) ) ]
-      ww = ww if len(ww) > 0 else None
-
-      # Only consider 4-9.
-      wX = wX if len(wX) > 0 else None
+      print "    Observed w1 is ",w1,
 
       # If max(wX) > w1: use max(wX) value.
-      if np.max(wX > w1): w1 = int(np.max(wX))
-      if np.max(ww > w1): w1 = int(np.max(ww))
+      if np.max(ww_now   > w1): w1 = int(np.max(ww_now  ))
+      if np.max(ww_after > w1): w1 = int(np.max(ww_after))
       print " considering [ww] as well yields ",w1
 
       # - Return value  
