@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-23 22:29 on marvin
+# - L@ST MODIFIED: 2018-01-24 12:04 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -33,10 +33,13 @@ class getobs( object ):
       city (:obj:`int`): Numeric city ID.
       date (:obj:`datetime.datetime.date` object with the date for which
              the request should be made.
+      wmoww (:obj:`utils.wmowwConversion`): Or None. If None, no conversion will
+            be performed. If set the :meth:`utils.wmowwConversion.convert` method
+            is used to convert observed weather codes into the required ones.
    """
 
 
-   def __init__(self, config, db, city, date):
+   def __init__(self, config, db, city, date, wmoww = None ):
       """
       Initialization of the @ref getobs.getobs class.
       """
@@ -52,6 +55,8 @@ class getobs( object ):
       self.data     = None
       ## List of stationclass objects
       self.stations = self.db.get_stations_for_city( city['ID'] )
+      ## Store wmoww input arg
+      self.wmoww    = wmoww
 
       # -------------------------------------------------------------
       # - Private attributes
@@ -822,8 +827,39 @@ class getobs( object ):
 
 
    # ----------------------------------------------------------------
+   # - Prepare Wv
    # ----------------------------------------------------------------
-   def _get_proper_WvWn_( self, w1, inww, inwX ):
+   def _prepare_fun_Wall_(self,station,special):
+      """Helper function for significant weather for 24h period between
+      0600 to 0600 UTC. This function is used internally when computing the
+      observed precipitation sum. If precipitation would return a -3.0 (-0.1mm/24h)
+      but there were observed precipitation classes, set precipitation sum to 0.
+
+      Args:
+         station (:obj:`stationclass.stationclass`): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+         float: Returns None if no valid Wv/Wn could have been computed, else
+         a float between 00. and 90. (for Wv/Wn = [0,1,2,3,...,9] as [0.,10.,...,90.])
+         will be returned.
+      """
+
+      # Note: difference between special_ww and special_wX is that special_ww does
+      # NOT include 0600 UTC (used for Nachwetter), special_wX does.
+      special_ww = self.special_obs_object("ww today 07:00 to tomorrow 06:00",self._date_)
+      special_wX = self.special_obs_object("ww today 06:00 to tomorrow 06:00",self._date_)
+
+      ww         = self.load_special_obs( station.wmo, special_ww )
+      wX         = self.load_special_obs( station.wmo, special_wX )
+
+      return self._get_proper_WvWn_( None, ww, wX, returnlist = True )
+
+
+
+   # ----------------------------------------------------------------
+   # ----------------------------------------------------------------
+   def _get_proper_WvWn_( self, w1, inww, inwX, returnlist = False ):
       """Helper class to properly prepare Wv and Wn.
       Returns highest observed value "w1" where observed w1=1,2,3 will
       be set to w1=0. In additioin, ww is considered in two ways:
@@ -863,6 +899,12 @@ class getobs( object ):
             Similar to inwX but contains less data (not including leading hour).
         inwX (:obj:`list`): List of all observed ww values (may contain
             None values and 'missing observation'  numbers (e.g., ww=508).
+        returnlist (:obj:`bool`): If set to true not only one single value will
+            be returned but a list of all observed w1/ww/wX whch are considiered
+            in this method. Is used for the raincheck where we don't want to have
+            the highest number only but all (as if highest is 9 (thunderstorm) it
+            might have been a dry thunderstorm, but there might be additional
+            reports on rain before/after).
 
       Returns:
         float: Returns a single value between 0 and 90 (w1=0 to we=90, multiplied
@@ -873,12 +915,10 @@ class getobs( object ):
       inww = [] if inww is None else inww
       inwX = [] if inwX is None else inwX
 
-      # No valid w1? Return.
-      if w1 is None: return None
-      if w1 >= 10:   return None
+      print "      [Input]      ", w1, inww, inwX
 
-      # Set 1/2/3 to 0, else take w1
-      w1 = 0 if w1 <= 3 else w1
+      ## No valid w1? Return.
+      #if w1 is None: return None
 
       # remove Nons form data if there are any
       # Furthermore, scale wX (floor!)
@@ -887,43 +927,38 @@ class getobs( object ):
           if not x is None: ww.append(x)
       wX = []
       for x in inwX:
-          if not x is None: wX.append( np.floor(x/10.) )
+          if not x is None: wX.append(x)
+
+      # If wmoww input argument to this class has been set: convert all
+      # observed w1/ww flags into the new ones.
+      if self.wmoww:
+          w1 = self.wmoww.convert( "w1", w1 )
+          ww = [ self.wmoww.convert( "ww", x ) for x in ww ]
+          wX = [ self.wmoww.convert( "ww", x ) for x in wX ]
+          print "      [Converted]   ",w1, ww, wX
+
+      # If list return is requested: do so.
+      if returnlist:
+          w1 = [] if w1 is None else [w1]
+          return w1 + ww + wX
 
       # Convert to numpy array for further analysis
       ww = np.asarray( ww )
       wX = np.asarray( wX )
 
-      print "    Observed w1 is ",w1,
+      print "      Observed w1 is ",w1,
 
       # Only checking 20-29
       ww = ww[ np.where( np.logical_and(ww >= 20,ww<=29) ) ]
       ww = ww if len(ww) > 0 else None
 
       # Only consider 4-9.
-      wX = wX[ np.where( np.logical_and(wX >= 4,wX<=9) ) ]
       wX = wX if len(wX) > 0 else None
 
       # If max(wX) > w1: use max(wX) value.
       if np.max(wX > w1): w1 = int(np.max(wX))
+      if np.max(ww > w1): w1 = int(np.max(ww))
       print " considering [ww] as well yields ",w1,
-
-      # Special rule using ww 20-29 AND we have a valid w1
-      if w1 is not None and ww is not None:
-          # If w1 < 4 but ww=28 reported: set w1 to 4
-          if w1 < 4 and np.any( np.in1d([28],ww) ):          w1 = 4
-          # If w1 < 5 but ww 20 reported: set w1 to 5
-          if w1 < 5 and np.any( np.in1d([20],ww) ):          w1 = 5
-          # If w1 < 6 but ww 21, 24 or 25 reported: set w1 to 6
-          if w1 < 6 and np.any( np.in1d([21,24,25],ww) ):    w1 = 6
-          # If w1 < 7 but ww 22, 23 or 26 reported: set w1 to 7
-          if w1 < 7 and np.any( np.in1d([22,23,26],ww) ):    w1 = 7
-          # If w1 < 8 but ww 27 reported: set w1 to 8
-          if w1 < 8 and np.any( np.in1d([27],ww) ):          w1 = 8
-          # If w1 < 9 but ww 29 reported: set w1 to 9
-          if w1 < 8 and np.any( np.in1d([29],ww) ):          w1 = 9
-          print " after checking past weather, w1 = ",w1
-      else:
-          print " no past weather, w1 = ",w1
 
       # - Return value  
       return None if w1 is None else float(w1)*10.
@@ -943,7 +978,11 @@ class getobs( object ):
       the W1 observations for the time period of interest. If
       there is no sign. precipitation weather recorded in W1
       (w1 = 5, 6, 7, 8 or 9) the value will be set to -3.0.
-
+      In addition w1/ww are checked to set precip sum to 0 if
+      -0.1 sum's were received but rain weather types have been
+      reported in the same time. Therefore the method
+      :meth:`getobs._prepare_fun_Wall_` is used for the time
+      period 0600 to 0600 UTC of the following day.
 
       First: if database entry for 18 UTC is here but
       there is no recorded amount of precipitation we
@@ -953,6 +992,10 @@ class getobs( object ):
       Second:
       If observed precipitation amount is negative (some
       stations send -0.1mm/12h for no precipitation) we
+
+      Third:
+      If w1/ww reports precipitation types [5,6,7,8] but rain
+      sum is -0.1 (-3.0): return 0.0 for precip!
 
       Args:
          station (:obj:`stationclass.stationclass`): Station handler.
@@ -977,12 +1020,12 @@ class getobs( object ):
       check18 = self.check_record( station.wmo, 18 )
       check06 = self.check_record( station.wmo, 30 )
 
-      ####print " ------------- "
-      ####print "RR18     ", RR18
-      ####print "RR06     ", RR06
-      ####print "RR06_24  ", RR06_24
-      ####print "check18  ", check18
-      ####print "check06  ", check06
+      #print " ------------- "
+      #print "RR18     ", RR18
+      #print "RR06     ", RR06
+      #print "RR06_24  ", RR06_24
+      #print "check18  ", check18
+      #print "check06  ", check06
 
       # - If observed values RR18/RR06 are empty but the observations
       #   are in the database we have to assume that there was no
@@ -1023,6 +1066,17 @@ class getobs( object ):
          # If so, then the sum will be set to -3.0 (dry) rather than 0.0.
          if all( item in [None,0,1,2,3,4,10] for item in W1):
             value = -30.
+
+      # - Loaidng Wall to check whether rain has been observed
+      #   in past or present weather. If there are any precipitation class
+      #   observations and the precipitation sum is -0.1 (which could yield a
+      #   -3.0) set precip to 0.0!
+      raincheck = self._prepare_fun_Wall_(station,None)
+      raincheck = [x in [5,6,7,8] for x in raincheck]
+      raincheck = np.any( raincheck )
+      if not value is None:
+          if value < 0 and raincheck: value = 0.
+
 
       # - Return value  
       return value

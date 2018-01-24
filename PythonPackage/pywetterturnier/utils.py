@@ -10,7 +10,7 @@
 #                converted to None.
 #                2015-08-05, RS: Moved inputcheck into utils.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 20:09 on marvin
+# - L@ST MODIFIED: 2018-01-24 12:12 on marvin
 # -------------------------------------------------------------------
 """
 Documentation for this module.
@@ -334,6 +334,142 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
 
    return config
 
+
+# -------------------------------------------------------------------
+# - Reading wmo ww conversion file.
+# -------------------------------------------------------------------
+class wmowwConversion( object ):
+    """Helper class to convert observed weather types into the classes
+    0/4/5/6/7/8/9 as used by Wetterturnier.de.
+    Reads the wmo ww config file using :obj:`ConfigParser.ConfigParser`.
+    The file contains the conversion rules from received observations to
+    one of the main weather types (0,4,5,6,7,8,9). Can be used for present
+    weather (ww) and past weather (w1/w2).
+
+    Args:
+        file (:obj:`str`): String, file name containing the specifications.
+    """
+
+    _past_weather_    = None
+    _present_weather_ = None
+
+    def __init__( self, file ):
+
+        import sys, os
+        if not os.path.isfile( file ):
+            print "Sorry, cannot find file \"{0:s}\"".format(file)
+            sys.exit(8)
+        # Save file
+        self.file = file
+
+        # Use configparser to read the file
+        from ConfigParser import ConfigParser
+        CNF = ConfigParser()
+        try:
+            CNF.read( file )
+        except Exception as e:
+            print e
+            print "ERROR reading the file \"{0:s}\"".format(file)
+            sys.exit(9)
+
+        self._past_weather_    = self._read_section_(CNF,"past weather")
+        self._present_weather_ = self._read_section_(CNF,"present weather")
+
+    def _read_section_( self, CNF, section ):
+        """Reading specific section of the config file and parses the settins.
+        If the section does not exist: return None. Else a list is returned
+        containing a dict for each valid setting entry in the config file.
+        The dict keys are "integers as string", the weather type code as
+        reported in the BUFR file. The dict for each key contains a "name"
+        and a "gets" argument. "name" is simply the description of the setting,
+        "gets" is either None (if defined to convert to None) or an integer
+        (the new code flag in which the observed one should be converted).
+
+        Args:
+            CNf (:obj:`ConfigParser.ConfigParser`): The config file handler.
+            section (:obj:`str`): String, which section to be read.
+        Returns:
+            list/None: None if section does not exist. Else a list with dicts.
+        """
+
+        if not CNF.has_section(section): return None
+
+        import sys, re
+        res = {}
+        for rec in CNF.items(section):
+            name = rec[0].strip()
+
+            mtch = re.match("^([0-9]+)\s+gets\s+([0-9]+|None)$",rec[1])
+            if not mtch:
+                print "    [!] Misspecified: \"{0:s}\". Ignore.".format(rec)
+                continue
+            # Use integer key as string key
+            if mtch.group(2) == "None":     val = None
+            else:                           val = int(mtch.group(2))
+            # Append Result
+            res[mtch.group(1)] = {"name":rec[0].strip(), "gets":val}
+
+        return res
+
+    def convert( self, section, code ):
+        """Convert an observed weather code into the new one.
+        "section" defines the conversion table. If set to "past" (or "w1" or "w2"; not
+        case sensitive) the [past weather] conversion table will be used. If set to
+        "present" (or "ww") the [present weather] will be used.
+        Returns the value in which the observed "code" is converted. If no specificiation
+        is available a "None" is returned.
+
+        Args:
+            section (:obj:`str`): One of past/w1/w2 or present/ww. Not case sensitive.
+            code (:obj:`int`): Integer with the observed code. If None is given, None
+                will be returned. Same yields if "code" is no integer (None returned).
+
+        Returns:
+            int/None: Returns an integer or None, depending on the settings.
+        """
+
+        if code is None:          return None
+        if not type(code) == int: return None
+
+        strcode = "{:d}".format(code)
+        if section.lower() in ["past","w1","w2"]:
+            lookup = self._past_weather_
+        elif section.lower() in ["present","ww"]:
+            lookup = self._present_weather_
+        else:
+            import sys
+            sys.exit("Problems with wmowwConversion.convert input argument \"section\". " + \
+                    "Input section=\"{:s}\" is unknown.".format(section))
+
+        # If key is not defined: return None 
+        if not strcode in lookup.keys():        return None
+        # Else return the corresponding convert-to value
+        return lookup[strcode]["gets"]
+
+
+    def show( self ):
+        """Development method: prints content of the object to stdout.
+        """
+
+        print "\nwmoww Config Section \"past weather\":"
+        if not self._past_weather_:
+            print " - Nothing defined"
+        else:
+            for key,values in self._past_weather_.iteritems():
+                if values["gets"]:
+                    print " - {0:<50s}: {1:3d} gets {2:4d}".format(values["name"],int(key),values["gets"])
+                else:
+                    print " - {0:<50s}: {1:3d} gets None".format(values["name"],int(key))
+
+        print "\nwmoww Config Section \"present weather\":"
+        if not self._present_weather_:
+            print " - Nothing defined"
+        else:
+            for key,values in self._present_weather_.iteritems():
+                if values["gets"]:
+                    print " - {0:<50s}: {1:3d} gets {2:4d}".format(values["name"],int(key),values["gets"])
+                else:
+                    print " - {0:<50s}: {1:3d} gets None".format(values["name"],int(key))
 
 # -------------------------------------------------------------------
 # - Convert date since 1970-01-01 into a readable string 

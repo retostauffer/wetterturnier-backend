@@ -63,6 +63,7 @@ Important blocks
 
     class/database_database.rst
     class/getobs_getobs.rst
+    class/utils_wmowwConversion.rst
     class/stationclass_stationclass.rst
     class/migration.rst
 

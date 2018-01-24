@@ -196,6 +196,12 @@ One of the forecast parameters is the maximum air temperature between
 observations between 06 and 18 UTC' as a best guess for the maximum temperature.
 As soon as the final observation is available we will use the final value.
 
+For the present/past weather a conversion table is used. Handling via
+:class:`utils.wmowwConversion` class. The following conversion table is installed:
+For details, especially for the settings/conversion file, check 
+:class:`utils.wmowwConversion`.
+
+
 AstralTable
 -----------
 

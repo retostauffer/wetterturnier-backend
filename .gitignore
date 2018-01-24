@@ -8,6 +8,8 @@ Documentation/*.toc
 
 # - Ignore local .conf files
 *.conf
+# - But include the ww config
+!wmo_ww.conf
 
 # - Ignore some folders
 /raw/

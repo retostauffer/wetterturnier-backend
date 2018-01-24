@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-22 11:01 on marvin
+# - L@ST MODIFIED: 2018-01-24 09:52 on marvin
 # -------------------------------------------------------------------
 
 
@@ -32,6 +32,11 @@ if __name__ == '__main__':
    inputs = utils.inputcheck('Observations')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
+
+   # - Reading WMO WW conversion file
+   wmoww = utils.wmowwConversion( "wmo_ww.conf" )
+   wmoww.show()
+   wmoww.convert( "past", 3 )
 
    # - Initializing class and open database connection
    db        = database.database(config)
@@ -95,7 +100,7 @@ if __name__ == '__main__':
             date = tdate + dt.timedelta( day ) 
             print "\n  * Processing obsevations for day: %s\n" % date
 
-            obs = getobs.getobs(config,db,city,date)
+            obs = getobs.getobs(config, db, city, date, wmoww )
 
             # - Temperatures
             obs.prepare('TTm',special='T today 06:00 to today 18:00')
