@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-24 12:04 on marvin
+# - L@ST MODIFIED: 2018-01-24 12:50 on marvin
 # -------------------------------------------------------------------
 
 import sys, os
@@ -926,8 +926,9 @@ class getobs( object ):
       for x in inww:
           if not x is None: ww.append(x)
       wX = []
+      # For wx (including leading hour) take only 20-29!
       for x in inwX:
-          if not x is None: wX.append(x)
+          if x in range(20,30): wX.append(x)
 
       # If wmoww input argument to this class has been set: convert all
       # observed w1/ww flags into the new ones.
@@ -945,6 +946,7 @@ class getobs( object ):
       # Convert to numpy array for further analysis
       ww = np.asarray( ww )
       wX = np.asarray( wX )
+
 
       print "      Observed w1 is ",w1,
 
