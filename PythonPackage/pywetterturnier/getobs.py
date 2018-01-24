@@ -958,7 +958,7 @@ class getobs( object ):
       # If max(wX) > w1: use max(wX) value.
       if np.max(wX > w1): w1 = int(np.max(wX))
       if np.max(ww > w1): w1 = int(np.max(ww))
-      print " considering [ww] as well yields ",w1,
+      print " considering [ww] as well yields ",w1
 
       # - Return value  
       return None if w1 is None else float(w1)*10.
