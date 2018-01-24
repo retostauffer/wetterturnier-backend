@@ -8,9 +8,10 @@ utils.wmowwConversion
     :members:
 
 
-.. note:: The following config file is implemented.
+WMO FM 94 Conversion Table
+----------------------------
 
-.. todo:: the sphinx theme messes up the line numbering (line height)
+.. note:: The following config file is implemented.
 
 .. literalinclude:: ../../wmo_ww.conf
     :language: python
