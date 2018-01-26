@@ -788,7 +788,15 @@ class getobs( object ):
       print " ------------------------------------- "
       Wv = self._get_proper_WvWn_( w1, ww_now, ww_after )
       print "    Final value for Wn, station ",station.wmo," is ", Wv
-      return  0 if Wv is None else Wv
+
+      # If Wv is None but the 12 UTC record is here we assume a 0 (no
+      # significant weather). Until the 12 UTC record is not here we
+      # return a None (no observations available):
+      check = self.check_record( station.wmo, 12 )
+      if Wv is None and not check:
+	  return None
+      else:
+          return  0 if Wv is None else Wv
 
    # ----------------------------------------------------------------
    # - Prepare Wn
@@ -823,8 +831,15 @@ class getobs( object ):
       ww_after   = self.load_special_obs( station.wmo, special_after )
 
       Wn = self._get_proper_WvWn_( w1, ww_now, ww_after )
-      return  0 if Wn is None else Wn
 
+      # If Wv is None but the 18 UTC record is here we assume a 0 (no
+      # significant weather). Until the 18 UTC record is not here we
+      # return a None (no observations available):
+      check = self.check_record( station.wmo, 18 )
+      if Wn is None and not check:
+	  return None
+      else:
+          return  0 if Wn is None else Wn
 
    # ----------------------------------------------------------------
    # - Prepare Wv
@@ -853,8 +868,16 @@ class getobs( object ):
       ww_after   = self.load_special_obs( station.wmo, special_after )
       ww_now     = self.load_special_obs( station.wmo, special_now   )
 
-      return self._get_proper_WvWn_( None, ww_now, ww_after, returnlist = True )
+      Wall = self._get_proper_WvWn_( None, ww_now, ww_after, returnlist = True )
 
+      # If Wv is None but the 06 UTC record is here we assume a 0 (no
+      # significant weather). Until the 06 UTC record is not here we
+      # return a None (no observations available):
+      check = self.check_record( station.wmo, 6 )
+      if Wall is None and not check:
+	  return None
+      else:
+          return  0 if Wall is None else Wall
 
 
    # ----------------------------------------------------------------

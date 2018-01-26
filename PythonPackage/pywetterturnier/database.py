@@ -699,10 +699,10 @@ class database(object):
    
       cur.execute( sql % (self.prefix, userID, cityID, paramID, tdate, bdate, value) )
 
-      # Rowcount (affected rows)
-      ###rowcount = cur.rowcount
-      ###if rowcount == 0:
-      ###    print "      [!] Not updated (same value or admin lock)"
+      # # Rowcount (affected rows)
+      # rowcount = cur.rowcount
+      # if rowcount == 0:
+      #     print "      [!] Not updated (same value or admin lock)"
 
       # Setting the betstat entry
       sql = 'INSERT INTO %swetterturnier_betstat ' + \

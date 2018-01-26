@@ -271,13 +271,14 @@ if __name__ == '__main__':
                paramID = db.get_parameter_id( param )
                #print              userID,city['ID'],paramID,tdate,day,bet[param]
                if bet[param] is None:
-                  print "    - user %4d, city %2d, parameter %-6s %8s" % \
-                             (userID,city['ID'],"%s:" % param,'None')
+                  print "    - user %4d, city %2d, tdate %d, parameter %-6s %8s" % \
+                             (userID,city['ID'],tdate,"%s:" % param,'None')
                else:
-                  print "    - user %4d, city %2d, parameter %-6s %8d" % \
-                             (userID,city['ID'],"%s:" % param,bet[param])
+                  print "    - user %4d, city %2d, tdate %d, parameter %-6s %8d" % \
+                             (userID,city['ID'],tdate,"%s:" % param,bet[param])
                   db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[param])
 
    
    # - Close database
+   db.commit()
    db.close()

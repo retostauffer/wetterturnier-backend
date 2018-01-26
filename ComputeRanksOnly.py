@@ -111,4 +111,5 @@ if __name__ == '__main__':
          db.commit()
 
 
+   db.commit()
    db.close()

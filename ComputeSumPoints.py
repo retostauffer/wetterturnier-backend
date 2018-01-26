@@ -177,6 +177,7 @@ if __name__ == '__main__':
    # - Calling the function now
    CSP(db,config,cities,tdates)
 
+   db.commit()
    db.close()
 
 

@@ -97,4 +97,5 @@ if __name__ == '__main__':
             paramID = db.get_parameter_id(k)
             db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[day-1][k])
    
+   db.commit()
    db.close()

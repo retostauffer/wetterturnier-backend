@@ -185,6 +185,7 @@ if __name__ == '__main__':
    ComputeSumPoints.CSP(db,config,cities,tdates)
 
 
+   db.commit()
    db.close()
 
 
