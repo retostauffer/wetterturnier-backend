@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2015-07-23, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-24 09:52 on marvin
+# - L@ST MODIFIED: 2018-02-03 09:20 on marvin
 # -------------------------------------------------------------------
 
 
@@ -35,8 +35,7 @@ if __name__ == '__main__':
 
    # - Reading WMO WW conversion file
    wmoww = utils.wmowwConversion( "wmo_ww.conf" )
-   wmoww.show()
-   wmoww.convert( "past", 3 )
+   #wmoww.show()
 
    # - Initializing class and open database connection
    db        = database.database(config)
