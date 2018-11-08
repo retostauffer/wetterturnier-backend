@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------
-# - NAME:        autosubmit_MyFile.txt
+# - NAME:        autosubmit_MyFile_Day2Missing.txt
 # - AUTHOR:      Reto Stauffer
 # - DATE:        2015-08-02
 # -------------------------------------------------------------------
@@ -31,7 +31,7 @@
 #                2015-08-02, RS: Some more descriptions in file.
 #                2018-11-07, RS: Changed URL (https)
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-11-08 09:51 on marvin
+# - L@ST MODIFIED: 2018-11-08 09:50 on marvin
 # -------------------------------------------------------------------
 
 
@@ -93,19 +93,6 @@ TTn_1     =      13.1
 TTd_1     =      14.5
 RR_1      =       0.5
 
-
-N_2       =         2
-Sd_2      =        85
-dd_2      =       191 
-ff_2      =         7
-fx_2      =         0
-Wv_2      =         0
-Wn_2      =         0
-PPP_2     =    1010.9
-TTm_2     =      29.2
-TTn_2     =      14.8
-TTd_2     =      12.2
-RR_2      =      -3.0
 
 # .... note that this is just an example. To place a propper bet
 #      you have to fill in ALL required parameters (required by

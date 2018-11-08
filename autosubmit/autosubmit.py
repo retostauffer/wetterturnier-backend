@@ -2,7 +2,7 @@
 # - NAME:        autosubmit.py
 # - AUTHOR:      Reto Stauffer
 # - DATE:        2015-07-31
-# - VERSION:     0.1-1, August 2015
+# - VERSION:     0.1-3
 # - LICENSE: GPL-3, Reto Stauffer, copyright 2014
 # -------------------------------------------------------------------
 # - DESCRIPTION: Helper script to give the users the option to
@@ -40,7 +40,7 @@
 #                licensed under a Creative Commons
 #                Attribution-ShareAlike 4.0 International License.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2015-08-03 14:46 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2018-11-08 09:23 on marvin
 # -------------------------------------------------------------------
 
 
