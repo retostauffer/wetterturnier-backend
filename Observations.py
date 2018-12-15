@@ -102,8 +102,8 @@ if __name__ == '__main__':
             obs = getobs.getobs(config, db, city, date, wmoww )
 
             # - Temperatures
-            obs.prepare('TTm',special='T today 06:00 to today 18:00')
-            obs.prepare('TTn',special='T yesterday 18:00 to today 6:00 ')
+            obs.prepare('TTm') #,special='T today 06:00 to today 18:00')
+            obs.prepare('TTn') #,special='T yesterday 18:00 to today 6:00 ')
             obs.prepare('TTd')
             # - Wind speed and direction
             obs.prepare('dd')

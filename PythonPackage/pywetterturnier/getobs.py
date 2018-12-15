@@ -696,6 +696,11 @@ class getobs( object ):
       # - No observations at all
       elif len(data) == 0:
          value = None
+      # - If last observation is not yet here (check30): None
+      #   This avoids to store live fx (developing over time)
+      #   observations into the database.
+      elif not check30:
+         value = None
       # - Else sum up
       else:
          value = 0
@@ -785,9 +790,7 @@ class getobs( object ):
       ww_now     = self.load_special_obs( station.wmo, special_now   )
       ww_after   = self.load_special_obs( station.wmo, special_after )
 
-      print " ------------------------------------- "
       Wv = self._get_proper_WvWn_( w1, ww_now, ww_after )
-      print "    Final value for Wn, station ",station.wmo," is ", Wv
 
       # If Wv is None but the 12 UTC record is here we assume a 0 (no
       # significant weather). Until the 12 UTC record is not here we
@@ -795,6 +798,11 @@ class getobs( object ):
       check = self.check_record( station.wmo, 12 )
       if Wv is None and not check:
 	  return None
+      # If 12 UTC observation is not yet here, return None.
+      # This avoids that we store live observations (developing over time)
+      # into the database.
+      elif not check:
+          return None
       else:
           return  0 if Wv is None else Wv
 
@@ -838,6 +846,11 @@ class getobs( object ):
       check = self.check_record( station.wmo, 18 )
       if Wn is None and not check:
 	  return None
+      # If 12 UTC observation is not yet here, return None.
+      # This avoids that we store live observations (developing over time)
+      # into the database.
+      elif not check:
+          return None
       else:
           return  0 if Wn is None else Wn
 
@@ -876,6 +889,11 @@ class getobs( object ):
       check = self.check_record( station.wmo, 6 )
       if Wall is None and not check:
 	  return None
+      # If 12 UTC observation is not yet here, return None.
+      # This avoids that we store live observations (developing over time)
+      # into the database.
+      elif not check:
+          return None
       else:
           return  0 if Wall is None else Wall
 
@@ -1074,10 +1092,11 @@ class getobs( object ):
       #   observations and the precipitation sum is -0.1 (which could yield a
       #   -3.0) set precip to 0.0!
       raincheck = self._prepare_fun_Wall_(station,None)
-      raincheck = [x in [5,6,7,8] for x in raincheck]
-      raincheck = np.any( raincheck )
-      if not value is None:
-          if value < 0 and raincheck: value = 0.
+      if not raincheck is None:
+      	 raincheck = [x in [5,6,7,8] for x in raincheck]
+      	 raincheck = np.any( raincheck )
+      	 if not value is None:
+      	     if value < 0 and raincheck: value = 0.
 
 
       # - Return value  
@@ -1128,35 +1147,47 @@ class getobs( object ):
       else:
          # - Loading sunshine 24h sum, next day reported at 06UTC
          #   which is +30 hours from self._date_.
+         #   Note: sunday is not Sunday, it is the parameter called
+         #   "sunday" (sunshine, full day).
          tmp = self.load_obs( station.wmo, 30, 'sunday' )
          if tmp:
             value =int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
-         # - Loading sunshine 24h sum, next day reported at 00UTC
-         #   which is +24 hours from self._date_
+         # - If no full day sunshine duration is reported +30h: check full day
+         #   sunshie duration +24h (00 UTC report) which is +24 hours from self._date_
          else:
+            #   Note: sunday is not Sunday, it is the parameter called
+            #   "sunday" (sunshine, full day).
             tmp = self.load_obs( station.wmo, 24, 'sunday' )
             if tmp:
                Sd = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
                value = Sd 
             # - Else try to sum up hourly observations
             else:
+	       # Check if +24h record is here. If the record is here but we have
+               # not gotten any information so far (self.load_obs(..) returned None for
+               # both, +30 and +24): loading 1h observations and take the sum!
+      	       check24 = self.check_record( station.wmo, 24 )
+
                # - Else try to get the hourly sums.
-               datum = int( self._date_.strftime('%Y%m%d') )
-               sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
-                     "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum
+               if check24:
+                  datum = int( self._date_.strftime('%Y%m%d') )
+                  sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
+                        "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum
 
-               cur = self.db.cursor()
-               cur.execute( sql )
-               tmp = cur.fetchall()
+                  cur = self.db.cursor()
+                  cur.execute( sql )
+                  tmp = cur.fetchall()
 
-               # - No data? Return None
-               if len(tmp) == 0:
-                  value = None
-               else:
-                  # - Else sum up
-                  value = 0
-                  for rec in tmp: value += int(rec[0])
-                  value = int( np.round(np.float(value)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
+                  # - No data? Return None
+                  if len(tmp) == 0:
+                     value = None
+                  else:
+                     # - Else sum up
+                     value = 0
+                     for rec in tmp: value += int(rec[0])
+                     value = int( np.round(np.float(value)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
+	       # Else we report None 
+               value = None
 
       # - Return value
       return value
