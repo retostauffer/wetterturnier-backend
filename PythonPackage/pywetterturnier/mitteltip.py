@@ -8,7 +8,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-20, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-18 20:07 on marvin
+# - L@ST MODIFIED: 2018-12-16 11:47 on marvin
 # -------------------------------------------------------------------
 
 """
@@ -162,7 +162,6 @@ def mitteltip(db,typ,ID,city,tdate):
                 n0, n4, n5, n6, n7, n8, n9 )
          print "    n0+n4 = {0:d},  len(data) = {1:d},  (n0+n4)/len(data): {2:.3f}".format(
                 (n0+n4), len(data), (n0+n4)/len(data))
-         print data,"\n"
          # - Decision 0,4 .vs. 5,6,7,8,9
          if float(n0+n4) / float(len(data)) > 0.5:
             if n4 >= n0:

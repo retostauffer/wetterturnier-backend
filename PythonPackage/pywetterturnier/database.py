@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2018-01-22 21:46 on marvin
+# - L@ST MODIFIED: 2018-12-16 11:49 on marvin
 # -------------------------------------------------------------------
 
 
@@ -647,9 +647,9 @@ class database(object):
          # Convert tdate into 'YYYY-mm-dd HH:MM:SS'
          strdate_bgn = dt.fromtimestamp(tdate*86400).strftime("%Y-%m-%d 00:00:00")
          strdate_end = dt.fromtimestamp((tdate+1)*86400).strftime("%Y-%m-%d 00:00:00")
-         sql.append("AND gu.since < '{0:s}' AND (gu.until IS NULL OR gu.until >= '{1:s}')".format(
+         sql.append("AND (gu.since IS NULL OR gu.since < '{0:s}') AND (gu.until IS NULL OR gu.until >= '{1:s}')".format(
                     strdate_end,strdate_bgn))
-         ##print "\n".join(sql)
+         #print "\n".join(sql)
 
          # Execute query
          cur.execute( "\n".join(sql) ) 

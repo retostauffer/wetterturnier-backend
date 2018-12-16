@@ -8,7 +8,7 @@
 # -------------------------------------------------------------------
 # - EDITORIAL:   2014-09-13, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-12-21 07:40 on prognose2
+# - L@ST MODIFIED: 2018-12-16 11:47 on marvin
 # -------------------------------------------------------------------
 
 
@@ -102,6 +102,8 @@ if __name__ == '__main__':
 
             # Check number of participants for this city, weekend, and group
             participants = db.get_participants_in_group(groupID,city['ID'],tdate)
+            print("    Found user ID's: {:s}".format(", ".join(
+                            ["{:d}".format(x) for x in participants])))
 
             if len(participants) < 2:
                print "[!] Less than 2 participants for this group/city/tdate."
@@ -136,7 +138,6 @@ if __name__ == '__main__':
             #   containing the bets for Petrus
             # -------------------------------------------------------------
             bet = mitteltip.mitteltip(db,'group',groupID,city,tdate)
-   
    
             # -------------------------------------------------------------
             # - If at least one query returnd no data, mitteltip returns
