@@ -36,6 +36,8 @@ if __name__ == '__main__':
    from pywetterturnier import utils
    from optparse import OptionParser
 
+   os.environ['PYTHON_EGG_CACHE'] = '/var/www/egg-cache'
+
    # ----------------------------------------------------------------
    # - Reading input arguments, define usage.
    # ----------------------------------------------------------------
@@ -154,7 +156,23 @@ if __name__ == '__main__':
    # - Initialize judging
    jug = judging.judging(inputs.quiet)
    # - Compute points
-   points = jug.get_points(inputs.obs*10.,inputs.param,inputs.values*10.,inputs.special*10.)
+   par = inputs.param
+   
+   if par == "RR":
+      val=[]; obs=[]; spe=[]
+      for i in range(len(inputs.values)):
+         val.append(int(inputs.values[i]*10))
+      for i in range(len(inputs.obs)):
+         obs.append(int(inputs.obs[i]*10))
+      for i in range(len(inputs.special)):
+         spe.append(int(inputs.special[i]*10))
+
+   else:
+      val = inputs.values*10.
+      obs = inputs.obs*10.
+      spe = inputs.special*10.
+
+   points = jug.get_points(obs, par, val, spe)
 
 
    # ----------------------------------------------------------------

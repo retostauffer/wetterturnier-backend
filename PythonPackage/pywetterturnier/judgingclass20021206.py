@@ -784,7 +784,7 @@ class judging(object):
 
       # - Maximum number of points to reach
       maxpoints = 10.
-      deduction = np.zeros(len(data),dtype='float'); deduction[:] = 0. 
+      deduction = np.zeros(len(data), dtype='float'); deduction[:] = 0. 
 
       # - Precipitation scoring is quiet fancy. I am doing this
       #   with a vector defining the penalty for different
@@ -800,6 +800,7 @@ class judging(object):
       # - For players ABOVE the maximum, compute points:
       # -------------------------------------------------------------
       # - Now take the penalty vector if max is in that range.
+
       if max <= 0:
          penalty = full_penalty
       elif max < len(full_penalty):
@@ -811,7 +812,12 @@ class judging(object):
       # - For the first len(penalty) deviances
       if len(penalty) > 0:
          for i in idx:
-            imax = int( np.minimum( resid[i], len(penalty) ) )
+
+            #bugfix? needs 2 be tested!
+            #imax0 = np.minimum( resid[i], len(penalty) )
+            imax = int(np.minimum( resid[i], len(penalty) ) )
+            #print(imax0, imax)
+
             deduction[i] = deduction[i] + np.sum(penalty[0:imax])
       # - For these with more difference as len(penalty)-1
       deduction[idx] = deduction[idx] + np.maximum(0,resid[idx]-len(penalty)) * 0.05
@@ -819,7 +825,7 @@ class judging(object):
       #   if and only if the forecast was bigger than the observed values.
       idx = np.where( np.logical_and( deduction > 0., data > max, data > 0 ) )
       deduction[idx] = deduction[idx] * 0.5
-      # - PROBLEM: if data == 0 and max > 0 the user gehts
+      # - PROBLEM: if data == 0 and max > 0 the user gets
       #   1.0 points deduction between 0.0 and 0.1 mm. BUT
       #   I devided the points by 2. This does not yield
       #   for the first point 1.0 between 0.0 and 0.1. Therefore  
@@ -837,11 +843,19 @@ class judging(object):
       # -------------------------------------------------------------
       # - Now take the penalty vector from user tip
       #   up to minimum observed value BUT tip was not -3.0mm
+
+      # same her with the int() bugfix...
       idx = np.where( data < min )[0]
       imax = np.minimum( min, len(full_penalty) )
       for i in idx:
          imin = np.maximum( data[i], 0 )
+         #possible 0.0 bugfix needs to be tested:
+         #if imin == imax == 0:
+	 #   slc = 0
+         #else:
+	 #   slc = range(imin+1,imax+1)
          deduction[i] = deduction[i] + np.sum( full_penalty[imin:imax] )
+
       if min > 50.:
          tmp = self.__residuals__( min, np.maximum(50, data[idx]) )
          deduction[idx] = deduction[idx] + tmp * 0.05
@@ -861,16 +875,12 @@ class judging(object):
       points = maxpoints - deduction
 
       # - Show data (development stuff)
-      #if min >=0: print ' WET CONDITIONS'
-      #if max < 0: print ' DRY CONDITIONS'
-      #for i in range(len(data)):
-      #   print '%5d %5d | bet %5d | resid: %5d | %6.2f  (ded: %6.2f)' % (min,max,data[i], resid[i], points[i], deduction[i])
+      if min >=0: print ' WET CONDITIONS'
+      if max < 0: print ' DRY CONDITIONS'
+      for i in range(len(data)):
+         print '%5d %5d | bet %5d | resid: %5d | %6.2f  (ded: %6.2f)' % (min,max,data[i], resid[i], points[i], deduction[i])
 
       return points
-
-
-
-
 
 
 
