@@ -1,0 +1,10 @@
+PROJECT_NAME      = "Python"
+OUTPUT_DIRECTORY  = doxygen-test 
+GENERATE_LATEX    = YES
+GENERATE_MAN      = NO
+GENERATE_RTF      = NO
+OPTIMIZE_OUTPUT_JAVA = YES
+INPUT             = ComputePoints.py
+QUIET             = NO
+JAVADOC_AUTOBRIEF = YES
+SEARCHENGINE      = NO
