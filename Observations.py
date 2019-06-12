@@ -49,7 +49,7 @@ if __name__ == '__main__':
       tdates     = [config['input_tdate']]
 
    # - Loading all parameters
-   params = db.get_parameter_names(False)
+   params = db.get_parameter_names()
 
    # ----------------------------------------------------------------
    # - Because of the observations we have to compute the

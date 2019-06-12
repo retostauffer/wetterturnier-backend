@@ -68,21 +68,24 @@ if __name__ == '__main__':
    import subprocess as sub
    if not config['input_alldates']:
       if is_latest_tournament:
-         scripts = ['ComputeMeanBets.py',
-                    'ComputePetrus.py',
+         scripts = ['ComputePetrus.py',
                     'ComputeMoses.py',
                     'ComputePersistenz.py',
+                    'ComputeFreitag.py',
+                    'ComputeMeanBets.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py']
       else:
-         scripts = ['ComputeMeanBets.py',
-                    'ComputePetrus.py',
+         scripts = ['ComputePetrus.py',
+                    'ComputePersistenz.py',
+                    'ComputeFreitag.py',
+                    'ComputeMeanBets.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py']
    else:
-      scripts = ['ComputeMeanBets.py',
-                 'ComputePetrus.py',
+      scripts = ['ComputePetrus.py',
                  'ComputeMoses.py',
+                 'ComputeMeanBets.py',
                  'ComputePoints.py',
                  'ComputeSleepy.py']
 

@@ -333,6 +333,30 @@ class database(object):
 
       return res
 
+   def get_city_names(self):
+      """Loading city information from the database.
+      Loads all names of currently active cities from the database. 
+
+      Returns:
+         list: A list containing the names of all active cities.
+      """
+
+      print '  * %s' % 'looking active cities'
+      sql = 'SELECT name FROM %swetterturnier_cities WHERE active = 1 ' + \
+            'ORDER BY ID'
+
+      cur = self.cursor()
+      cur.execute( sql % self.prefix )
+      data = cur.fetchall()
+
+      if len(data) == 0:
+         utils.exit('Cannot load city data from database in database.current_tournament')
+      
+      res = []
+      for elem in data:
+         res.append( elem[0] )
+      
+      return res
 
    # -------------------------------------------------------------------
    # - Loading stations from database for a given city
@@ -818,7 +842,7 @@ class database(object):
             'WHERE s.cityID = %d AND o.paramID = %d AND o.betdate = %d'
       if not wmo == None: sql += ' AND o.station = %d' % wmo
 
-      #print sql % (self.prefix,self.prefix,cityID,paramID,bdate)
+      print sql % (self.prefix,self.prefix,cityID,paramID,bdate)
       cur.execute( sql % (self.prefix,self.prefix,cityID,paramID,bdate) )
 
       data = cur.fetchall()
@@ -838,7 +862,7 @@ class database(object):
    #   date where they were used at that time. The point computation
    #   code will skip if there are no data.
    # -------------------------------------------------------------------
-   def get_parameter_names(self, active = False):
+   def get_parameter_names(self, active = False, sort=False):
       """Returns all parameter names.
       If input active is set, only active parametres will be returned.
       
@@ -851,7 +875,9 @@ class database(object):
         be returned containing the parameter shortnames as strings.
       """
       cur = self.db.cursor()
-      if active:
+      if sort:
+         cur.execute('SELECT paramName FROM %swetterturnier_param WHERE active = 1 ORDER BY sort' % self.prefix)
+      elif active:
          cur.execute('SELECT paramName FROM %swetterturnier_param WHERE active = 1' % self.prefix) 
       else:
          cur.execute('SELECT paramName FROM %swetterturnier_param' % self.prefix) 
@@ -1007,6 +1033,23 @@ class database(object):
          return False
       else:
          return int(data[0])
+
+   def get_users_in_group(self, groupID, group=None):
+      #group == str, groupID == int
+      if group:
+         return self.db.get_users_in_group( groupID = self.db.get_group_id(group) )
+      else:
+         cur = self.db.cursor()
+         sql = 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d AND active = 1'
+         cur.execute(sql % (self.prefix, groupID))
+         data = cur.fetchall()
+         
+         # - Make nice list
+         print sql
+         res = [];
+         for elem in data: res.append(elem[0])
+
+         return res
 
 
    # -------------------------------------------------------------------

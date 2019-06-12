@@ -1,7 +1,7 @@
 #!/home/wetterturnier/wetterturnier-backend/venv/bin/python
 # -*- coding: utf-8 -*-
 """
-This script gets automatically computed at certain times to read the MOS tips
+This script gets automatically computed at certain times (3z, 9z) to read the MOS tips
 and add them to the JSON array which can then be read by the tournament page
 ``MOS Forecasts´´
 The MOS tips get also mixed in a group tip
@@ -50,7 +50,7 @@ else:
 
 cities     = db.get_cities()
 citynames  = db.get_city_names()
-paramnames = db.get_parameter_names(sorted=True)
+paramnames = db.get_parameter_names(sort=True)
 
 
 # - If input city set, then drop all other cities.
@@ -94,11 +94,9 @@ for i in MOSSE:
 # create results dict
 datastring="data_"+str(timestamp)
 res = { datastring : {}, "models": MOS_names, "locations": citynames, "parameters": paramnames, "timestamps": [timestamp] } 
-print res
 
 for city in cities:
    print city['name']
-   res[datastring] = {}
    res[datastring][city['name']] = {} 
    for ID in MOSSE:
       MOS_name = db.get_username_by_id( ID )
@@ -114,10 +112,14 @@ for city in cities:
 	    #   res[datastring][city['name']][MOS_name][param].append( float( res[datastring][city['name']][MOS_name][param].append( db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate)[0]/10.) ) )
 	         #else:
             #print type(db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate)[0])
-            #if type(db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate)[0]) == type(bool):
-            #   res[datastring][city['name']][MOS_name][param].append( None )
-	    #else:
-            res[datastring][city['name']][MOS_name][param].append( db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate)[0]/10. )
+            if db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate) == False:
+               res[datastring][city['name']][MOS_name][param].append( 0 )
+	    else:
+               #if param in ["PPP","TTm","TTn","TTd","RR"]:
+               #   print type(db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate)[0]/10.)
+               #   res[datastring][city['name']][MOS_name][param].append( float( res[datastring][city['name']][MOS_name][param].append( db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate)[0]/10.) ) )
+               #else:
+               res[datastring][city['name']][MOS_name][param].append( db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate)[0]/10. )
    
 
 #append result to dict:
@@ -137,5 +139,3 @@ else:
    res[datastring] = timestamp
    #jsonmerge
    #else append new runs to existing JSON or merge
-
-

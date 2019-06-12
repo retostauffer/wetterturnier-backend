@@ -28,7 +28,8 @@ class stationclass( object ):
          function self._has_db_connector_ can be used to check if the
          database handler has been set or not.
    """
-
+   print "check"
+   #WHY the fuck did need to add a print here for the next line 2 work?!?!?!
    def __init__( self, desc, data, db = None, dbprefix = None ):
       """Initializing a new stationclss object.
       """ 

@@ -112,7 +112,6 @@ if __name__ == '__main__':
             # - Loading parameter ID
             paramID = db.get_parameter_id( param )
             res[param] = []
-
             # -------------------------------------------------------------
             # - Looping over all defined stations
             # -------------------------------------------------------------
