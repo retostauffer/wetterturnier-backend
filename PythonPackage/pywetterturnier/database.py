@@ -589,7 +589,7 @@ class database(object):
       Returns:
          list: Returns a list containing all the bets.
 
-      .. todo:: Reto the sleepy does ont get bets - he just gets points. Maybe I can
+      .. todo:: Reto the sleepy doesnt get bets - he just gets points. Maybe I can
          disable/remove the 'all' function if I am not using it anymore.
       """
 
@@ -842,7 +842,7 @@ class database(object):
             'WHERE s.cityID = %d AND o.paramID = %d AND o.betdate = %d'
       if not wmo == None: sql += ' AND o.station = %d' % wmo
 
-      print sql % (self.prefix,self.prefix,cityID,paramID,bdate)
+      #print sql % (self.prefix,self.prefix,cityID,paramID,bdate)
       cur.execute( sql % (self.prefix,self.prefix,cityID,paramID,bdate) )
 
       data = cur.fetchall()
@@ -945,7 +945,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Returning user ID
    # -------------------------------------------------------------------
-   def get_user_id(self,user):
+   def get_user_id(self,user,kind="user_login"):
       """Returns user ID given a username. If the user cannot be found,
       the method returns False. There is a vice versa function called
       :py:meth:`database.get_username_by_id`.
@@ -956,13 +956,15 @@ class database(object):
       Returns:
         bool or int: False if user does not exist, else the integer user ID.
       """
+      if kind not in ["user_login","user_nicename","display_name"]:
+         return False      
       cur = self.db.cursor()
-      cur.execute('SELECT ID FROM %susers WHERE LOWER(user_login) = \'%s\'' % (self.prefix, user.lower()))
+      cur.execute('SELECT ID FROM %susers WHERE LOWER(%s) = \'%s\'' % (self.prefix, kind, user.lower()))
       data = cur.fetchone()
       if not data:
          return False
       else:
-         return int(data[0])
+         return int(data[0])         
 
    # -------------------------------------------------------------------
    # - Returning username corresponding to the ID

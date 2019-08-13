@@ -46,7 +46,7 @@ if __name__ == "__main__":
    cities     = db.get_cities()
 
    # - Store result in a numpy ndarray
-   ndays = 366
+   ndays = 365
 
    # - Count stations
    stations = []
@@ -58,7 +58,7 @@ if __name__ == "__main__":
    res = np.ndarray( (ndays,len(stations)), dtype = "float" )
 
    # Base date
-   base_date = dt.date( 2016, 1, 1 ) # Has to be a leap year!
+   base_date = dt.date( 2019, 1, 1 ) # Has to be a leap year!
 
    # - Looping over all cities
    j = -1
@@ -102,9 +102,7 @@ if __name__ == "__main__":
 #
 # This day length is used to convert the observed sunshine duration into relative
 # sunshine duration (in percent) as used on Wetterturnier.de as one of the parameters
-# to be forecasted. This output file uses 2016 to compute the day length (a leap year)
-# such that February 29 is included as well.
-#
+# to be forecasted.
 # To be more explicit, the python astral package is called using the following lines:
 #
 #   ## Setting up location using station longitude/latitude

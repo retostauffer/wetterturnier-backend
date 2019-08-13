@@ -103,7 +103,7 @@ class getobs( object ):
       # - self._maxSd_ used to store the info based on the wmo number
       maxSd = {}
       cur = self.db.cursor()
-      sql = "SELECT name, lon, lat, hoehe FROM obs.stations WHERE statnr = %s"
+      sql = "SELECT name, lon, lat, hoehe, hbaro FROM obs.stations WHERE statnr = %s"
       for station in stations:
          cur.execute( sql % station.wmo )
          res = cur.fetchone()
@@ -124,10 +124,15 @@ class getobs( object ):
             nam = str(   res[0] )
             lon = float( res[1] )
             lat = float( res[2] )
-            if int(res[3]) == None:
-               elevation = 0
+            hoehe = int( res[3] )
+            hbaro = int( res[4] )
+            if int( hoehe ) == None:
+               if int( hbaro ) in [None,-999]:
+                  elevation = 0
+               else:
+                  elevation = int( hbaro )
             else:
-               elevation = int(res[3])
+               elevation = int( hoehe )
 
             # - Define location
             loc = astral.Location( (nam,'Region',lat,lon,'Europe/London',elevation) )
@@ -1169,7 +1174,7 @@ class getobs( object ):
       	       check24 = self.check_record( station.wmo, 24 )
 
                # - Else try to get the hourly sums.
-               if check24:
+               if not check24:
                   datum = int( self._date_.strftime('%Y%m%d') )
                   sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
                         "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum

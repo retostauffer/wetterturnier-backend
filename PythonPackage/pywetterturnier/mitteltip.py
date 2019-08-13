@@ -117,6 +117,9 @@ def mitteltip(db,typ,ID,city,tdate):
          bet[day-1]['dd'] = bet[day-1]['dd'] + 3600
       elif bet[day-1]['dd'] > 3600:
          bet[day-1]['dd'] = bet[day-1]['dd'] - 3600
+      # - 0 degrees means no wind so we have to correct it to 360
+      elif bet[day-1]['dd'] == 0:
+         bet[day-1]['dd'] = 3600
    
       # -------------------------------------------------------------
       # - Parameter RR 

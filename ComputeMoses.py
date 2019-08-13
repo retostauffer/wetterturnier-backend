@@ -208,23 +208,25 @@ if __name__ == '__main__':
                   try:
                      coef = float(line.split(' ')[0])
                      username = str(line.split(' ')[1])
-                     nicename = utils.nicename( username )
+   #                 nicename = utils.nicename( username )
                   except:
                      print '[!] Problems interpreting moses line: %s' % line
                      continue
    
                   # - Loading user ID. WARNING: could also be
                   #   a group. We have to search for both.
-                  userID  = db.get_user_id( nicename )
-                  groupID = db.get_user_id( "GRP_%s" % nicename )
+                  #userID  = db.get_user_id( nicename )
+                  if username == "Persistenz": username = "Donnerstag"
+                  userID  = db.get_user_id( username, "display_name")
+                  groupID = db.get_user_id( "GRP_%s" % username, "display_name" )
    
                   if not userID: userID = groupID
    
                   if not userID:
-                     print '    - Problems getting userID for user %s (%s)' % (nicename,username)
-                     utils.exit('Reto, should not happen. What doing now?')
-      
-                  print '    - Moses coeff: %10.5f for userID %4d %s (%s)' % (coef,userID,nicename,username)
+                     print '    - Problems getting userID for user %s' % (username)
+                     #utils.exit('Reto, should not happen. What doing now?')
+                     continue
+                  print '    - Moses coeff: %10.5f for userID %4d (%s)' % (coef,userID,username)
    
                   # - Loading bet value for bet date 1 and two
                   print '      | ', 
