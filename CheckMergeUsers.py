@@ -65,7 +65,7 @@ if __name__ == '__main__':
          print "   Slave user:    %-20s   [uid %5d]" % (users[u],userids[u])
 
    # ----------------------------------------------------------------
-   # Bit inefficient, however, allows to show the data in a talbe form
+   # Bit inefficient, however, allows to show the data in a table form
    # ----------------------------------------------------------------
    sql = "SELECT count(*) AS count FROM wp_wetterturnier_betstat WHERE " + \
          "userID = %d AND tdate = %d"

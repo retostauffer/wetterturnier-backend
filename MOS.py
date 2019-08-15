@@ -17,7 +17,7 @@ import json
 from pywetterturnier import database
 from pywetterturnier import utils
 #from pywetterturnier.MOSfunctions import *
-
+from collections import OrderedDict
 
 # We only need an output file here since the bet come directly from the database
 outfile = "/var/www/html/referrerdata/mos/mos.json"
@@ -87,26 +87,27 @@ MOS_ID = db.get_group_id("MOS")
 
 #get individual MOS names
 MOS_names=[]
-MOSSE=db.get_users_in_group( MOS_ID )
+MOSSE=db.get_users_in_group( MOS_ID, sort=True )
 for i in MOSSE:
    MOS_names.append( db.get_username_by_id(i) )
+print MOS_names
 
 # create results dict
 datastring="data_"+str(timestamp)
 res = { datastring : {}, "models": MOS_names, "locations": citynames, "parameters": paramnames, "timestamps": [timestamp] } 
+res = OrderedDict( [ (datastring, {}), ("models",MOS_names), ("locations",citynames), ("parameters",paramnames), ("timestamps", [timestamp]) ] )
+print res
 
 for city in cities:
    print city['name']
    res[datastring][city['name']] = {} 
-   for ID in MOSSE:
-      MOS_name = db.get_username_by_id( ID )
-      print res
+   for ID, MOS_name in zip(MOSSE, MOS_names):
       res[datastring][city['name']][MOS_name] = {}
       for param in paramnames:
          paramID = db.get_parameter_id( param )
          res[datastring][city['name']][MOS_name][param] = []
          for bdate in range(1,3):
-	    print '    - Searching MOS parameter %s' % param
+	    #print '    - Searching MOS parameter %s' % param
 	         # - Loading Parameter ID
 	    #if param in ["PPP","TTm","TTn","TTd","RR"]:
 	    #   res[datastring][city['name']][MOS_name][param].append( float( res[datastring][city['name']][MOS_name][param].append( db.get_bet_data("user",ID,city['ID'],paramID,tdate,bdate)[0]/10.) ) )
@@ -133,7 +134,7 @@ if z == 5:
 elif z == 11:
    #until we dont get old DWD-MOS runs, only grab bets at 11z
    fid = open(outfile,"w")
-   fid.write( json.dumps( res ) )
+   fid.write( json.dumps( res, sort_keys=True ) )
    fid.close()
 else:
    res[datastring] = timestamp

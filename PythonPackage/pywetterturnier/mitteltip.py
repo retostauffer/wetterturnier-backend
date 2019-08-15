@@ -44,14 +44,21 @@ def mitteltip(db,typ,ID,city,tdate):
 
       print '    Compute for day %d (%s)' % (tdate+day, utils.tdate2string( tdate+day ))
 
+      #TODO shorten code for parameters with the same rule (like in old ComputePersistenz)
+
       # -------------------------------------------------------------
       # - Parameter N
       # -------------------------------------------------------------
       paramID = db.get_parameter_id('N')
       data    = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
       if type(data) == type(bool()): return False
-      bet[day-1]['N'] = np.round( np.mean(data), -1 )
-   
+      for i in [0, 80, 90]:
+         if float( len(np.where( data == i )[0]) ) / float( len(data) ) > 0.5:
+            bet[day-1]['N'] = i; print "N = %d" % i
+         else:
+            bet[day-1]['N'] = np.round( np.mean(data), -1 )
+            break
+
       # -------------------------------------------------------------
       # - Parameter TTd
       # -------------------------------------------------------------
@@ -82,7 +89,9 @@ def mitteltip(db,typ,ID,city,tdate):
       paramID = db.get_parameter_id('Sd')
       data    = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
       if type(data) == type(bool()): return False
-      bet[day-1]['Sd'] = np.round( np.mean(data), -1 )
+      elif float( len(np.where( data == 0 )[0]) ) / float( len(data) ) > 0.5:
+         bet[day-1]['Sd'] = 0
+      else: bet[day-1]['Sd'] = np.round( np.mean(data), -1 )
    
       # -------------------------------------------------------------
       # - Parameter PPP
@@ -96,30 +105,67 @@ def mitteltip(db,typ,ID,city,tdate):
       # - Parameter ff
       # -------------------------------------------------------------
       paramID = db.get_parameter_id('ff')
-      data    = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
-      if type(data) == type(bool()): return False
-      bet[day-1]['ff'] = np.round( np.mean(data), -1 )
+      ff      = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+      if type(ff) == type(bool()): return False
+      bet[day-1]['ff'] = np.round( np.mean(ff), -1 )
    
       # -------------------------------------------------------------
       # - Parameter dd 
       # -------------------------------------------------------------
       paramID = db.get_parameter_id('dd')
-      data    = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
-      if type(data) == type(bool()): return False
-      data = data / 10.; u = 0 ; v = 0;
-      for elem in data:
-         u = u + np.sin( elem * np.pi / 180. )
-         v = v + np.cos( elem * np.pi / 180. )
-      u = u/float(len(data))
-      v = v/float(len(data))
-      bet[day-1]['dd'] = np.round( np.arctan2(u,v) * 1800. / np.pi, -2 )
-      if bet[day-1]['dd'] < 0:
-         bet[day-1]['dd'] = bet[day-1]['dd'] + 3600
-      elif bet[day-1]['dd'] > 3600:
-         bet[day-1]['dd'] = bet[day-1]['dd'] - 3600
-      # - 0 degrees means no wind so we have to correct it to 360
-      elif bet[day-1]['dd'] == 0:
-         bet[day-1]['dd'] = 3600
+      dd      = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+      if type(dd) == type(bool()):
+         return False
+      dd = dd / 10.
+      tips = len(dd)
+      print "total dd tips:       %d" % tips
+      n0 = len(np.where( dd == 0. )[0])
+      n990 = len(np.where( dd == 990. )[0])
+      print "n0   = %d" % n0
+      print "n990 = %d" % n990
+      #if the majority has 990 or 0 take this!
+      
+      if float( n0 ) / float(tips) > 0.5:
+         bet[day-1]['dd'] = 0.; print "bet: %d" % 0
+      elif float( n990 ) / float(tips) >= 0.5:
+         bet[day-1]['dd'] = 9900.; print "bet: %d" % 990
+      else:
+         """
+         TODO: We have to ensure (rule-wise and in bet mask) that NO ONE
+         is allowed to bet and can possibly bet ff==0 but also dd!=0
+         Also, tips with missing parameters have to be deleted completely!
+         """
+         #not considering tips without direction for our weighted mean:
+         for i in list(range(tips)):
+            if dd[i] == 0 or dd[i] == 990 or ff[i] == 0:
+               np.delete(dd, i)
+               np.delete(ff, i)
+         tips -= n0 + n990
+         print "tips with direction: %d" % tips
+         u = 0 ; v = 0;
+         for i in list(range(len(dd))):
+            print "ff[%d]: %d" % (i,ff[i])
+            print "dd[%d]: %d" % (i,dd[i])
+            if dd[i] == 0 or dd[i] == 990:
+               continue
+            u += ff[i] * np.sin( np.deg2rad(dd[i]) ) 
+            v += ff[i] * np.cos( np.deg2rad(dd[i]) )
+         print "u = %f" % u
+         print "v = %f" % v
+         print "sum(ff) = %d" % sum(ff)
+         u = u / float( sum(ff) * tips )
+         v = v / float( sum(ff) * tips )
+         print "u2 = %f" % u
+         print "v2 = %f" % v         
+
+         bet[day-1]['dd'] = np.round( np.arctan2(u,v) * 1800. / np.pi, -2 )
+         if bet[day-1]['dd'] < 0:
+            bet[day-1]['dd'] = bet[day-1]['dd'] + 3600
+         elif bet[day-1]['dd'] > 3600:
+            bet[day-1]['dd'] = bet[day-1]['dd'] - 3600
+         #dd can not be 0 as result of mean -> change to 360 degrees
+         elif bet[day-1]['dd'] == 0:
+            bet[day-1]['dd'] = 3600
    
       # -------------------------------------------------------------
       # - Parameter RR 
@@ -127,9 +173,12 @@ def mitteltip(db,typ,ID,city,tdate):
       paramID = db.get_parameter_id('RR')
       data    = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
       if type(data) == type(bool()): return False
-      # - If more than 50% are 0, take 0.
+      # - If more than 50% are -3, take -3.
       if float(len(np.where( data < 0. )[0])) / float(len(data)) > 0.5:
          bet[day-1]['RR'] = -30
+      # - Else if more than 50% are 0, take it.
+      elif float(len(np.where( data < 0. )[0])) / float(len(data)) > 0.5:
+         bet[day-1]['RR'] = 0
       # - Else take mean value of all >= 25
       else:
          bet[day-1]['RR'] = np.round(np.mean(data[ np.where( data >= 0. ) ]),0)
@@ -208,4 +257,3 @@ def mitteltip(db,typ,ID,city,tdate):
 
 
    return bet
-

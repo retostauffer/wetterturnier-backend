@@ -14,6 +14,7 @@
 import MySQLdb
 import utils
 
+
 class database(object):
    """This is the main database handler class.
    As soon as an object of this class is initialized python automatically
@@ -26,10 +27,10 @@ class database(object):
    Args:
      config (:py:meth:`utils.readconfig`): Database handler
    """
-
    # ----------------------------------------------------------------
    # ----------------------------------------------------------------
    def __init__(self,config):
+      
       """The database class is handling the connection to the
       mysql database and different calls and stats.
       """
@@ -251,7 +252,7 @@ class database(object):
       sql = 'SELECT count(*) FROM %susers WHERE ' + \
               'user_login =\'%s\''
       cur = self.db.cursor()
-      cur.execute( sql % (self.prefix,name) )
+      cur.execute( sql % (self.prefix, name) )
       N = cur.fetchone()[0]
       if N > 0:
          print '    User %s already existing.' % name
@@ -303,22 +304,22 @@ class database(object):
    # -------------------------------------------------------------------
    # - Getting dict containing all active cities in the database. 
    # -------------------------------------------------------------------
-   def get_cities(self):
+   def get_cities(self, sort=True):
       """Loading city information from the database.
       Loads all active cities from the database which can then be used
       to loop over or whatever you'll do with it. 
 
       Returns:
          list: A list containing one dict per city where each dict
-         consists of the keys 'name' and 'ID'.
+         consists of the keys 'name', 'hash' and 'ID'.
    
       .. todo:: Would be nice to return cityclass objects or something. However,
-         needs some effort as I have to chnage a few lines of code.
+         needs some effort as I have to change a few lines of code.
       """
 
       print '  * %s' % 'looking active cities'
-      sql = 'SELECT ID, name FROM %swetterturnier_cities WHERE active = 1 ' + \
-            'ORDER BY ID'
+      sql = 'SELECT * FROM %swetterturnier_cities WHERE active = 1'
+      if sort: sql+=' ORDER BY ID'
 
       cur = self.cursor()
       cur.execute( sql % self.prefix )
@@ -329,8 +330,8 @@ class database(object):
       
       res = []
       for elem in data:
-         res.append( {'name':str(elem[1]),'ID':int(elem[0])} )
-
+         res.append( {'ID':int(elem[0]),'name':str(elem[1]),'hash':str(elem[2])} )
+      
       return res
 
    def get_city_names(self):
@@ -379,7 +380,8 @@ class database(object):
 
       from stationclass import *
       stations = []
-      for rec in data: stations.append( stationclass(desc,rec,self.db,self.config["mysql_prefix"]) )
+
+      for rec in data: stations.append( stationclass( desc, rec, self.db, self.config["mysql_prefix"] ) )
 
       return stations
 
@@ -390,11 +392,8 @@ class database(object):
    def current_tournament(self):
       """Returns tdate for current tournament.
       The tdate is the number of days since 1970-01-01. Loading the
-      ``max(tdate)`` from the bets table.
-      If all works as it should bets can only be placed for the upcoming
-      tournament. And this method is used to compute e.g., the points and
-      stuff. Therefore we just have to know which are the newest bets and
-      loop over them.
+      ``max(tdate)`` from the dates table which is smaller than the
+      current date (utcnow).
 
       Return:
          int: Integer date (days since 1970-01-01)
@@ -408,7 +407,7 @@ class database(object):
 
       print '  * %s' % 'Searching current tournament date'
       today = int(np.floor(float(dt.datetime.now().strftime("%s"))/86400))
-      sql = 'SELECT max(tdate) FROM %swetterturnier_bets WHERE tdate <= %d'
+      sql = 'SELECT max(tdate) FROM %swetterturnier_dates WHERE tdate <= %d'
 
       cur = self.cursor()
       cur.execute( sql % (self.config['mysql_prefix'],today) )
@@ -476,16 +475,32 @@ class database(object):
          str: City name (:obj:`str`) or False (:obj:`bool`) if the city could
          not be found in the database.
       """
-      sql = "SELECT name FROM {0:s}{1:s} WHERE ID = {2:d}".format(
-         self.config['mysql_prefix'],"wetterturnier_cities",cityID)
+      sql = "SELECT name FROM {0:s}{1:s} WHERE ID = {2:d}".format(self.config['mysql_prefix'],"wetterturnier_cities",cityID)
       cur = self.cursor(); cur.execute(sql)
       res = cur.fetchone()
       if len(res) == 0: return False
       return str(res[0])
 
+   # -------------------------------------------------------------------
+   # - Opposite of above function
+   # -------------------------------------------------------------------
+   def get_city_ID_by_name(self,city):
+      """Returns the city ID by a given name or hash, both is accepted
+      Args:
+         city (:obj:`str`): Name or 3 letter hash of city
+      Returns
+         int: City ID (:obj:`int`): Numeric city ID or False (:obj:`bool`) if the city name or hash could
+         not be found in the database.
+
+      """
+      sql = "SELECT ID FROM {0:s}{1:s} WHERE name = {2:s} OR hash = {2:s}".format(self.config['mysql_prefix'],"wetterturnier_cities",city)
+      cur = self.cursor(); cur.execute(sql)
+      res = cur.fetchone()
+      if len(res) == 0: return False
+      return str(res[0], both is accepted)
    
    # -------------------------------------------------------------------
-   # - Returns alllllll bets for a given tdate and
+   # - Returns all bets for a given tdate and
    #   a parameter. Returns ID and values. That's what we need
    #   to compute and store the points. Returns two lists with ID and values.
    #   This will be used by the judgingclass to compute the points.
@@ -510,9 +525,9 @@ class database(object):
          Namely: userID, cityID, paramID, tdate, betdate and values.
       """
 
-      # - If day is smaller equal 5 then the betdate
+      # - If day is smaller equal 6 then the betdate
       #   is tdate + day. Else day == betdate
-      if day <= 5:
+      if day <= 6:
          betdate = tdate + day
       else:
          betdate = day
@@ -575,21 +590,21 @@ class database(object):
                             User or group (if type == 'user' or 'group') are defined by the input argument ID
                             which is the userID or the groupID.
         
-         typ (:obj:`str`):     Ane of type ``'all'``, ``'user'``, or ``'group'``.
+         typ (:obj:`str`):     Any of type ``'all'``, ``'user'``, or ``'group'``.
          ID (:obj:`int`):      Ignored when ``type = 'all'``. Else the input has to be of type ineger
                                defining the userID (for ``type = 'user'``) or groupID (for ``type = 'gruop'``).
          cityID (:obj:`int`):  Numeric ID of the city.
          paramID (:obj:`int`): Numeric parameter ID.
          tdate (:obj:`int`):   Tournament date (if tournament starts on Friday, this is
                                the date of this Friday). Days since 1970-01-01.
-         betdate (:obj:`int`): If value is lower equal 5: assume that the real betdate
+         betdate (:obj:`int`): If value is lower equal 6: assume that the real betdate
                                is tdate + betdate (1: next day, 2: two days ahead, ...). If betdate is bigger
-                               than 5 betdate is just taken as set. 
+                               than 6 betdate is just taken as set. 
 
       Returns:
          list: Returns a list containing all the bets.
 
-      .. todo:: Reto the sleepy doesnt get bets - he just gets points. Maybe I can
+      .. todo:: Reto the sleepy does not get bets - he just gets points. Maybe I can
          disable/remove the 'all' function if I am not using it anymore.
       """
 
@@ -598,13 +613,27 @@ class database(object):
       # - Typ is either "all" for Petrus (takes all human bets),
       #   "user" to get the bet of one user (ID = userID), or
       #   "group" to get the bets for a group (ID = groupID)
-      if not typ in ['all','user','group']:
+      l = ['persistenz','all','user','group','human','petrus']
+      if not typ in l:
          utils.exit('Wrong typ input to database.get_bet_data. Has to be all, user, or group')
       
+      if typ == 'persistenz':
+         # - actually not getting bet - but obs data instead, for 1 day
+         
+         data = self.get_obs_data(cityID,paramID,tdate,tdate)
+
+         if not data or len(data) == 0:
+            return False
+         else:
+            res = np.ndarray( len(data), dtype='float' )
+            for i in range(len(data)):
+               res[i] = float(data[i])
+            return res
+      
       # - bdate is either a bet date (days since 1970-01-01) or
-      #   an integer lower 5. If the second one is the case
+      #   an integer lower equal 6. If the second one is the case
       #   bdate = tdate+bdate to get days.
-      if bdate <= 5: bdate = tdate + bdate
+      if bdate <= 6: bdate = tdate + bdate
       cur = self.db.cursor()
 
       # - Ignore the sleepy!
@@ -612,6 +641,7 @@ class database(object):
 
       # - For Petrus, load all bets for a given
       #   tdate/betdate, city and parameter.
+      
       if typ == 'all': 
          # - Also ignore Referenztips. They look like players but they
          #   should not be included into mitteltips. Else Persistenz
@@ -633,7 +663,7 @@ class database(object):
          sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
          sql.append("AND bet.userID != %d" % deadID)
          sql.append(" ".join(ref))
-         # print "\n".join(sql)
+         #print "\n".join(sql)
          cur.execute( "\n".join(sql) )
       # - If input was user, load tips for a specific user.
       elif typ == 'user':
@@ -677,10 +707,44 @@ class database(object):
 
          # Execute query
          cur.execute( "\n".join(sql) ) 
+      elif typ == 'human' or typ == 'petrus':
+         # - get only human players, no sleepy no groups, no automats, no reference tips
+         # TODO: exclude automatons in 'human' mode
+         # - look for Petrus, Moses and Persistenz ID to exclude them:
+         PetrusID = self.get_user_id('Petrus')
+         MosesID = self.get_user_id('Moses')
+         if typ == 'human':
+            DonnerstagID = self.get_user_id('Donnerstag')
+            FreitagID    = self.get_user_id('Freitag')
+         # - Create statement
+         sql = []
+         sql.append("SELECT bet.value AS value FROM %swetterturnier_bets AS bet" % self.prefix)
+         sql.append("LEFT OUTER JOIN %susers AS usr" % self.prefix)
+         sql.append("ON bet.userID = usr.ID")
+         sql.append("INNER JOIN %swetterturnier_betstat AS stat" % self.prefix)
+         sql.append("ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tdate=stat.tdate")
+         sql.append("WHERE usr.user_login NOT LIKE \"%s\"" % "GRP_%")
+         sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID) )
+         sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate) )
+         if typ == 'human':
+            ref = self.get_group_id('Automaten')
+            cur.execute( 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d' % (self.prefix, ref) )
+            tmp = cur.fetchall()
+            ref = [];
+            for rec in tmp:
+               ref.append('AND bet.userID != %d' % rec[0] )
+            sql.append("AND bet.userID NOT IN (%d,%d,%d,%d,%d)" % (deadID,PetrusID,MosesID,DonnerstagID,FreitagID))
+            sql.append(" ".join(ref)) 
+         else:
+            sql.append("AND bet.userID NOT IN (%d,%d,%d)" % (deadID,PetrusID,MosesID))
+         #print "\n".join(sql)
+         cur.execute( "\n".join(sql) )
+      # - If input was user, load tips for a specific user.
 
       # - Else ... adapt the exit condition above please.
+
       else:
-         utils.exit('Seems that you allowed anohter type in database.get_bet_data but you have not created a propper rule')
+         utils.exit('Seems that you allowed another type in database.get_bet_data but you have not created a propper rule')
 
 
       data = cur.fetchall()
@@ -711,9 +775,9 @@ class database(object):
       """
 
       # - bdate is either a bet date (days since 1970-01-01) or
-      #   an integer lower 5. If the second one is the case
+      #   an integer lower equal 6. If the second one is the case
       #   bdate = tdate+bdate to get days.
-      if bdate <= 5: bdate = tdate + bdate
+      if bdate <= 6: bdate = tdate + bdate
       cur = self.db.cursor()
 
       sql = 'INSERT INTO %swetterturnier_bets ' + \
@@ -742,8 +806,8 @@ class database(object):
    # -------------------------------------------------------------------
    # - Insert or update the points 
    #   NOTE: the method inserts or updates the points. For normal 
-   #   players we only have to update because the bets are allready
-   #   places.
+   #   players we only have to update because the bets are already
+   #   placed.
    #   For the sleepy (has no bet values, only points) we need to
    #   set a default 'value' (bet value) because the database expects
    #   a value (no default value set for column value).
@@ -763,9 +827,9 @@ class database(object):
       """
 
       # - bdate is either a bet date (days since 1970-01-01) or
-      #   an integer lower 5. If the second one is the case
+      #   an integer lower equal 6. If the second one is the case
       #   bdate = tdate+bdate to get days.
-      if bdate <= 5: bdate = tdate + bdate
+      if bdate <= 6: bdate = tdate + bdate
       cur = self.db.cursor()
 
       sql = 'INSERT INTO %swetterturnier_bets ' + \
@@ -830,9 +894,9 @@ class database(object):
 
       import numpy as np
 
-      #   an integer lower 5. If the second one is the case
+      #   an integer lower equal 6. If the second one is the case
       #   bdate = tdate+bdate to get days.
-      if bdate <= 5: bdate = tdate + bdate
+      if bdate <= 6: bdate = tdate + bdate
       cur = self.db.cursor()
 
       # - 
@@ -949,7 +1013,6 @@ class database(object):
       """Returns user ID given a username. If the user cannot be found,
       the method returns False. There is a vice versa function called
       :py:meth:`database.get_username_by_id`.
-
       Args:
         user (:obj:`str`): User name.
       
@@ -965,6 +1028,7 @@ class database(object):
          return False
       else:
          return int(data[0])         
+
 
    # -------------------------------------------------------------------
    # - Returning username corresponding to the ID
@@ -1036,13 +1100,16 @@ class database(object):
       else:
          return int(data[0])
 
-   def get_users_in_group(self, groupID, group=None):
+
+   def get_users_in_group(self, groupID, group=None, active=True, sort=False):
       #group == str, groupID == int
       if group:
          return self.db.get_users_in_group( groupID = self.db.get_group_id(group) )
       else:
          cur = self.db.cursor()
-         sql = 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d AND active = 1'
+         sql = 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d'
+         if active: sql+=' AND active=1'
+         if sort: sql+=' ORDER BY sort'
          cur.execute(sql % (self.prefix, groupID))
          data = cur.fetchall()
          
@@ -1052,7 +1119,6 @@ class database(object):
          for elem in data: res.append(elem[0])
 
          return res
-
 
    # -------------------------------------------------------------------
    # - Create a groupuser (add user to group as a member)

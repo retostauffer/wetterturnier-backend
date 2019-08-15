@@ -35,7 +35,7 @@ def deadman(db,city,tdate):
       #   paramID = db.get_parameter_id(param)
       #   print '    Compute Deadman for parameter %s (ID: %d)' % (param, paramID)
 
-         mean = db.get_meansd_points(city['ID'],paramID,tdate,day)
+      mean = db.get_meansd_points(city['ID'],paramID,tdate,day)
 
       #   print mean
       #   import sys

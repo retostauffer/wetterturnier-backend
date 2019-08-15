@@ -70,15 +70,13 @@ if __name__ == '__main__':
       if is_latest_tournament:
          scripts = ['ComputePetrus.py',
                     'ComputeMoses.py',
-                    'ComputePersistenz.py',
-                    'ComputeFreitag.py',
+                    'ComputePersistenzen.py',
                     'ComputeMeanBets.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py']
       else:
          scripts = ['ComputePetrus.py',
-                    'ComputePersistenz.py',
-                    'ComputeFreitag.py',
+                    'ComputePersistenzen.py',
                     'ComputeMeanBets.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py']
