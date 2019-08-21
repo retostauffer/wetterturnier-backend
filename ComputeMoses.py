@@ -154,7 +154,7 @@ if __name__ == '__main__':
          moses_file = get_moses_file(tdate,city, offset = False )
          if not moses_file: continue
    
-         print '  * Found newest modes file %s' % moses_file
+         print '  * Found newest moses file %s' % moses_file
          mfid = open(moses_file,'r')
          moses_data = mfid.read().split('\n')
 
@@ -218,6 +218,8 @@ if __name__ == '__main__':
                   #userID  = db.get_user_id( nicename )
                   if username == "Persistenz": username = "Donnerstag"
                   userID  = db.get_user_id( username, "display_name")
+                  if not userID:
+                     userID = db.get_user_id( username, "user_login")
                   groupID = db.get_user_id( "GRP_%s" % username, "display_name" )
    
                   if not userID: userID = groupID
