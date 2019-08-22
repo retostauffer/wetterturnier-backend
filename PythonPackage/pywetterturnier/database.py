@@ -975,6 +975,25 @@ class database(object):
       else:
          return int(data[0])
 
+
+   def get_all_users(self,typ="ID"):
+      """Returns all user IDs in database
+      Args:
+        user (:obj:`str`): User name.
+
+      Returns:
+        bool or int: False if user does not exist, else the integer user ID.              """
+      cur = self.db.cursor()
+      cur.execute('SELECT ID FROM %susers'
+ % (self.prefix))
+      data = cur.fetchall()
+      if data == None:
+         return False
+      else:
+         res = []
+         for i in data:                               res.append(int(i[0]))
+         return res
+
    
    # -------------------------------------------------------------------
    # - Returns user id. And creates user if necessary.
@@ -1009,7 +1028,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Returning user ID
    # -------------------------------------------------------------------
-   def get_user_id(self,user,kind="user_login"):
+   def get_user_id(self,user):
       """Returns user ID given a username. If the user cannot be found,
       the method returns False. There is a vice versa function called
       :py:meth:`database.get_username_by_id`.
@@ -1019,15 +1038,14 @@ class database(object):
       Returns:
         bool or int: False if user does not exist, else the integer user ID.
       """
-      if kind not in ["user_login","user_nicename","display_name"]:
-         return False      
-      cur = self.db.cursor()
-      cur.execute('SELECT ID FROM %susers WHERE LOWER(%s) = \'%s\'' % (self.prefix, kind, user.lower()))
-      data = cur.fetchone()
-      if not data:
-         return False
-      else:
-         return int(data[0])         
+      for i in ["user_login","user_nicename","display_name"]:
+         cur = self.db.cursor()
+         cur.execute('SELECT ID FROM %susers WHERE LOWER(%s) = \'%s\'' % (self.prefix, i, user.lower()))
+         data = cur.fetchone()
+         if data == None:
+            continue
+         else:
+            return int(data[0])         
 
 
    # -------------------------------------------------------------------
@@ -1202,6 +1220,71 @@ class database(object):
          return False
       else:
          return data
+
+   def get_stats(self, userID, cityID, measure, tdate=False):
+      import numpy as np
+      cur = self.db.cursor()
+      if tdate:
+         sql = "SELECT points FROM %swetterturnier_betstat WHERE cityID=%s AND tdate=%s"
+         cur.execute( sql % ( self.prefix, cityID, tdate ) )
+      else:
+         sql = "SELECT points FROM %swetterturnier_betstat WHERE userID=%s AND cityID=%s"
+         cur.execute( sql % ( self.prefix, userID, cityID ) )
+
+      data = cur.fetchall()
+      points = []
+      for i in data:
+         if i[0] == None: points.append( .0 )
+         else: points.append( float(i[0]) )
+      if len(points) == 0: points = [.0]
+      if measure == "points":
+         return sum(points)
+      elif measure == "points_adj":
+         #TODO formula???
+         return 0
+      elif measure == "mean":
+         return np.mean(points)
+      elif measure == "median":
+         return np.median(points)
+      elif measure == "max":
+         return max(points)
+      elif measure == "min":
+         return min(points)
+      elif measure == "sd":
+         return np.std(points)
+      else:
+         utils.exit("Unknown measure!")
+
+
+   def upsert_stats(self, userID, cityID, measures, values, tdate=False):
+      cur = self.db.cursor()
+      print measures, values 
+      mstr=""
+      for i in measures:
+         mstr+="%s, " % i
+      mstr=mstr[:-2]
+      #print str(tuple(sum( [[cityID],[tdate],values], [])) )
+      if tdate:
+         sql = "INSERT INTO %swetterturnier_tdatestats (cityID, tdate, %s) VALUES %s"
+         #print sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  )
+         cur.execute( sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  ))
+         sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  )
+      else:
+         sql = "INSERT INTO %swetterturnier_userstats (userID, cityID, %s) VALUES %s"
+         #print sql % (self.prefix, mstr, str(tuple(sum( [[userID],[cityID],values], [])) )  )
+         cur.execute( sql % (self.prefix, mstr, str(tuple(sum( [[userID],[cityID],values], []) ) ) ))
+
+
+   def upsert_moses_coefs(self, cityID, tdate, moses):
+      cur = self.db.cursor()
+      for param in moses.keys():
+         paramID = self.get_parameter_id( param )
+         for user in moses[param].keys():
+            #print user
+            userID = self.get_user_id( user )
+            coef = moses[param][user]; #print coef
+            sql = "INSERT INTO %swetterturnier_coefs (cityID, userID, paramID, tdate, coef) VALUES %s"
+            cur.execute( sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) ) )
 
 
    # ----------------------------------------------------------------
