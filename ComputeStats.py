@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=("points","points_adj","mean","median","max","min","sd")
+   measures=("points","points_adj","mean","median","max","min","sd","part")
    print str(measures)[1:-1]
   
    for userID in userIDs:
