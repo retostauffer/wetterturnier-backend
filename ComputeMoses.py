@@ -167,8 +167,8 @@ if __name__ == '__main__':
                if user == "Persistenz": user = "Donnerstag"
                moses[param][user] = line.split()[0]
             else: continue
-         db.upsert_moses_coefs(city['ID'], tdate, moses)
-#        moses = db.get_moses_coefs(city['ID'], tdate)
+         #db.upsert_moses_coefs(city['ID'], tdate, moses)
+         #moses = db.get_moses_coefs(city['ID'], tdate)
          print moses
          # -------------------------------------------------------------
          # - Looping over all parameters, search for Moses coefficients
@@ -182,6 +182,7 @@ if __name__ == '__main__':
                users           = moses[param]
                for user in users:
                   if user == "Persistenz": user = "Donnerstag" 
+                  print user
                   userID  = db.get_user_id( user )
                   groupID = db.get_user_id( "GRP_%s" % user )
 
@@ -200,11 +201,9 @@ if __name__ == '__main__':
                   if value == False: continue
                   else:
                      bet[day][param] = np.append( bet[day][param], np.repeat( value, int(float(coef)*100000) ) )
-                     print bet[day][param]
                #   Use Petrus fallback.
                if len(bet[day][param]) == 0:
                   bet[day][param] = db.get_bet_data('user',petrus_userID,city['ID'],paramID,tdate,day+1)
-            print bet
          bet = mitteltip.mitteltip(db,'moses',False,city,tdate,bet)
          print bet
       # - If bet is False, continue
@@ -217,7 +216,7 @@ if __name__ == '__main__':
          for day in range(1,3):
             for k in bet[day-1].keys():
                paramID = db.get_parameter_id(k)
-               db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[day-1][k])
+               db.upsert_bet_data(moses_userID,city['ID'],paramID,tdate,day,bet[day-1][k])
 
    db.commit()
    db.close()

@@ -56,8 +56,9 @@ def inputcheck(what):
       the input argument is not used at all!
    """
 
-   import sys, getopt
-
+   import sys, getopt, database
+   config = readconfig('config.conf')                  
+   db        = database.database(config)
    # - Evaluating input arguments from the __main__ script.
    try:
       opts, args = getopt.getopt(sys.argv[1:], "c:u:t:p:ahi", ["city=", "user=", "tdate=","param=","alldates","help","ignore"])
@@ -83,10 +84,20 @@ def inputcheck(what):
       elif o in ("-a","--alldates"):
          inputs['input_alldates']  = True
       elif o in ("-c", "--city"):
-         if not a in ['Berlin','Zuerich','Wien','Innsbruck','Leipzig']:
-            print 'Your input on -c/--city not recognized.'
+         if len(a) <= 2: a = int(a)
+         cities = db.get_cities()
+         print "  * %s active cities" % len(cities)
+         found  = False
+         for i in list(range(len(cities))):
+            print cities[i].values()
+            if a in cities[i].values():
+               inputs['input_city'] = cities[i]['name']
+               found = True
+            else:
+               continue
+         if not found:
+            print 'Your input on -c/--city was not recognized.'
             usage(what)
-         inputs['input_city'] = str(a)
       elif o in ("-u", "--user"):
          # - Check if is integer (uderID) or string
          try:
@@ -130,7 +141,15 @@ def usage(what=None):
    .. todo:: A bug! Change iputcheck, add propper usage.
    """
 
-   import utils
+   import utils, sys, getobs, database
+   config = readconfig('config.conf')
+   db     = database.database(config)                
+   cities = db.get_cities()                             
+   IDs, names, hashes = [],[],[]                        
+   for i in list(range(len(cities))):                      
+      IDs.append(cities[i]['ID'])                          
+      names.append(cities[i]['name'])                      
+      hashes.append(cities[i]['hash'])
 
    if what == None:
       print """
@@ -139,16 +158,18 @@ def usage(what=None):
       so that I can give you a propper exit statement and some
       explanation which input options are allowed.
       """
-   elif what == "CheckMergeUsers":
+   else:
       print """
-      Sorry, wrong usage for type ComputePoints.
+      Sorry, wrong usage for type %s.
       Allowed inputs for this script are:
       
       -u/--user:     A userID or a user_login name. Most 
                      script accept this and compute the points
                      or whatever it is for this user only.
-      -c/--city:     City hash to be one of these strings:
-                     Berlin, Wien, Zuerich, Innsbruck, Leipzig. 
+      -c/--city:     City can be given by its ID, nam
+e or hash
+                     IDs:                                                 %s
+                     names:                                               %s                                                   hashes:                                              %s
       -a/--alldates  Cannot be combined with the -t/--tdate option.
                      If set loop over all available dates. 
       -t/--tdate:    Tournament date in days since 1970-01-01
@@ -159,33 +180,7 @@ def usage(what=None):
                      of the scripts!!!! But these securety
                      features are there for some reason. So
                      please do not use.
-      """
-   else: 
-      print """
-      Sorry, wrong usage for type ComputePoints.
-      Allowed inputs for this script are:
-      
-      -u/--user:     A userID or a user_login name. Most 
-                     script accept this and compute the points
-                     or whatever it is for this user only.
-      -c/--city:     City hash to be one of these strings:
-                     Berlin, Wien, Zuerich, Innsbruck, Leipzig. 
-      -a/--alldates  Cannot be combined with the -t/--tdate option.
-                     If set loop over all available dates. 
-      -t/--tdate:    Tournament date in days since 1970-01-01
-      -a/--alldates: ignores -t input. Takes all tournament dates
-                     from the database to compute the points.
-      -f/--force:    Please DO NOT USE. This was for testing
-                     purpuses to bypass some securety features
-                     of the scripts!!!! But these securety
-                     features are there for some reason. So
-                     please do not use.
-      """
-   #else:
-   #   print """
-   #   Run into the usage from the inputcheck module with an unknown
-   #   type. 
-   #   """
+      """ % (what, IDs, names, hashes)
 
    utils.exit('This is/was the usage (what: %s).' % what)
 

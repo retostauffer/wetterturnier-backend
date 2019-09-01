@@ -31,3 +31,4 @@
          universLE & GRP_universLE \\
          Väterchen_Frost & Vaeterchen_Frost \\
          Windmüller & Windmueller \\
+	 Persistenz & Donnerstag \\

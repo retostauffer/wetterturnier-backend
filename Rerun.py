@@ -30,8 +30,7 @@ if __name__ == '__main__':
    """
 
    import sys, os
-   from pywetterturnier import utils
-   from pywetterturnier import database
+   from pywetterturnier import utils, database
    import numpy as np
 
    # - Store input arguments - need them later
@@ -63,7 +62,7 @@ if __name__ == '__main__':
    from datetime import datetime as dt
    scripts = ['ComputeMeanBets.py',
               'ComputePetrus.py',
-              'ComputePersistenz.py',
+              'ComputePersistenzen.py',
               'ComputePoints.py',
               'ComputeSumPoints.py',
               'ComputeSleepy.py']

@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------
-# - NAME:        ComputePersistenz.py
+# - NAME:        ComputePersistenzen.py
 # - AUTHOR:      Reto Stauffer
 # - DATE:        2015-07-29
 # - LICENSE: GPL-3, Reto Stauffer, copyright 2014
@@ -22,9 +22,7 @@ if __name__ == '__main__':
    import numpy as np
    from glob import glob
    # - Wetterturnier specific methods
-   from pywetterturnier import utils
-   from pywetterturnier import database
-   from pywetterturnier import mitteltip
+   from pywetterturnier import utils, database, mitteltip
    
    # - Evaluating input arguments
    inputs = utils.inputcheck('ComputePersistenzen')
@@ -39,9 +37,11 @@ if __name__ == '__main__':
    #   no input tournament date -t/--tdate.
    if config['input_tdate'] == None:
       tdates     = [db.current_tournament()]
+
    else:
       tdates     = [config['input_tdate']]
-      print tdates
+   print "Current tournament is %s" % utils.tdate2string( tdates[0] )
+
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
    # - If input city set, then drop all other cities.
@@ -61,7 +61,7 @@ if __name__ == '__main__':
       # - Prepare the Persistenz
       # ----------------------------------------------------------------
       username = i
-      db.create_user( username )
+      #db.create_user( username )
       userID = db.get_user_id( username )
 
       # -------------------------------------------------------------
@@ -77,12 +77,9 @@ if __name__ == '__main__':
       # ----------------------------------------------------------------
       # - Loopig over all tournament dates
       # ----------------------------------------------------------------
-      from datetime import datetime as dt
       for tdate in tdates:
-
          # - Using obervations of the tournament day for our Persistenz player
-         tdate_str = dt.fromtimestamp( tdate-j * 86400 ).strftime('%a, %Y-%m-%d')
-
+         tdate_str = utils.tdate2string( tdate - j )
          print "    Searching for Observations:     %s (%d)" % (tdate_str,tdate-j)
 
          # ----------------------------------------------------------------
@@ -100,21 +97,21 @@ if __name__ == '__main__':
          for city in cities:
             print '\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID'])
             
-            # - bit hacky: go 1 day back in mitteltip function to get obs
+            # - bit hacky: go j days back in mitteltip function and get obs
             #   instead of user bets like in Petrus. typ='persistenz' for db
             #   idea: we could also take thursday's obs for saturday and
             #   fridays tip for sunday, or even saturday's for sunday...
             bet = mitteltip.mitteltip(db,'persistenz',False,city,tdate-j)
             
             # - If bet is False, continue
-            if bet == False: continue
+            if bet == False: print "NO BETDATA"; continue
             
             # - Save into database. Note: we have loaded the persistence
             #   data from the tournament (e.g. Friday)
             #   but have to store for two days (saturday, sunday). Therefore
             #   there is the day-loop here.
             for day in range(1,3):
-               print "    Insert Persistenz bets into database for day %d" % day
+               print "    Insert %s bets into database for day %d" % (i, day)
                for k in bet[day-1].keys():
                   paramID = db.get_parameter_id(k)
                   db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[day-1][k])

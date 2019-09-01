@@ -45,6 +45,8 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
       print '    Compute for day %d (%s)' % (tdate+day, utils.tdate2string( tdate+day ))
 
       #TODO shorten code for parameters with the same rule (like in old ComputePersistenz)
+      #Freitag only gets calculated when the day is over (Saturday morning)
+      #if typ=="persistenz": bet[day-1][param] = False
 
       # -------------------------------------------------------------
       # - Parameter N
@@ -281,3 +283,18 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
 
 
    return bet
+
+#devel
+"""
+def statistics(db,typ,ID,city,tdate,measure,betdata=False):
+   if measure == "max": fun=max()
+   elif measure == "min": fun=min()
+   elif measure == "median": fun=np.median()
+   elif measure == "sd": fun=np.std()
+   elif measure == "range":
+      fun = lambda x : max(x) - min(x)
+   params = db.get_parameter_names()
+   for day in range(1,3):
+      for param in params:
+         bet[day-1][param] = fun
+"""

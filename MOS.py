@@ -14,9 +14,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 import json
 #import jsonmerge
-from pywetterturnier import database
-from pywetterturnier import utils
-#from pywetterturnier.MOSfunctions import *
+from pywetterturnier import database, utils
 from collections import OrderedDict
 
 # We only need an output file here since the bet come directly from the database
@@ -91,6 +89,8 @@ MOSSE=db.get_users_in_group( MOS_ID, sort=True )
 for i in MOSSE:
    MOS_names.append( db.get_username_by_id(i) )
 print MOS_names
+MOSSE.append( db.get_user_id( "GRP_MOS" ) )
+MOS_names.append( "Tipp MOS" )
 
 # create results dict
 datastring="data_"+str(timestamp)

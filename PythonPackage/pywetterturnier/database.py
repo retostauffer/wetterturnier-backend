@@ -407,10 +407,10 @@ class database(object):
 
       print '  * %s' % 'Searching current tournament date'
       today = int(np.floor(float(dt.datetime.now().strftime("%s"))/86400))
+      print today
       sql = 'SELECT max(tdate) FROM %swetterturnier_dates WHERE tdate <= %d'
-
       cur = self.cursor()
-      cur.execute( sql % (self.config['mysql_prefix'],today) )
+      cur.execute( sql % (self.prefix ,today) )
       tdate = cur.fetchone()[0]
 
       print '    Current tournament date is: %d' % tdate
@@ -592,7 +592,7 @@ class database(object):
         
          typ (:obj:`str`):     Any of type ``'all'``, ``'user'``, or ``'group'``.
          ID (:obj:`int`):      Ignored when ``type = 'all'``. Else the input has to be of type ineger
-                               defining the userID (for ``type = 'user'``) or groupID (for ``type = 'gruop'``).
+                               defining the userID (for ``type = 'user'``) or groupID (for ``type = 'group'``).
          cityID (:obj:`int`):  Numeric ID of the city.
          paramID (:obj:`int`): Numeric parameter ID.
          tdate (:obj:`int`):   Tournament date (if tournament starts on Friday, this is
@@ -910,6 +910,7 @@ class database(object):
       cur.execute( sql % (self.prefix,self.prefix,cityID,paramID,bdate) )
 
       data = cur.fetchall()
+      print data
       if not data:
          return False
       elif wmo == None:
@@ -939,12 +940,10 @@ class database(object):
         be returned containing the parameter shortnames as strings.
       """
       cur = self.db.cursor()
-      if sort:
-         cur.execute('SELECT paramName FROM %swetterturnier_param WHERE active = 1 ORDER BY sort' % self.prefix)
-      elif active:
-         cur.execute('SELECT paramName FROM %swetterturnier_param WHERE active = 1' % self.prefix) 
-      else:
-         cur.execute('SELECT paramName FROM %swetterturnier_param' % self.prefix) 
+      sql = "SELECT paramName FROM %swetterturnier_param" % self.prefix
+      if active: sql += " WHERE active = 1"
+      if sort: sql += " ORDER BY sort"
+      cur.execute( sql )
       data = cur.fetchall()
       if not data:
          return False
@@ -1132,7 +1131,7 @@ class database(object):
          data = cur.fetchall()
          
          # - Make nice list
-         print sql
+         #print sql
          res = [];
          for elem in data: res.append(elem[0])
 
@@ -1215,11 +1214,12 @@ class database(object):
       cur.execute( sql % ( self.prefix, self.prefix,cityID,tdate,ignore) )
       data = cur.fetchall()
 
-      ###print data
+      #print data
       if not data:
          return False
       else:
          return data
+
 
    def get_stats(self, userID, cityID, measure, tdate=False):
       import numpy as np
@@ -1239,7 +1239,7 @@ class database(object):
       if len(points) == 0: points = [.0]
       if measure == "points":
          return sum(points)
-      elif measure == "points_adj":
+      elif measure == "points_adj": #inflation adjusted points
          #TODO formula???
          return 0
       elif measure == "mean":
@@ -1250,29 +1250,61 @@ class database(object):
          return max(points)
       elif measure == "min":
          return min(points)
-      elif measure == "sd":
+      elif measure == "sd": #standard deviation
          return np.std(points)
+      elif measure == "part": #participatants/participations
+         if len(points) == 1 and points[0] == 0: return 0
+         else: return len(points)
       else:
-         utils.exit("Unknown measure!")
+         utils.exit( "Unknown measure!" )
 
 
    def upsert_stats(self, userID, cityID, measures, values, tdate=False):
       cur = self.db.cursor()
-      print measures, values 
+      print measures, values
       mstr=""
+      update=" ON DUPLICATE KEY UPDATE "
       for i in measures:
          mstr+="%s, " % i
-      mstr=mstr[:-2]
+      mstr = mstr[:-2]
       #print str(tuple(sum( [[cityID],[tdate],values], [])) )
       if tdate:
-         sql = "INSERT INTO %swetterturnier_tdatestats (cityID, tdate, %s) VALUES %s"
+         sql = "INSERT INTO %swetterturnier_tdatestats (cityID, tdate, %s) VALUES %s" + update
+         for i in measures:
+            sql = sql + i + "=VALUES(" + i + "), "
+         sql = sql[:-2]
+
          #print sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  )
          cur.execute( sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  ))
          sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  )
       else:
-         sql = "INSERT INTO %swetterturnier_userstats (userID, cityID, %s) VALUES %s"
+         sql = "INSERT INTO %swetterturnier_userstats (userID, cityID, %s) VALUES %s" + update
+         for i in measures:
+            sql = sql + i + "=VALUES(" + i + "), "
+         sql = sql[:-2]
+
          #print sql % (self.prefix, mstr, str(tuple(sum( [[userID],[cityID],values], [])) )  )
          cur.execute( sql % (self.prefix, mstr, str(tuple(sum( [[userID],[cityID],values], []) ) ) ))
+
+
+   def get_moses_coefs(self, cityID, tdate):
+      cur = self.db.cursor()
+      moses = {}
+      params = self.get_parameter_names()
+      for param in params:
+         moses[param] = {}
+         paramID = self.get_parameter_id( param )
+         sql = "SELECT userID, coef FROM %swetterturnier_coefs WHERE cityID=%d AND tdate=%d AND paramID=%d"
+         cur.execute( sql % ( self.prefix, cityID, tdate, paramID ) )
+         data = cur.fetchall()
+         #print data
+         #print sql % ( self.prefix, cityID, tdate, paramID )
+         for i in data:
+            #print i[0], i[1]
+            user = self.get_username_by_id( i[0] )
+            coef = i[1]
+            moses[param][user] = i[1]
+      return moses
 
 
    def upsert_moses_coefs(self, cityID, tdate, moses):
@@ -1283,11 +1315,12 @@ class database(object):
             #print user
             userID = self.get_user_id( user )
             coef = moses[param][user]; #print coef
-            sql = "INSERT INTO %swetterturnier_coefs (cityID, userID, paramID, tdate, coef) VALUES %s"
+            sql = "INSERT INTO %swetterturnier_coefs (cityID, userID, paramID, tdate, coef) VALUES %s ON DUPLICATE KEY UPDATE coef=VALUES(coef)"
+            #print sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) )
             cur.execute( sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) ) )
 
 
-   # ----------------------------------------------------------------
+   #----------------------------------------------------------------
    # - Close the database 
    # ----------------------------------------------------------------
    def close(self,verbose=True):
