@@ -22,9 +22,7 @@ if __name__ == '__main__':
    import numpy as np
    import sys, os
    # - Wetterturnier specific modules
-   from pywetterturnier import utils
-   from pywetterturnier import database
-   from pywetterturnier import getobs
+   from pywetterturnier import utils, database, getobs
 
    os.environ['TZ'] = 'UTC' # Important!
    

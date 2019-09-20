@@ -17,6 +17,8 @@ Documentation for this module.
 More details should be added.
 """
 
+import numpy as np
+
 # -------------------------------------------------------------------
 # - Prevent the script to execute some of the routines on certain
 #   tournament days. 
@@ -466,11 +468,28 @@ class wmowwConversion( object ):
                 else:
                     print " - {0:<50s}: {1:3d} gets None".format(values["name"],int(key))
 
+#   Helper function which creates a timestamp from a datetime object
+def timestamp( dt ):
+    "Return POSIX timestamp from datetime object as float"
+    import time as t
+    return t.mktime( dt.timetuple() )
+
+
+def datetime2tdate( datetime ):
+    "Convert datetime object to tdate"
+    return np.floor( timestamp( datetime ) / 86400 )
+
+
+def tdate2datetime( tdate ):
+    "Convert tdate to datetime object"
+    from datetime import datetime as dt
+    return dt.fromtimestamp( tdate * 86400 )
+
 # -------------------------------------------------------------------
 # - Convert date since 1970-01-01 into a readable string 
 # -------------------------------------------------------------------
-def tdate2string( date ):
-   """ Converts tdate into string of form YYY-MM-DD.
+def tdate2string( tdate ):
+   """ Converts tdate into string of form YYYY-MM-DD.
    Note: a so called tdate is nothing else than an integer value
    indicating the days since 1970-01-01 which is used extensively
    in the wetterturnier (especially to optimize the databases).
@@ -481,11 +500,32 @@ def tdate2string( date ):
    Returns:
       string: Formatted string, format ``%Y-%m-%d``.
    """
+   return tdate2datetime( tdate ).strftime( "%Y-%m-%d" )
 
-   from datetime import datetime as dt
 
-   return dt.fromtimestamp( date*86400 ).strftime('%Y-%m-%d')
+def string2tdate( datestring ):
+    "opposite of the above function"
+    from datetime import datetime as dt
+    year  = int(datestring[0:4])
+    mon   = int(datestring[5:7])
+    day   = int(datestring[8:10])
+    dtobj = dt(year, mon, day)
+    return int( timestamp2tdate( timestamp( dtobj ) ) )
 
+
+def timestamp2tdate( timestamp ):
+    return int( timestamp / 86400 )
+
+
+def tdate2timestamp( tdate ):
+    return tdate * 86400
+
+
+def today_tdate():
+    "Returns the current date as tdate"
+    from datetime import datetime as dt
+    return timestamp2tdate( timestamp( dt.utcnow() ) )
+    #today = int( dt.datetime.now().strftime('%s') / 86400 )
 
 # -------------------------------------------------------------------
 # - Manipulate special characters to get propper names 

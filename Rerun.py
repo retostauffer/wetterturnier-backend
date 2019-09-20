@@ -62,7 +62,7 @@ if __name__ == '__main__':
    from datetime import datetime as dt
    scripts = ['ComputeMeanBets.py',
               'ComputePetrus.py',
-              'ComputePersistenzen.py',
+#              'ComputePersistenzen.py',
               'ComputePoints.py',
               'ComputeSumPoints.py',
               'ComputeSleepy.py']

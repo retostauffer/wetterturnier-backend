@@ -143,8 +143,7 @@ if __name__ == '__main__':
 
    import numpy as np
    # - Wetterturnier specific modules
-   from pywetterturnier import utils
-   from pywetterturnier import database
+   from pywetterturnier import utils, database
    
    # - Evaluating input arguments
    inputs = utils.inputcheck('ComputeSumPoints')

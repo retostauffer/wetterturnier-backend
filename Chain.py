@@ -30,8 +30,7 @@ if __name__ == '__main__':
    """
 
    import sys, os
-   from pywetterturnier import utils
-   from pywetterturnier import database
+   from pywetterturnier import utils, database
    import numpy as np
 
    # - Store input arguments - need them later
@@ -44,13 +43,15 @@ if __name__ == '__main__':
 
    # - Initializing class and open database connection
    db = database.database(config)
+   current_tdate = db.current_tournament()
+   today = utils.today_tdate()
 
    # - Loading tdate (day since 1970-01-01) for the tournament.
    #   Normaly Friday-Tornament (tdate is then Friday) while
    #   the bet-dates are for Saturday and Sunday.
    is_latest_tournament = False
    if config['input_tdate'] == None:
-      config['input_tdate'] = db.current_tournament()
+      config['input_tdate'] = current_tdate
       print '  * Using latest tournament date: %d' % config['input_tdate']
       is_latest_tournament = True
    else:
@@ -74,6 +75,9 @@ if __name__ == '__main__':
                     'ComputeMeanBets.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py']
+         if today == current_tdate:
+            scripts.append( 'MOS.py' )
+            print "Today is a tournament day!"  
       else:
          scripts = ['ComputePetrus.py',
                     'ComputePersistenzen.py',
@@ -105,7 +109,6 @@ if __name__ == '__main__':
       if not p1.returncode == 0:
          for line in err: print '%s\n' % line
          utils.exit('ERROR WHILE RUNNING %s AS SUBPROCESS FOR DATE %d' % (script,config['input_tdate']))
-
 
 
 

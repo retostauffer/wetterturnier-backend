@@ -88,15 +88,16 @@ MOS_names=[]
 MOSSE=db.get_users_in_group( MOS_ID, sort=True )
 for i in MOSSE:
    MOS_names.append( db.get_username_by_id(i) )
-print MOS_names
+
 MOSSE.append( db.get_user_id( "GRP_MOS" ) )
 MOS_names.append( "Tipp MOS" )
+print MOS_names
 
 # create results dict
 datastring="data_"+str(timestamp)
 res = { datastring : {}, "models": MOS_names, "locations": citynames, "parameters": paramnames, "timestamps": [timestamp] } 
 res = OrderedDict( [ (datastring, {}), ("models",MOS_names), ("locations",citynames), ("parameters",paramnames), ("timestamps", [timestamp]) ] )
-print res
+
 
 for city in cities:
    print city['name']
@@ -126,7 +127,7 @@ for city in cities:
 #append result to dict:
 
 z=11
-print res
+
 
 if z == 5:
    pass

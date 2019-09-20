@@ -137,7 +137,15 @@ if __name__ == '__main__':
             # - List element to store the two dict dbects
             #   containing the bets for Petrus
             # -------------------------------------------------------------
-            bet = mitteltip.mitteltip(db,'group',groupID,city,tdate)
+
+            if group in ["MOS-Max", "MOS-Min"]:
+               if group == "MOS-Max":
+                  function = max
+               elif group == "MOS-Min":
+                  function = min
+               bet = mitteltip.statistics(db,'group',groupID,city,tdate,function)
+            else:
+               bet = mitteltip.mitteltip(db,'group',groupID,city,tdate)
    
             # -------------------------------------------------------------
             # - If at least one query returnd no data, mitteltip returns

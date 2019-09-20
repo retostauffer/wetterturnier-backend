@@ -188,7 +188,7 @@ class getobs( object ):
                             observations should be loaded.
 
       Returns:
-         :obj:`float` or NULL: NULL will be returned if the database
+         :obj:`float` or None: None will be returned if the database
             is empty or the parameter could not have been found, Else
             the numeric value is returned by this method.
       """
@@ -1156,7 +1156,7 @@ class getobs( object ):
          #   "sunday" (sunshine, full day).
          tmp = self.load_obs( station.wmo, 30, 'sunday' )
          if tmp:
-            value =int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
+            value = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
          # - If no full day sunshine duration is reported +30h: check full day
          #   sunshie duration +24h (00 UTC report) which is +24 hours from self._date_
          else:
@@ -1164,8 +1164,8 @@ class getobs( object ):
             #   "sunday" (sunshine, full day).
             tmp = self.load_obs( station.wmo, 24, 'sunday' )
             if tmp:
-               Sd = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
-               value = Sd 
+               value  = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
+                
             # - Else try to sum up hourly observations
             else:
 	       # Check if +24h record is here. If the record is here but we have
@@ -1174,7 +1174,7 @@ class getobs( object ):
       	       check24 = self.check_record( station.wmo, 24 )
 
                # - Else try to get the hourly sums.
-               if not check24:
+               if check24:
                   datum = int( self._date_.strftime('%Y%m%d') )
                   sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
                         "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum
@@ -1182,17 +1182,21 @@ class getobs( object ):
                   cur = self.db.cursor()
                   cur.execute( sql )
                   tmp = cur.fetchall()
-
-                  # - No data? Return None
-                  if len(tmp) == 0:
-                     value = None
+                  print "tmp"
+                  print tmp
+                  # - No data? Return None 
+                  if len(tmp) == 0 or tmp == None:
+                     print "None"
+                     return None
                   else:
                      # - Else sum up
                      value = 0
-                     for rec in tmp: value += int(rec[0])
+                     for rec in tmp:
+                        value += int(rec[0])
+                        print value
                      value = int( np.round(np.float(value)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
 	       # Else we report None 
-               value = None
+               else: value = None
 
       # - Return value
       return value

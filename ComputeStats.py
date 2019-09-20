@@ -24,9 +24,6 @@ if __name__ == '__main__':
    else:
       tdates     = [config['input_tdate']]
 
-   from datetime import datetime as dt
-   fmt = "%Y-%m-%d"
-   #date = dt.fromtimestamp(tdate*86400).strftime(fmt)
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
    # - If input city set, then drop all other cities.
@@ -38,26 +35,28 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=("points","points_adj","mean","median","max","min","sd","part")
-   print str(measures)[1:-1]
+   measures=("points","points_adj","mean","median","Qlow","Qupp","max","min","sd","part")
   
    for userID in userIDs:
       user = db.get_username_by_id(userID)
       for city in cities:
-         values=[]
-         for measure in measures:
-            values.append( db.get_stats(userID, city['ID'], measure) )
-         db.upsert_stats( userID, city['ID'], measures, values )
-  
+         for day in range(3):
+            stats = db.get_stats(userID, city['ID'], measures, 0, day)
+            db.upsert_stats( userID, city['ID'], stats, 0, day)
+   #TODO Cumpute rank, rank_adj? 
+
    for city in cities:
       if config['input_alldates']:
          tdates = db.all_tournament_dates( city['ID'] )
          print 'ALL DATES'
       for tdate in tdates:
-         values=[]
-         for measure in measures[2:]:
-            values.append(db.get_stats(0, city['ID'], measure, tdate))
-         db.upsert_stats(0, city['ID'], measures[2:], values, tdate)
+         for day in range(3):
+            stats = db.get_stats(0, city['ID'], measures[2:], tdate, day)
+            db.upsert_stats(0, city['ID'], stats, tdate, day)
+
+   import PlotStats
+   tdate = max(tdates) - 7
+   PlotStats.plot(db, cities, tdate)
 
    db.commit()
    db.close()

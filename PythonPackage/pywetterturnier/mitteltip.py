@@ -16,6 +16,13 @@ Function to compute the mitteltipps.
 
 .. todo:: Could contain a bit more details!
 """
+
+import utils
+# - List element to store the two dict dbects
+#   containing the bets for Petrus
+bet = [{},{}]
+
+
 def mitteltip(db,typ,ID,city,tdate,betdata=False):
    """Function returning Mitteltips or group bets.
   
@@ -33,11 +40,6 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
    """
 
    import numpy as np
-   import utils
-
-   # - List element to store the two dict dbects
-   #   containing the bets for Petrus
-   bet = [{},{}]
 
    # - Day one, day two
    for day in range(1,3):
@@ -284,17 +286,18 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
 
    return bet
 
-#devel
-"""
-def statistics(db,typ,ID,city,tdate,measure,betdata=False):
-   if measure == "max": fun=max()
-   elif measure == "min": fun=min()
-   elif measure == "median": fun=np.median()
-   elif measure == "sd": fun=np.std()
-   elif measure == "range":
-      fun = lambda x : max(x) - min(x)
+
+def statistics(db,typ,ID,city,tdate,function=False,betdata=False):
+
+   if not function:
+      utils.exit( "No function given (min/max/np.median/...)" )
    params = db.get_parameter_names()
    for day in range(1,3):
       for param in params:
-         bet[day-1][param] = fun
-"""
+         paramID = db.get_parameter_id( param )
+         if not betdata:
+            data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+         if type(data) == bool: return False
+         bet[day-1][param] = function( data ) 
+
+   return bet

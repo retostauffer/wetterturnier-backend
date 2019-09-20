@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
    # ----------------------------------------------------------------
    # - A small helper function to find the correct coefficient
-   #   file. Klaus sends them once a week, normally on 
+   #   file. Klaus Knuepffer sends them once a week, normally on 
    #   Tuesday. The name of the file contains a date 
    #   but this is not the tournament date and normally
    #   the name of the files has 'a delay'.
@@ -109,7 +109,7 @@ if __name__ == '__main__':
       # If the file is too old: return FALSE. As the file should be computed
       # between each tournament it should never be older than 7 days, I take 5 here
       # just in case.
-      if offset == False: return newest_file
+      if offset == False: return [newest_file, newest]
       age = (dt.date.today() - newest).days
          
       # Drop a warning and return False if too old.
@@ -119,7 +119,7 @@ if __name__ == '__main__':
           return False
 
       # Else return file name of the newest file
-      return newest_file
+      return [newest_file, newest]
 
 
    # ----------------------------------------------------------------
@@ -151,7 +151,10 @@ if __name__ == '__main__':
          #   ... WARNING 200 offset disabled, but we do have a problem
          #       at the moment to get the newest coefficients, so with offset false
          #       we are using old files.
-         moses_file = get_moses_file(tdate,city, offset = False )
+         moses_file_info = get_moses_file(tdate,city, offset = False )
+         moses_file = moses_file_info[0]
+         moses_date = str( moses_file_info[1] )
+         print moses_date
          if not moses_file: continue
    
          print '  * Found newest moses file %s' % moses_file
@@ -167,7 +170,9 @@ if __name__ == '__main__':
                if user == "Persistenz": user = "Donnerstag"
                moses[param][user] = line.split()[0]
             else: continue
-         #db.upsert_moses_coefs(city['ID'], tdate, moses)
+
+         moses_tdate = utils.string2tdate( moses_date )
+         db.upsert_moses_coefs(city['ID'], moses_tdate, moses)
          #moses = db.get_moses_coefs(city['ID'], tdate)
          print moses
          # -------------------------------------------------------------
@@ -202,8 +207,9 @@ if __name__ == '__main__':
                   else:
                      bet[day][param] = np.append( bet[day][param], np.repeat( value, int(float(coef)*100000) ) )
                #   Use Petrus fallback.
-               if len(bet[day][param]) == 0:
-                  bet[day][param] = db.get_bet_data('user',petrus_userID,city['ID'],paramID,tdate,day+1)
+               bet_count = len(bet[day][param])
+               if bet_count < 100000:
+                  bet[day][param] = np.append( bet[day][param], np.repeat( db.get_bet_data('user',petrus_userID,city['ID'],paramID,tdate,day+1), (100000 - bet_count ) ) )
          bet = mitteltip.mitteltip(db,'moses',False,city,tdate,bet)
          print bet
       # - If bet is False, continue

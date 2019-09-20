@@ -643,10 +643,10 @@ class database(object):
       #   tdate/betdate, city and parameter.
       
       if typ == 'all': 
-         # - Also ignore Referenztips. They look like players but they
+         # - Also ignore Referenztipps. They look like players but they
          #   should not be included into mitteltips. Else Persistenz
          #   is included into the computation of the Persistenz.
-         ref = self.get_group_id('Referenztips')
+         ref = self.get_group_id('Referenztipps')
          cur.execute( 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d' % (self.prefix, ref) )
          tmp = cur.fetchall()
          ref = [];
@@ -1011,7 +1011,6 @@ class database(object):
         int: Numeric userID.
       """
 
-      import utils
       userID = self.get_user_id( utils.nicename( name, self.config['conversion_table'] ) )
       if not userID:
           self.create_user( utils.nicename( name, self.config['conversion_table'] ) )
@@ -1221,67 +1220,112 @@ class database(object):
          return data
 
 
-   def get_stats(self, userID, cityID, measure, tdate=False):
-      import numpy as np
+   def get_stats(self, userID, cityID, measures, tdate=False, day=0):
+      
+      from numpy import mean, median, percentile
+
+      def sd(x, bessel=1):
+         mean_x = mean(x)
+         n = len(x)
+         if n == 0: return None
+         elif n == 1: return 0
+         res = 0
+         for i in x:
+            res += ( i - mean_x )**2
+         return ( res / ( n - bessel ) )**0.5
+
       cur = self.db.cursor()
+      day_strs = ["", "_d1", "_d2"]
+      day_str = day_strs[0]
+      if day != 0:
+         day_str = day_strs[day] 
+
+      sql = "SELECT points"+day_str+" FROM %swetterturnier_betstat WHERE "
       if tdate:
-         sql = "SELECT points FROM %swetterturnier_betstat WHERE cityID=%s AND tdate=%s"
-         cur.execute( sql % ( self.prefix, cityID, tdate ) )
+         # We don't want Sleepy and Persistenzen in our tdatestats!
+         exclude = []
+         for i in ["Sleepy", "Donnerstag", "Freitag", "Vivaldi"]:
+            exclude.append( self.get_user_id( i ) )
+
+         sql += "cityID=%d AND tdate=%d AND userID NOT IN%s"
+         cur.execute( sql % ( self.prefix, cityID, tdate, tuple(exclude) ) )
       else:
-         sql = "SELECT points FROM %swetterturnier_betstat WHERE userID=%s AND cityID=%s"
-         cur.execute( sql % ( self.prefix, userID, cityID ) )
+         # check whether current tournament is finished to keep open tournaments out of the userstats
+         today              = utils.today_tdate()
+         current_tnmt       = self.current_tournament()
+         if today > current_tnmt + 2:
+            last_tdate = current_tnmt
+         else:
+            last_tdate = current_tnmt - 7
+         sql += "userID=%d AND cityID=%d AND tdate<=%d"
+         cur.execute( sql % ( self.prefix, userID, cityID, last_tdate ) )
 
       data = cur.fetchall()
       points = []
       for i in data:
-         if i[0] == None: points.append( .0 )
+         #sleepy has NULL points on d1 and d2, skip him!
+         if i[0] == None:
+            continue
          else: points.append( float(i[0]) )
+      
+      # important for participant/participation count,
+      # otherwise part would be 1 if a player/date actually has 0 part*s
       if len(points) == 0: points = [.0]
-      if measure == "points":
-         return sum(points)
-      elif measure == "points_adj": #inflation adjusted points
-         #TODO formula???
-         return 0
-      elif measure == "mean":
-         return np.mean(points)
-      elif measure == "median":
-         return np.median(points)
-      elif measure == "max":
-         return max(points)
-      elif measure == "min":
-         return min(points)
-      elif measure == "sd": #standard deviation
-         return np.std(points)
-      elif measure == "part": #participatants/participations
-         if len(points) == 1 and points[0] == 0: return 0
-         else: return len(points)
-      else:
-         utils.exit( "Unknown measure!" )
+      
+      res = {}
 
-
-   def upsert_stats(self, userID, cityID, measures, values, tdate=False):
-      cur = self.db.cursor()
-      print measures, values
-      mstr=""
-      update=" ON DUPLICATE KEY UPDATE "
       for i in measures:
+         i += day_str
+         if i == "points"+day_str:
+            res[i] = sum(points)
+         elif i == "points_adj":
+            #inflation adjusted points, only for all days?
+            #TODO formula???
+            res[i] = 0
+         elif i == "mean"+day_str:
+            res[i] = mean(points)
+         elif i == "median"+day_str:
+            res[i] = median(points)
+         elif i == "Qlow":
+            res[i] = percentile(points, 25, interpolation="midpoint") 
+         elif i == "Qupp":
+            res[i] = percentile(points, 75, interpolation="midpoint")
+         elif i == "max"+day_str:
+            res[i] = max(points)
+         elif i == "min"+day_str:
+            res[i] = min(points)
+         elif i == "sd"+day_str: #standard deviation
+            res[i] = sd(points)
+         elif i == "part":
+            #participatants/participations, only for all days
+            if len(points) == 1 and points[0] == 0: res[i] = 0
+            else: res[i] = len(points)
+         else: continue
+      return res
+
+
+   def upsert_stats(self, userID, cityID, stats, tdate=False, day=0):
+      cur = self.db.cursor()
+      print stats
+      mstr   = ""
+      values, sql_vals = [], ""
+      update = " ON DUPLICATE KEY UPDATE "
+
+      for i in stats.keys():
          mstr+="%s, " % i
-      mstr = mstr[:-2]
+         values.append( stats[i] )
+         sql_vals = sql_vals + i + "=VALUES(" + i + "), "
+      sql_vals, mstr = sql_vals[:-2], mstr[:-2]
+
       #print str(tuple(sum( [[cityID],[tdate],values], [])) )
       if tdate:
-         sql = "INSERT INTO %swetterturnier_tdatestats (cityID, tdate, %s) VALUES %s" + update
-         for i in measures:
-            sql = sql + i + "=VALUES(" + i + "), "
-         sql = sql[:-2]
+         sql = "INSERT INTO %swetterturnier_tdatestats (cityID, tdate, %s) VALUES %s" + update + sql_vals
 
          #print sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  )
          cur.execute( sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  ))
          sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  )
       else:
-         sql = "INSERT INTO %swetterturnier_userstats (userID, cityID, %s) VALUES %s" + update
-         for i in measures:
-            sql = sql + i + "=VALUES(" + i + "), "
-         sql = sql[:-2]
+         sql = "INSERT INTO %swetterturnier_userstats (userID, cityID, %s) VALUES %s" + update + sql_vals
 
          #print sql % (self.prefix, mstr, str(tuple(sum( [[userID],[cityID],values], [])) )  )
          cur.execute( sql % (self.prefix, mstr, str(tuple(sum( [[userID],[cityID],values], []) ) ) ))
