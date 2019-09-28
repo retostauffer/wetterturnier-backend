@@ -1286,9 +1286,9 @@ class database(object):
             res[i] = mean(points)
          elif i == "median"+day_str:
             res[i] = median(points)
-         elif i == "Qlow":
+         elif i == "Qlow"+day_str:
             res[i] = percentile(points, 25, interpolation="midpoint") 
-         elif i == "Qupp":
+         elif i == "Qupp"+day_str:
             res[i] = percentile(points, 75, interpolation="midpoint")
          elif i == "max"+day_str:
             res[i] = max(points)
@@ -1323,7 +1323,6 @@ class database(object):
 
          #print sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  )
          cur.execute( sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  ))
-         sql % (self.prefix, mstr, str(tuple(sum( [[cityID],[tdate],values], [])) )  )
       else:
          sql = "INSERT INTO %swetterturnier_userstats (userID, cityID, %s) VALUES %s" + update + sql_vals
 
@@ -1362,6 +1361,50 @@ class database(object):
             sql = "INSERT INTO %swetterturnier_coefs (cityID, userID, paramID, tdate, coef) VALUES %s ON DUPLICATE KEY UPDATE coef=VALUES(coef)"
             #print sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) )
             cur.execute( sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) ) )
+
+
+   # find incomplete bets for a given tdate and cityID
+   def find_missing_bets(self, cityID, tdate=False ):
+
+      if not tdate:
+         tdate = self.current_tournament()
+
+      userIDs  = self.get_participants_in_city( cityID, tdate, "human" )
+      params   = self.get_parameter_names()
+
+      missing = []
+
+      for userID in userIDs:
+         bet = self.get_bet_data("user",userID,cityID,1,tdate,1)
+         if type(bet) == bool:
+            print "Bet of user '%s' has missing parameters!" % ( self.get_username_by_id( userID ) )
+            missing.append( userID )
+         else: return False
+
+      return missing
+
+
+   # delete bet and the corresponding betdata for a user in a city/tdate
+   def delete_bet(self, userID, cityID, tdate):
+
+      sql = "DELETE FROM %swetterturnier_%s WHERE userID=%d AND cityID=%d AND tdate=%d"
+      tables = ["bets","betstat"]
+      for table in tables:
+         cur = self.db.cursor()
+         #print sql % ( self.prefix, table, userID, cityID, tdate )
+         cur.execute( sql % ( self.prefix, table, userID, cityID, tdate ) )
+      self.db.commit()
+
+      user = self.get_username_by_id( userID )
+      city = self.get_city_name_by_ID( cityID )
+      date = utils.tdate2string( tdate )
+      for table in tables:
+         sql = "SELECT * FROM %swetterturnier_%s WHERE userID=%d AND cityID=%d AND tdate=%d"
+         if cur.execute( sql % (self.prefix, table, userID, cityID, tdate) ) > 0:
+            #TODO: this only checks if SQL has been executed succesfully,
+            #      not how many rows have been deleted, use rowcount instead!
+            utils.exit( "Could not delete bet of user %s in city %s from %s" % (user, city, date ) )
+      print "Succesfully deleted bet and corresponding betstat of user %s in city %s from %" % (user, city, date )
 
 
    #----------------------------------------------------------------

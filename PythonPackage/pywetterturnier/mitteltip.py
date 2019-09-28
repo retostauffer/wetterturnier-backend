@@ -297,6 +297,7 @@ def statistics(db,typ,ID,city,tdate,function=False,betdata=False):
          paramID = db.get_parameter_id( param )
          if not betdata:
             data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+         else: data = betdata[day-1][param]
          if type(data) == bool: return False
          bet[day-1][param] = function( data ) 
 

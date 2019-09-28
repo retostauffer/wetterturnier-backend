@@ -70,18 +70,25 @@ if __name__ == '__main__':
       else:
          active_groups = [config['input_user']]
 
+   #the groups do not actually exists in the database but they consist of the same participants as "Automaten"
+   MOS = ["MOS", "MOS-Max", "MOS-Min"]
+   for i in MOS:
+      active_groups.append( i )
+   
    # - Create new user
    for group in active_groups:
-
+      
       # Do NOT compute mitteltips for these guys
-      if group in ["Automaten","Referenztipps"] : continue
-
+      if group in ["Referenztipps", "Automaten"] : continue
+      #MOS is actually the same group as Automaten (but sounds cooler)
       # - Each group has its own user which is
       #   GRP_<grupname>. Check if exists or create.
       username = 'GRP_%s' % group
       db.create_user( username )
       userID = db.get_user_id( username )
-      groupID = db.get_group_id( group )
+      if group in MOS:
+         groupID = db.get_group_id( "Automaten" )
+      else: groupID = db.get_group_id( group )
 
       # - Getting users for the groups
       for city in cities:
@@ -137,8 +144,7 @@ if __name__ == '__main__':
             # - List element to store the two dict dbects
             #   containing the bets for Petrus
             # -------------------------------------------------------------
-
-            if group in ["MOS-Max", "MOS-Min"]:
+            if group in MOS[1:3]:
                if group == "MOS-Max":
                   function = max
                elif group == "MOS-Min":
