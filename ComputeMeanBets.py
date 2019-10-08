@@ -114,7 +114,10 @@ if __name__ == '__main__':
 
             if len(participants) < 2:
                print "[!] Less than 2 participants for this group/city/tdate."
-               print "    Skip computation of mean bets."
+               print "    Skip computation of mean bets and delete old group bet if exists."
+               group_userID = db.get_user_id( username )
+               print "Group's userID: %s" % group_userID
+               db.delete_bet( group_userID, city['ID'], tdate )
                continue
 
             print '    Current tdate is: %d' % tdate

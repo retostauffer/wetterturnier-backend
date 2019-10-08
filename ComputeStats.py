@@ -35,15 +35,8 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=("points","points_adj","mean","median","Qlow","Qupp","max","min","sd","part")
-  
-   for userID in userIDs:
-      user = db.get_username_by_id(userID)
-      for city in cities:
-         for day in range(3):
-            stats = db.get_stats(userID, city['ID'], measures, 0, day)
-            db.upsert_stats( userID, city['ID'], stats, 0, day)
-   #TODO Cumpute rank, rank_adj? 
+   measures=["points","points_adj","points_adj_med","points_adj_fit","points_adj_mean","part","mean","median","Qlow","Qupp","max","min","sd"]
+ 
 
    for city in cities:
       if config['input_alldates']:
@@ -51,8 +44,28 @@ if __name__ == '__main__':
          print 'ALL DATES'
       for tdate in tdates:
          for day in range(3):
-            stats = db.get_stats(0, city['ID'], measures[2:], tdate, day)
-            db.upsert_stats(0, city['ID'], stats, tdate, day)
+            stats = db.get_stats( city['ID'], measures[5:], 0, tdate, day)
+            db.upsert_stats( city['ID'], stats, 0, tdate, day)
+
+      #TODO: calculate fit coefficients A,B,C later used for plotting here
+      #stats = db.get_stats( city['ID'], measures[:-7] + ["mean_part","max_part","min_part"] )
+      #db.upsert_stats( city['ID'], stats )
+
+   # check whether current tournament is finished to keep open tournaments out of the userstats
+   today              = utils.today_tdate()
+   current_tnmt       = db.current_tournament()
+   if today > current_tnmt + 2:
+      last_tdate = current_tnmt
+   else:
+      last_tdate = current_tnmt - 7
+
+   for userID in userIDs:
+      user = db.get_username_by_id(userID)
+      for city in cities:
+         for day in range(3):
+            stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate)
+            db.upsert_stats( city['ID'], stats, userID, 0, day)
+
 
    import PlotStats
    tdate = max(tdates) - 7

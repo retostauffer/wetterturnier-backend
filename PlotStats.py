@@ -61,20 +61,22 @@ def plot(db, cities, tdate):
 
          e_func = lambda x, a, b, c : a * np.log(b * x) + c
 
-         sigmoid = lambda x, x0, k : 1 / (1 + np.exp(-k*(x-x0)))
+         #sigmoid = lambda x, x0, k : 1 / (1 + np.exp(-k*(x-x0)))
 
 
-         """
-         make the curve_fit
-         """
+         #make the curve_fit
          print(city['hash'])
          popt, pcov = curve_fit(func, x, y)
          print("POLY FIT:")
          print("a = %s , b = %s, c = %s, d = %s" % (popt[0], popt[1], popt[2], popt[3]) )
-         eopt, ecov = curve_fit(e_func, x, y, p0=[0.5,2,4])
+         eopt, ecov = curve_fit(e_func, x, y)
          print("EXP FIT:")
          print("a = %s , b = %s, c = %s" % (eopt[0], eopt[1], eopt[2]) )
-         sopt, scov = curve_fit(sigmoid, x, y, p0=[10000, 0.005], method='dogbox' )
+         stats = {"A" : eopt[0], "B" : eopt[1], "C" : eopt[2]}
+         if i == "":
+            db.upsert_stats( city["ID"], stats )
+
+         #sopt, scov = curve_fit(sigmoid, x, y, p0=[10000, 0.005], method='dogbox' )
          #print("SIGMOID FIT:")
          #print("x0 = %s , k = %s" % (sopt[0], sopt[1]) )
          """
@@ -196,7 +198,7 @@ def plot(db, cities, tdate):
          eopt, ecov = curve_fit(e_func, x, y, p0=[0.5,2,4])
          print("EXP FIT:")
          print("a = %s , b = %s, c = %s" % (eopt[0], eopt[1], eopt[2]) )
-         sopt, scov = curve_fit(sigmoid, x, y, p0=[10000, 0.005], method='dogbox' )
+         #sopt, scov = curve_fit(sigmoid, x, y, p0=[10000, 0.005], method='dogbox' )
 
          fig, ax = pl.subplots()
          ax.plot_date( dates, y, label="Mean", linestyle="-", marker="")
