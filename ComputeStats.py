@@ -37,8 +37,16 @@ if __name__ == '__main__':
    userIDs = db.get_all_users()
 
    measures=["points","points_adj","points_adj_med","points_adj_fit","points_adj_mean","part","mean","median","Qlow","Qupp","max","min","sd"]
- 
 
+   # check whether current tournament is finished to keep open tournaments out of the userstats
+   today              = utils.today_tdate()
+   current_tnmt       = db.current_tournament()
+   if today > current_tnmt + 2:
+      last_tdate = current_tnmt
+   else:
+      last_tdate = current_tnmt - 7
+
+   #calculate tdatestats
    for city in cities:
       if config['input_alldates']:
          tdates = db.all_tournament_dates( city['ID'] )
@@ -50,17 +58,10 @@ if __name__ == '__main__':
       
       #Compute citystats which can be used for plotting box whiskers etc
       #TODO: we could already calculate the fit coefficients A,B,C later used for plotting here
-      stats = db.get_stats( city['ID'], measures[-7:] + ["mean_part","max_part","min_part","tdates"] )
+      stats = db.get_stats( city['ID'], measures[-7:] + ["mean_part","max_part","min_part","tdates"], last_tdate = last_tdate )
       db.upsert_stats( city['ID'], stats )
 
-   # check whether current tournament is finished to keep open tournaments out of the userstats
-   today              = utils.today_tdate()
-   current_tnmt       = db.current_tournament()
-   if today > current_tnmt + 2:
-      last_tdate = current_tnmt
-   else:
-      last_tdate = current_tnmt - 7
-   
+   #calculate userstats
    for userID in userIDs:
       user = db.get_username_by_id(userID)
       for city in cities:
