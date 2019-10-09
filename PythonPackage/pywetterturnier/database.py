@@ -1235,7 +1235,8 @@ class database(object):
    def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None):
 
       from numpy import mean, median, percentile, exp, log
-
+      Qlow = lambda points : percentile(points, 25, interpolation="midpoint")
+      Qupp = lambda points : percentile(points, 75, interpolation="midpoint")
       def sd(x, bessel=1):
          mean_x = mean(x); n = len(x)
          if n == 0: return None
@@ -1273,9 +1274,9 @@ class database(object):
          played = sql_tuple( self.get_participants_in_city( cityID, tdate ) )
 
          sql += "cityID=%d AND tdate=%d AND userID NOT IN%s AND userID IN%s"
-         print sql % ( self.prefix, cityID, tdate, tuple(exclude), played )
+         #print sql % ( self.prefix, cityID, tdate, tuple(exclude), played )
          cur.execute( sql % ( self.prefix, cityID, tdate, tuple(exclude), played ) )
-      else:
+      elif userID:
          print userID
          #again only if a user actually participated on tdate we add his points to the stats
          sql2 = "SELECT tdate FROM %swetterturnier_bets WHERE userID=%d AND cityID=%d"
@@ -1288,12 +1289,55 @@ class database(object):
          sql += "userID=%d AND cityID=%d AND tdate<=%d AND tdate IN%s"
          cur.execute( sql % ( self.prefix, userID, cityID, last_tdate, sql_tuple(tdates) ) )
 
-      data = cur.fetchall()
-      points = []
-      for i in data:
-         #sleepy has NULL points on d1 and d2, skip him!
-         if i[0] == None: continue
-         else: points.append( float(i[0]) )
+      else:
+         #else prepare data for citystats
+         sql = "SELECT median, mean, max, min, part FROM %swetterturnier_tdatestats WHERE cityID=%d"
+         cur.execute( sql % ( self.prefix, cityID ) )
+         data = cur.fetchall()
+         points = {}
+         res = {}
+         it = range(len(data))
+         for i in measures:
+            if i in ["median","Qupp","Qlow"]:
+               points[i] = []
+               for j in it:
+                  points[i].append( data[j][0] )
+               if i == "median": res[i] = median(points[i])
+               elif i == "Qupp": res[i] = Qupp(points[i])
+               elif i == "Qlow": res[i] = Qlow(points[i])
+            elif i in ["mean","sd"]:
+               points[i] = []
+               for j in it:
+                  points[i].append( data[j][1] )
+               if i == "mean": res[i] = mean( points[i] )
+               else: res[i] = sd( points[i] )
+            elif i == "max":
+               points[i] = []
+               for j in it:
+                  points[i].append(data[j][2])
+               res[i] = max( points[i] )
+            elif i == "min":
+               points[i] = []
+               for j in it:
+                  points[i].append(data[j][3])
+               res[i] = min( points[i] )
+            elif i in ["mean_part","max_part","min_part","tdates"]:
+               points[i] = []
+               for j in it:
+                  points[i].append(int(data[j][4] ))
+               if i == "mean_part": res[i] = mean( points[i] )
+               elif i == "max_part": res[i] = max( points[i] )
+               elif i == "min_part": res[i] = min( points[i] )
+               else: res[i] = len( points[i] )
+         return res
+
+      if userID or tdate:
+         data = cur.fetchall()
+         points = []
+         for i in data:
+            #sleepy has NULL points on d1 and d2, skip him!
+            if i[0] == None: continue
+            else: points.append( float(i[0]) )
 
       # important for participant/participation count, otherwise part would be 1 if a player/date actually has 0 part*s
       if len(points) == 0: points = [.0]
@@ -1348,16 +1392,19 @@ class database(object):
                elif {"points","median_fit"} <= set(tdates[t]):
                   med = tdates[t]["median_fit"]
                else: continue
+               if med in  [None,200] or tdates[t]["points"] == None: continue
                points_adj += (tdates[t]["points"] - med) / (200 - med)
 
             #if participations of user below 50 we calculate a natural coefficient K to lower his/her points
             parts = len(points)
             if parts >= 50:
                K = 1
-            else: K = exp(0) * exp(parts-51)
+            else: #K = exp(0) * exp(parts-51)
+               e = exp(0)
+               K = parts**e / 50**e
 
             if len(tdates) == 0: res[i] = 0
-            else: res[i] = round( K * (points_adj / len(tdates)) * 100, 1 )
+            else: res[i] = K * (points_adj / len(tdates)) * 100
          
          elif i == "points_adj_mean":
             sql = "SELECT points_adj_med, points_adj_fit FROM %swetterturnier_userstats WHERE cityID=%d AND userID=%d"
@@ -1366,9 +1413,9 @@ class database(object):
             adj_med, adj_fit = 0, 0
             for j in data:
                adj_med += j[0]; adj_fit += j[1] 
-            res[i] = round( 0.5*adj_med + 0.5*adj_fit, 1 )
+            res[i] = 0.5*adj_med + 0.5*adj_fit
 
-         elif i == "mean"+day_str:
+         elif i == "mean"+day_str or i == "mean_part":
             res[i] = mean(points)
          elif i == "median"+day_str:
             res[i] = median(points)
@@ -1376,13 +1423,13 @@ class database(object):
             res[i] = percentile(points, 25, interpolation="midpoint")
          elif i == "Qupp"+day_str:
             res[i] = percentile(points, 75, interpolation="midpoint")
-         elif i == "max"+day_str:
+         elif i == "max"+day_str or i == "max_part":
             res[i] = max(points)
-         elif i == "min"+day_str:
+         elif i == "min"+day_str or i == "min_part":
             res[i] = min(points)
          elif i == "sd"+day_str: #standard deviation
             res[i] = sd(points)
-         elif i == "part":
+         elif i in ["part","tdates"]:
             #participants/participations, only for all days
             if len(points) == 1 and points[0] == 0: res[i] = 0
             else: res[i] = len(points)
