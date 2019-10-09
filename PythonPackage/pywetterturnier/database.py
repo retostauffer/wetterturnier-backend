@@ -1354,7 +1354,7 @@ class database(object):
             parts = len(points)
             if parts >= 50:
                K = 1
-            else: K = exp(0) * exp(parts-50)
+            else: K = exp(0) * exp(parts-51)
 
             if len(tdates) == 0: res[i] = 0
             else: res[i] = round( K * (points_adj / len(tdates)) * 100, 1 )
@@ -1363,7 +1363,6 @@ class database(object):
             sql = "SELECT points_adj_med, points_adj_fit FROM %swetterturnier_userstats WHERE cityID=%d AND userID=%d"
             cur.execute( sql % (self.prefix, cityID, userID) )
             data = cur.fetchall()
-            print data
             adj_med, adj_fit = 0, 0
             for j in data:
                adj_med += j[0]; adj_fit += j[1] 
