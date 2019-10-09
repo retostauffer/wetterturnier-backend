@@ -1281,7 +1281,6 @@ class database(object):
          
          if tdate:
             sql += "cityID=%d AND tdate=%d AND userID NOT IN%s AND userID IN%s" + lt
-            #print sql % ( self.prefix, cityID, tdate, tuple(exclude), played )
             cur.execute( sql % ( self.prefix, cityID, tdate, tuple(exclude), played ) )
          
          elif cityID:
@@ -1299,7 +1298,6 @@ class database(object):
                elif i == "tdates": res[i] = len( parts[i] )
 
             sql += "cityID=%d AND userID NOT IN%s" + lt
-            #print sql % ( self.prefix, cityID, tuple(exclude) )
             cur.execute( sql % ( self.prefix, cityID, tuple(exclude) ) )
 
       elif userID:

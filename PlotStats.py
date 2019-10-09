@@ -20,11 +20,25 @@ months = mdates.MonthLocator()  # every month
 years_fmt = mdates.DateFormatter('%Y')
 
 def plot(db, cities, tdate):
-
+   boxdata, hashes = [], []
+   cur = db.cursor()
    # ----------------------------------------------------------------
    # - Now going over the cities and plot some graphs with matplotlib 
    # ----------------------------------------------------------------
    for city in cities:
+      boxdata.append([])
+      hashes.append(city['hash'])
+      #we want to exclude sleepy and all referenztipps
+      exclude = [db.get_user_id("Sleepy")]
+      groupID = db.get_group_id( "Referenztipps" )
+      for j in db.get_participants_in_group( groupID, city['ID'], tdate, playing=False ):
+         exclude.append( j )
+
+      sql = "SELECT points FROM wp_wetterturnier_betstat WHERE cityID=%d AND tdate<%d AND userID NOT IN%s"
+      cur.execute( sql % (city['ID'], tdate, tuple(exclude) ) )
+      data = cur.fetchall()
+      for i in data:
+         boxdata[city['ID']-1].append( i[0] )
 
       sql = "SELECT * FROM wp_wetterturnier_tdatestats WHERE cityID="+str(city['ID'])+" AND tdate<"+str(tdate)+" ORDER BY tdate"
       data = pd.read_sql_query(sql, db)
@@ -242,7 +256,7 @@ def plot(db, cities, tdate):
             ax.plot_date( dates, dat, marker=".", markeredgecolor="black", label = ylab )
 
             (m, b) = np.polyfit(x, dat, 1)
-            print(m, b)
+            #print(m, b)
             yp = np.polyval([m, b], x)
             ax.plot_date( dates, yp, "-r", label="Linear Fit")
 
@@ -269,7 +283,18 @@ def plot(db, cities, tdate):
             ax.legend()
             fig.autofmt_xdate()
             fig.savefig("plots/"+city['hash']+"/"+filename+i, dpi=96)
-
+      
+   #save boxplot for all cities
+   fig, ax = pl.subplots()
+   ax.boxplot( boxdata, showfliers=False )
+   ax.grid( True )
+   ax.set_title("Boxplot of points for all cities")
+   ax.set_xlabel("City")
+   ax.set_xticks(list(range( 1, len(cities)-1 )))
+   ax.set_xticklabels(hashes)
+   ax.set_ylabel("Points")
+   fig.set_size_inches( 16,9 )
+   fig.savefig("plots/boxplot", dpi=96)
 
 # - Start as main script (not as module)
 # -------------------------------------------------------------------
