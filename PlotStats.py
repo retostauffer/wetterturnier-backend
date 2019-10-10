@@ -47,6 +47,42 @@ def plot(db, cities, tdate):
       for i in tdates:
          dates.append( utils.tdate2datetime(i) )
 
+      part = data["part"    ].values
+      sql = "SELECT max_part, min_part, mean_part, tdates FROM wp_wetterturnier_citystats WHERE cityID=%d"
+      cur.execute( sql % city['ID'] )
+      partdata = cur.fetchall()
+      citystats = []
+      for i in partdata:
+         citystats.append( i[0] )
+      #TODO print citystats on graphs and mark max, min, mean
+
+      ### PLOT PARTICIPANT COUNT
+      fig, ax = pl.subplots()
+      ax.plot_date( dates, part, marker=".", markeredgecolor="black", linestyle="-")
+
+      # format the ticks
+      ax.xaxis.set_major_locator(years)
+      ax.xaxis.set_major_formatter(years_fmt)
+      ax.xaxis.set_minor_locator(months)
+
+      # round to nearest years.
+      datemin = np.datetime64(dates[0], 'Y')
+      datemax = np.datetime64(dates[-1], 'Y') + np.timedelta64(1, 'Y')
+      ax.set_xlim(datemin, datemax)
+
+      # format the coords message box
+      ax.format_xdata = mdates.DateFormatter('%Y-%m-%d')
+
+      ax.set_xlabel("Tournament")
+      ax.set_ylabel("Participants")
+      ax.set_title("Participants in "+city['hash'])
+      ax.grid(True)
+
+      fig.set_size_inches(16,9)
+      fig.autofmt_xdate()
+      pl.savefig("plots/"+city['hash']+"/parts", dpi=96)
+
+
       for i, day in zip(["","_d1","_d2"], [""," (Saturday)"," (Sunday)"]):
          median=data["median"+i].values
          mean = data["mean"  +i].values
@@ -173,33 +209,6 @@ def plot(db, cities, tdate):
          ax.legend()
          fig.autofmt_xdate()
          fig.savefig("plots/"+city['hash']+"/median_range"+i, dpi=96)
-
-
-         ### PLOT PARTICIPANT COUNT
-         fig, ax = pl.subplots()
-         ax.plot_date( dates, part, marker=".", markeredgecolor="black", linestyle="-")
-
-         # format the ticks
-         ax.xaxis.set_major_locator(years)
-         ax.xaxis.set_major_formatter(years_fmt)
-         ax.xaxis.set_minor_locator(months)
-
-         # round to nearest years.
-         datemin = np.datetime64(dates[0], 'Y')
-         datemax = np.datetime64(dates[-1], 'Y') + np.timedelta64(1, 'Y')
-         ax.set_xlim(datemin, datemax)
-
-         # format the coords message box
-         ax.format_xdata = mdates.DateFormatter('%Y-%m-%d')
-
-         ax.set_xlabel("Tournament")
-         ax.set_ylabel("Participants")
-         ax.set_title("Participants in "+city['hash']+day)
-         ax.grid(True)
-
-         fig.set_size_inches(16,9)
-         fig.autofmt_xdate()
-         pl.savefig("plots/"+city['hash']+"/parts", dpi=96)
 
 
          ### PLOT MEAN + SD

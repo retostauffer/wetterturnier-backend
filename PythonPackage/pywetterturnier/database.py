@@ -312,7 +312,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Getting dict containing all active cities in the database. 
    # -------------------------------------------------------------------
-   def get_cities(self, sort=True):
+   def get_cities(self, sort=True, active=True ):
       """Loading city information from the database.
       Loads all active cities from the database which can then be used
       to loop over or whatever you'll do with it. 
@@ -326,7 +326,8 @@ class database(object):
       """
 
       print '  * %s' % 'looking active cities'
-      sql = 'SELECT * FROM %swetterturnier_cities WHERE active = 1'
+      sql = 'SELECT * FROM %swetterturnier_cities'
+      if active: sql += ' WHERE active = 1'
       if sort: sql+=' ORDER BY ID'
 
       cur = self.cursor()
@@ -370,7 +371,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Loading stations from database for a given city
    # -------------------------------------------------------------------
-   def get_stations_for_city(self,cityID):
+   def get_stations_for_city(self,cityID,active=False):
       """Loading all stations mached to a certain city.
 
       Args:
@@ -381,6 +382,7 @@ class database(object):
       """
 
       sql = "SELECT * FROM %swetterturnier_stations WHERE cityID = %d" % (self.prefix,cityID)
+      if active: sql += " AND active = 1"
       cur = self.db.cursor()
       cur.execute( sql )
       desc = cur.description
@@ -415,7 +417,7 @@ class database(object):
 
       print '  * %s' % 'Searching current tournament date'
       today = int(np.floor(float(dt.datetime.now().strftime("%s"))/86400))
-      print today
+      #print today
       sql = 'SELECT max(tdate) FROM %swetterturnier_dates WHERE tdate <= %d'
       cur = self.cursor()
       cur.execute( sql % (self.prefix ,today) )
@@ -918,7 +920,7 @@ class database(object):
       cur.execute( sql % (self.prefix,self.prefix,cityID,paramID,bdate) )
 
       data = cur.fetchall()
-      print data
+      #print data
       if not data:
          return False
       elif wmo == None:
@@ -1039,7 +1041,7 @@ class database(object):
    # - Returning username corresponding to the ID
    #   More explicitly: return user_login from the database.
    # -------------------------------------------------------------------
-   def get_username_by_id(self,userID):
+   def get_username_by_id(self,userID, which="user_login"):
       """Returns username given a user ID.
       Returns the username for a given user ID. If the user cannot be found,
       the return value will be False. There is a vice versa function called
@@ -1056,7 +1058,7 @@ class database(object):
       except:
          utils.exit('Got wrong input to get_username_by_id. Was no integer!')
       cur = self.db.cursor()
-      cur.execute('SELECT user_login FROM %susers WHERE ID = %d' % (self.prefix, userID))
+      cur.execute('SELECT %s FROM %susers WHERE ID = %d' % ( which, self.prefix, userID ))
       data = cur.fetchone()
       if not data:
          return False
@@ -1274,10 +1276,9 @@ class database(object):
             for j in data2:
                exclude.append( int(j[0]) )
 
-         #only include users who really played on tdate (no sleepy points!)
-         played = sql_tuple( self.get_participants_in_city( cityID, tdate ) )
-
          if tdate:
+            #only include users who really played on tdate (no sleepy points!)
+            played = sql_tuple( self.get_participants_in_city( cityID, tdate ) )
             sql += "cityID=%d AND tdate=%d AND userID NOT IN%s AND userID IN%s" + lt
             cur.execute( sql % ( self.prefix, cityID, tdate, tuple(exclude), played ) )
 
@@ -1490,7 +1491,12 @@ class database(object):
 
       exclude = sql_tuple( exclude )
 
-      sql = "SELECT userID FROM %swetterturnier_bets WHERE cityID=%d AND tdate=%d AND userID NOT IN%s"
+      if sort:
+         sql = "SELECT userID FROM %swetterturnier_bets wb JOIN wp_users wu ON wb.userID=wu.ID WHERE cityID=%d AND tdate=%d AND userID NOT IN%s ORDER BY display_name"
+
+      else:
+         sql = "SELECT userID FROM %swetterturnier_bets WHERE cityID=%d AND tdate=%d AND userID NOT IN%s"
+      
       cur.execute( sql % ( self.prefix, cityID, tdate, exclude ) )
       data = cur.fetchall()
 
