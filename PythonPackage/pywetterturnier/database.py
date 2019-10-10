@@ -1472,7 +1472,7 @@ class database(object):
             cur.execute( sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) ) )
 
 
-   def get_participants_in_city(self, cityID, tdate=False, human=False ):
+   def get_participants_in_city(self, cityID, tdate=False, human=False, sort=False ):
 
       cur = self.db.cursor()
       exclude = [self.get_user_id("Sleepy")]
