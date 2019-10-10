@@ -1231,16 +1231,16 @@ class database(object):
       else:
          return data
 
-
-   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False):
+   #compute statistics out of some wetterturnier tables like betstat
+   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=False, mitteltips=False):
 
       res = {} #results will be saved here with measures as keys
 
       from numpy import mean, median, percentile, exp, log
-      
+
       Qlow = lambda points : percentile(points, 25, interpolation="midpoint")
       Qupp = lambda points : percentile(points, 75, interpolation="midpoint")
-      
+
       def sd(x, bessel=1):
          mean_x = mean(x); n = len(x)
          if n == 0: return None
@@ -1249,7 +1249,7 @@ class database(object):
          for i in x: res += ( i - mean_x )**2
          return ( res / ( n - bessel ) )**0.5
 
-      cur = self.db.cursor() 
+      cur = self.db.cursor()
       day_strs = ["", "_d1", "_d2"]
       day_str = day_strs[0]
       if day != 0:
@@ -1259,30 +1259,28 @@ class database(object):
 
       sql = "SELECT points"+day_str+" FROM %swetterturnier_betstat WHERE "
       if tdate or (not tdate and not userID and cityID):
-         # We don't want Sleepy, Mitteltipps and Referenztipps in our tdatestats!
+         # We don't want Sleepy, Automaten and Referenztipps in our tdatestats!
          exclude = [self.get_user_id("Sleepy")]
-         groupID = self.get_group_id( "Referenztipps" )
-         for j in self.get_participants_in_group( groupID, cityID, tdate, playing=False ):
-            exclude.append( j )
-         #the only group member we want in stats are automatons/MOS
-         include = []
-         groupID = self.get_group_id( "Automaten" )
-         for j in self.get_participants_in_group( groupID, cityID, tdate, playing=False ):
-            include.append( j )
+         if not referenz:
+            groupID = self.get_group_id( "Referenztipps" )
+            for j in self.get_participants_in_group( groupID, cityID, tdate, playing=False ):
+               exclude.append( j )
 
-         sql2 = "SELECT ID FROM %susers WHERE user_login LIKE \"%s\" AND ID NOT IN%s"
-         cur.execute( sql2 % ( self.prefix, "GRP_%", sql_tuple(include) ) )
-         data2 = cur.fetchall()
-         for j in data2:
-            exclude.append( int(j[0]) )
+         if not mitteltips:
+            #include no groups
+            sql2 = "SELECT ID FROM %susers WHERE user_login LIKE \"%s\""
+            cur.execute( sql2 % ( self.prefix, "GRP_%" ) )
+            data2 = cur.fetchall()
+            for j in data2:
+               exclude.append( int(j[0]) )
 
          #only include users who really played on tdate (no sleepy points!)
          played = sql_tuple( self.get_participants_in_city( cityID, tdate ) )
-         
+
          if tdate:
             sql += "cityID=%d AND tdate=%d AND userID NOT IN%s AND userID IN%s" + lt
             cur.execute( sql % ( self.prefix, cityID, tdate, tuple(exclude), played ) )
-         
+
          elif cityID:
             sql2 = "SELECT part FROM %swetterturnier_tdatestats WHERE cityID=%d" + lt
             cur.execute( sql2 % ( self.prefix, cityID ) )
@@ -1348,7 +1346,7 @@ class database(object):
                tdates[j[0]] = {}
                tdates[j[0]]["points"] = j[1]
 
-            if i in ["points_adj","points_adj_med"]: 
+            if i in ["points_adj","points_adj_med"]:
                sql = "SELECT tdate, median FROM %swetterturnier_tdatestats WHERE tdate IN%s AND cityID=%d"
                cur.execute( sql % (self.prefix, sql_tuple(tdates.keys()), cityID) )
                data = cur.fetchall()
@@ -1388,14 +1386,14 @@ class database(object):
 
             if len(tdates) == 0: res[i] = 0
             else: res[i] = K * (points_adj / len(tdates)) * 100
-         
+
          elif i == "points_adj_mean":
             sql = "SELECT points_adj_med, points_adj_fit FROM %swetterturnier_userstats WHERE cityID=%d AND userID=%d"
             cur.execute( sql % (self.prefix, cityID, userID) )
             data = cur.fetchall()
             adj_med, adj_fit = 0, 0
             for j in data:
-               adj_med += j[0]; adj_fit += j[1] 
+               adj_med += j[0]; adj_fit += j[1]
             res[i] = 0.5*adj_med + 0.5*adj_fit
 
          elif i == "mean"+day_str:

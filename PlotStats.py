@@ -283,14 +283,14 @@ def plot(db, cities, tdate):
             ax.legend()
             fig.autofmt_xdate()
             fig.savefig("plots/"+city['hash']+"/"+filename+i, dpi=96)
-      
+
    #save boxplot for all cities
    fig, ax = pl.subplots()
    ax.boxplot( boxdata, showfliers=False )
    ax.grid( True )
    ax.set_title("Boxplot of points for all cities")
    ax.set_xlabel("City")
-   ax.set_xticks(list(range( 1, len(cities)-1 )))
+   ax.set_xticks(list(range( 1, len(cities)+1 )))
    ax.set_xticklabels(hashes)
    ax.set_ylabel("Points")
    fig.set_size_inches( 16,9 )
