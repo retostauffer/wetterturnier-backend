@@ -1405,7 +1405,10 @@ class database(object):
          elif i == "min"+day_str:
             res[i] = min(points)
          elif i == "sd"+day_str: #standard deviation
-            res[i] = std(points, ddof=1)
+            import math
+            sd = std(points, ddof=1)
+            if math.isnan(sd): res[i] = 0
+            else: res[i] = sd
          elif i == "part":
             #participants/participations, only for all days
             if len(points) == 1 and points[0] == 0: res[i] = 0
