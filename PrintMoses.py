@@ -23,38 +23,45 @@ from __future__ import print_function
 # -------------------------------------------------------------------
 def print_moses( db, config, cities, tdates ):
 
-   path="moses/"
+   path="moses/input/"
    table_head = "Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR"
    day_heads = ["                                      Samstag","                                      Sonntag"]
    params = db.get_parameter_names( sort=True )
 
    def print_rows( args, file ):
       row_format = "{name:<21.21s} {n:>5} {sd:>3} {dd:>3} {ff:>2} {fx:>2} {wv:>2} {wn:>2} {ppp:>6.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
+
+      for i in range(1,8):
+         if type( args[i] ) != str: args[i] = int( args[i] )
+
       print( row_format.format(
                 name=args[0],
-                n=int(args[1]),
-                sd=int(args[2]),
-                dd=int(args[3]),
-                ff=int(args[4]),
-                fx=int(args[5]),
-                wv=int(args[6]),
-                wn=int(args[7]),
+                n=args[1],
+                sd=args[2],
+                dd=args[3],
+                ff=args[4],
+                fx=args[5],
+                wv=args[6],
+                wn=args[7],
                 ppp=args[8],
                 tn=args[9],
                 tx=args[10],
                 td=args[11],
                 rr=args[12]), file=f) 
 
+
    for city in cities:
       cityID = city['ID']
-      stations = db.get_stations_for_city( cityID, active=True )
       if config['input_alldates']:
          tdates = db.all_tournament_dates( city['ID'] )
       for tdate in tdates:
+         #workaround for missing ZUR bets on 3 tdates, dirty
+         if cityID == 3 and tdate in [15870, 15849, 15898]: continue
+         stations = db.get_stations_for_city( cityID, active=False, tdate=tdate )
          #print output to file, first get prober filename
          filename = path + utils.tdate2string( tdate, moses=True )+"."+city['name'].lower()[0]+"pw"
          f = open(filename,'w')
-         users = db.get_participants_in_city( cityID, tdate, True )
+         users = db.get_participants_in_city( cityID, tdate, sort=True )
          for day in range(1,3):
             print(day_heads[day-1], file=f)
             print("\f", file=f)
@@ -66,14 +73,20 @@ def print_moses( db, config, cities, tdates ):
                obs = [station.name]
                for param in params:
                   paramID = db.get_parameter_id( param )
-                  obs.append(float(db.get_obs_data(cityID, paramID, tdate, day, station.wmo))/10)
+                  value = db.get_obs_data( cityID, paramID, tdate, day, station.wmo )
+                  if value is False or value is None: obs.append( "n" )
+                  else:
+                     obs.append( float( value ) / 10 )
                print_rows( obs, f )
             print(78*"-", file=f)
             for userID in users:
                bet = [db.get_username_by_id(userID,which="display_name")]
                for param in params:
                   paramID = db.get_parameter_id( param )
-                  bet.append(float(db.get_bet_data("user", userID, cityID, paramID, tdate, day))/10)
+                  value = db.get_bet_data( "user", userID, cityID, paramID, tdate, day )
+                  if value is False or value is None: bet.append( "n" )
+                  else:
+                     bet.append( float( value ) / 10 )
                print_rows( bet, f )
             print("\f", file=f)
 

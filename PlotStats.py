@@ -38,7 +38,9 @@ def plot(db, cities, tdate):
       cur.execute( sql % (city['ID'], tdate, tuple(exclude) ) )
       data = cur.fetchall()
       for i in data:
-         boxdata[city['ID']-1].append( i[0] )
+         if i[0] is False or i[0] is None:
+            continue
+         else: boxdata[city['ID']-1].append( i[0] )
 
       sql = "SELECT * FROM wp_wetterturnier_tdatestats WHERE cityID="+str(city['ID'])+" AND tdate<"+str(tdate)+" ORDER BY tdate"
       data = pd.read_sql_query(sql, db)
@@ -82,7 +84,6 @@ def plot(db, cities, tdate):
       fig.autofmt_xdate()
       pl.savefig("plots/"+city['hash']+"/parts", dpi=96)
 
-
       for i, day in zip(["","_d1","_d2"], [""," (Saturday)"," (Sunday)"]):
          median=data["median"+i].values
          mean = data["mean"  +i].values
@@ -100,25 +101,20 @@ def plot(db, cities, tdate):
          x = np.array(tdates) #transform your data in a numpy array of floats
          y = np.array(median) #so the curve_fit can work
 
-         """
-         create a function to fit with your data. a, b, c and d are the coefficients
-         that curve_fit will calculate for you.
-         In this part you need to guess and/or use mathematical knowledge to find
-         a function that resembles your data
-         """
-
          func = lambda x, a, b, c, d : a*x**3 + b*x**2 + c*x + d
 
          e_func = lambda x, a, b, c : a * np.log(b * x) + c
 
          #sigmoid = lambda x, x0, k : 1 / (1 + np.exp(-k*(x-x0)))
 
-
          #make the curve_fit
          print(city['hash'])
          popt, pcov = curve_fit(func, x, y)
          print("POLY FIT:")
          print("a = %s , b = %s, c = %s, d = %s" % (popt[0], popt[1], popt[2], popt[3]) )
+         stats = {"p" : popt[0], "q" : popt[1], "r" : popt[2], "s" : popt[3]}
+         if i == "":
+            db.upsert_stats( city["ID"], stats ) 
          eopt, ecov = curve_fit(e_func, x, y)
          print("EXP FIT:")
          print("a = %s , b = %s, c = %s" % (eopt[0], eopt[1], eopt[2]) )
@@ -129,18 +125,7 @@ def plot(db, cities, tdate):
          #sopt, scov = curve_fit(sigmoid, x, y, p0=[10000, 0.005], method='dogbox' )
          #print("SIGMOID FIT:")
          #print("x0 = %s , k = %s" % (sopt[0], sopt[1]) )
-         """
-         The result is:
-         popt[0] = a , popt[1] = b, popt[2] = c and popt[3] = d of the function,
-         so f(x) = popt[0]*x**3 + popt[1]*x**2 + popt[2]*x + popt[3].
-         """
-
-         """
-         Use sympy to generate the latex sintax of the function
-         """
-         #xs = sp.Symbol('\lambda')    
-         #tex = sp.latex(func(xs,*popt)).replace('$', '')
-
+         
 
          ### PLOT MEDIAN
 
@@ -292,7 +277,7 @@ def plot(db, cities, tdate):
             ax.legend()
             fig.autofmt_xdate()
             fig.savefig("plots/"+city['hash']+"/"+filename+i, dpi=96)
-
+   
    #save boxplot for all cities
    fig, ax = pl.subplots()
    ax.boxplot( boxdata, showfliers=False )
@@ -304,6 +289,24 @@ def plot(db, cities, tdate):
    ax.set_ylabel("Points")
    fig.set_size_inches( 16,9 )
    fig.savefig("plots/boxplot", dpi=96)
+
+   #plot of mean+sd to compare difficulty of all cities
+   meancities, sdcities = [], []
+   for i in boxdata:
+      meancities.append( np.mean(i) )
+      sdcities.append( np.std(i, ddof=1) )
+   fig, ax = pl.subplots()
+   x = list(range( 1, len(cities)+1 ))
+   ax.errorbar( x, meancities, yerr=sdcities, fmt='o', ecolor='blue', mec="black", marker="x", capsize=30, ms=25, lw=5 )
+   ax.grid( True )
+   ax.set_title("Mean+SD of points for all cities")
+   ax.set_xlabel("City")
+   ax.set_xticks(x)
+   ax.set_xticklabels(hashes)
+   ax.set_ylabel("Points")
+   fig.set_size_inches( 16,9 )
+   fig.savefig("plots/mean_sd", dpi=96)
+
 
 # - Start as main script (not as module)
 # -------------------------------------------------------------------

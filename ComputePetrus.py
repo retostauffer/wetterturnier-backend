@@ -78,22 +78,50 @@ if __name__ == '__main__':
    for city in cities:
    
       print '\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID']) 
-   
-      # - Returns list object containing two dicts 
-      #   where all the bets are in.
-      bet = mitteltip.mitteltip(db,'all',False,city,tdate)
+
+      if config['input_alldates']:
+         tdates = db.all_tournament_dates( city['ID'] )
+
+      # ----------------------------------------------------------------
+      # - Looping trough dates
+      # ----------------------------------------------------------------
+      for tdate in tdates:
+
+         # ----------------------------------------------------------------
+         # - Check if we are allowed to perform the computation of the
+         #   mean bets on this date
+         # ----------------------------------------------------------------
+         check = utils.datelock(config,tdate)
+	 if check:
+	    print '    Date is \'locked\' (datelock). Dont execute, skip.'
+	    continue
+
+	 # ----------------------------------------------------------------
+	 # - I do not have the judgingclass before the rule changes in
+	 #   2002 (2002-12-06) and therefore it does not make any sense
+	 #   to compute MeanBets for that time period (becuase we can
+	 #   never compute the corresponding points). Skip. 
+	 # ----------------------------------------------------------------
+	 if tdate < 12027:
+	    print '[!] I dont know the rules to compute points before 2002-12-06'
+	    print '    Therefore it makes no sense to compute MeanBets. Skip.'
+	    continue
  
-      # - If bet is False, continue
-      if bet == False: continue
+         # - Returns list object containing two dicts 
+         #   where all the bets are in.
+         bet = mitteltip.mitteltip(db,'all',False,city,tdate)
+ 
+         # - If bet is False, continue
+         if bet == False: continue
    
-      # -------------------------------------------------------------
-      # - Inserting into database now
-      # -------------------------------------------------------------
-      print '    Inserting data into database now'
-      for day in range(1,3):
-         for k in bet[day-1].keys():
-            paramID = db.get_parameter_id(k)
-            db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[day-1][k])
+         # -------------------------------------------------------------
+         # - Inserting into database now
+         # -------------------------------------------------------------
+         print '    Inserting data into database now'
+         for day in range(1,3):
+            for k in bet[day-1].keys():
+               paramID = db.get_parameter_id(k)
+               db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[day-1][k])
    
    db.commit()
    db.close()

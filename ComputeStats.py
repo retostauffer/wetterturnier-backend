@@ -44,7 +44,10 @@ if __name__ == '__main__':
    if today > current_tnmt + 2:
       last_tdate = current_tnmt
    else:
+      if len(tdates) == 1: tdates = [current_tnmt - 7]
+      elif current_tnmt in tdates: tdates.remove( current_tnmt )
       last_tdate = current_tnmt - 7
+
 
    #calculate tdatestats
    for city in cities:
@@ -53,7 +56,7 @@ if __name__ == '__main__':
          print 'ALL DATES'
       for tdate in tdates:
          for day in range(3):
-            stats = db.get_stats( city['ID'], measures[5:], 0, tdate, day)
+            stats = db.get_stats( city['ID'], measures[5:], 0, tdate, day )
             db.upsert_stats( city['ID'], stats, 0, tdate, day)
       
       #Compute citystats which can be used for plotting box whiskers etc
@@ -77,7 +80,7 @@ if __name__ == '__main__':
 	 table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
          table.to_excel( writer, sheet_name = city["hash"] )
 
-
+   #now we call a plotting routine which draws some nice statistical plots
    import PlotStats
    tdate = max(tdates) - 7
    PlotStats.plot(db, cities, tdate)

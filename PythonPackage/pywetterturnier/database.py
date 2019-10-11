@@ -371,7 +371,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Loading stations from database for a given city
    # -------------------------------------------------------------------
-   def get_stations_for_city(self,cityID,active=False):
+   def get_stations_for_city(self,cityID,active=False,tdate=False):
       """Loading all stations mached to a certain city.
 
       Args:
@@ -383,6 +383,9 @@ class database(object):
 
       sql = "SELECT * FROM %swetterturnier_stations WHERE cityID = %d" % (self.prefix,cityID)
       if active: sql += " AND active = 1"
+      if tdate:
+         tdate = str(tdate)
+         sql += " AND (since <= "+tdate+" OR since = 0) AND (until >= "+tdate+" OR until = 0)"
       cur = self.db.cursor()
       cur.execute( sql )
       desc = cur.description
@@ -1238,18 +1241,10 @@ class database(object):
 
       res = {} #results will be saved here with measures as keys
 
-      from numpy import mean, median, percentile, exp, log
+      from numpy import mean, std, median, percentile, exp, log
 
       Qlow = lambda points : percentile(points, 25, interpolation="midpoint")
       Qupp = lambda points : percentile(points, 75, interpolation="midpoint")
-
-      def sd(x, bessel=1):
-         mean_x = mean(x); n = len(x)
-         if n == 0: return None
-         elif n == 1: return 0
-         res = 0
-         for i in x: res += ( i - mean_x )**2
-         return ( res / ( n - bessel ) )**0.5
 
       cur = self.db.cursor()
       day_strs = ["", "_d1", "_d2"]
@@ -1410,7 +1405,7 @@ class database(object):
          elif i == "min"+day_str:
             res[i] = min(points)
          elif i == "sd"+day_str: #standard deviation
-            res[i] = sd(points)
+            res[i] = std(points, ddof=1)
          elif i == "part":
             #participants/participations, only for all days
             if len(points) == 1 and points[0] == 0: res[i] = 0

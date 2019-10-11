@@ -138,7 +138,6 @@ if __name__ == '__main__':
             #   never compute the corresponding points). Skip. 
             # ----------------------------------------------------------------
             if tdate < 12027:
-               from judgingclass20021206 import judging
                print '[!] I dont know the rules to compute points before 2002-12-06'
                print '    Therefore it makes no sense to compute MeanBets. Skip.' 
                continue
