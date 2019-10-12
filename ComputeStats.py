@@ -40,13 +40,13 @@ if __name__ == '__main__':
 
    # check whether current tournament is finished to keep open tournaments out of the userstats
    today              = utils.today_tdate()
-   current_tnmt       = db.current_tournament()
-   if today > current_tnmt + 2:
-      last_tdate = current_tnmt
+   current            = db.current_tournament()
+   if today > current + 2:
+      last_tdate = current
    else:
-      if len(tdates) == 1: tdates = [current_tnmt - 7]
-      elif current_tnmt in tdates: tdates.remove( current_tnmt )
-      last_tdate = current_tnmt - 7
+      if len(tdates) == 1: tdates = [current - 7]
+      elif current in tdates: tdates.remove( current )
+      last_tdate = current - 7
 
 
    #calculate tdatestats

@@ -24,7 +24,7 @@ from __future__ import print_function
 def print_moses( db, config, cities, tdates ):
 
    path="moses/input/"
-   table_head = "Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR"
+   table_head = "Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR"
    day_heads = ["                                      Samstag","                                      Sonntag"]
    params = db.get_parameter_names( sort=True )
 
@@ -64,8 +64,8 @@ def print_moses( db, config, cities, tdates ):
          users = db.get_participants_in_city( cityID, tdate, sort=True )
          for day in range(1,3):
             print(day_heads[day-1], file=f)
-            print("\f", file=f)
-            for i in range(5):
+            print("", file=f)
+            for i in range(4):
                print("", file=f)
             print(table_head, file=f)
             print(78*"-", file=f)
@@ -88,7 +88,8 @@ def print_moses( db, config, cities, tdates ):
                   else:
                      bet.append( float( value ) / 10 )
                print_rows( bet, f )
-            print("\f", file=f)
+            if day == 1: print("\f", file=f)
+            else: print("", file=f)
 
 # -------------------------------------------------------------------
 # - Start as main script (not as module)

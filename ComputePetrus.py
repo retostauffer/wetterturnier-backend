@@ -41,11 +41,11 @@ if __name__ == '__main__':
    #   the bet-dates are for Saturday and Sunday if there was
    #   no input tournament date -t/--tdate.
    if config['input_tdate'] == None:
-      tdate      = db.current_tournament()
+      tdates      = [db.current_tournament()]
    else:
-      tdate      = config['input_tdate']
+      tdates      = [config['input_tdate']]
 
-   print '  * Current tournament is %s' % utils.tdate2string( tdate )
+   print '  * Current tournament is %s' % utils.tdate2string( tdates[0] )
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
    # - If input city set, then drop all other cities.
@@ -54,15 +54,6 @@ if __name__ == '__main__':
       for elem in cities:
          if elem['name'] == config['input_city']: tmp.append( elem )
       cities = tmp
-
-   # ----------------------------------------------------------------
-   # - Check if we are allowed to perform the computation of the
-   #   Petrus bets on this date
-   # ----------------------------------------------------------------
-   check = utils.datelock(config,tdate)
-   if check:
-      print '    Date is \'locked\' (datelock). Dont execute.'
-      import sys; sys.exit(0)
 
 
    # ----------------------------------------------------------------
