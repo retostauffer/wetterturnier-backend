@@ -21,8 +21,7 @@ if __name__ == '__main__':
 
    import numpy as np
    # - Wetterturnier specific modules
-   from pywetterturnier import utils
-   from pywetterturnier import database
+   from pywetterturnier import utils, database
    
    # - Evaluating input arguments
    inputs = utils.inputcheck('ComputePoints')
@@ -79,8 +78,6 @@ if __name__ == '__main__':
       # -------------------------------------------------------------
       for tdate in tdates:
 
-         print '  * Current tournament is %s' % utils.tdate2string( tdate )
-
          # ----------------------------------------------------------------
          # - Check if we are allowed to perform the computation of the
          #   mean bets on this date
@@ -89,6 +86,8 @@ if __name__ == '__main__':
          if check:
             print '    Date is \'locked\' (datelock). Dont execute, skip.'
             continue
+
+         print '  * Current tournament is %s' % utils.tdate2string( tdate )
 
          # ----------------------------------------------------------
          # - Avoid to change old points!

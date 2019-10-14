@@ -1591,7 +1591,8 @@ class database(object):
 
       #check if bet exists
       sql = "SELECT * FROM %swetterturnier_bets WHERE userID=%d AND cityID=%d AND tdate=%d"
-      if cur.execute( sql % (self.prefix, userID, cityID, tdate) ) > 0:
+      sql2 = "SELECT * FROM %swetterturnier_betstat WHERE userID=%d AND cityID=%d AND tdate=%d"
+      if cur.execute( sql % (self.prefix, userID, cityID, tdate) ) > 0 or cur.execute( sql2 % (self.prefix, userID, cityID, tdate) ) > 0:
          sql = "DELETE FROM %swetterturnier_%s WHERE userID=%d AND cityID=%d AND tdate=%d"
          tables = ["bets","betstat"]
          for table in tables:
