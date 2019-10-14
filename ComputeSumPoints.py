@@ -43,6 +43,15 @@ def CSP(db,config,cities,tdates):
       # -------------------------------------------------------------
       for tdate in tdates:
 
+         # ----------------------------------------------------------------
+         # - Check if we are allowed to perform the computation of the
+         #   mean bets on this date
+         # ----------------------------------------------------------------
+         check = utils.datelock(config,tdate)
+         if check:
+            print '    Date is \'locked\' (datelock). Dont execute, skip.'
+            continue
+
          print '    For %s tournament is %s' % (city['name'], utils.tdate2string( tdate ))
 
          # - If config['input_user'] is an integer value this

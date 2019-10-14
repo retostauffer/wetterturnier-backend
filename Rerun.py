@@ -17,7 +17,7 @@
 # - Start as main script (not as module)
 if __name__ == '__main__':
    """
-   This is Chain.py, a simple controlling script. Starts several
+   This is Rerun.py, a simple controlling script. Starts several
    script in the order as they have to be called to compute all
    necessary things for the wetterturnier. E.g., including:
    - ComputeMeanBets.py  (compute group bets)

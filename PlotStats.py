@@ -101,7 +101,7 @@ def plot(db, cities, tdate):
          x = np.array(tdates) #transform your data in a numpy array of floats
          y = np.array(median) #so the curve_fit can work
 
-         func = lambda x, a, b, c, d : a*x**3 + b*x**2 + c*x + d
+         func = lambda x, p, q, r, s : p*x**3 + q*x**2 + r*x + s
 
          e_func = lambda x, a, b, c : a * np.log(b * x) + c
 

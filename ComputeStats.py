@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=["points","points_adj","points_adj_med","points_adj_fit","points_adj_mean","part","mean","median","Qlow","Qupp","max","min","sd"]
+   measures=["points","points_adj","points_adj_med","points_adj_fit","points_adj_poly","points_adj_mean","part","mean","median","Qlow","Qupp","max","min","sd"]
 
    # check whether current tournament is finished to keep open tournaments out of the userstats
    today              = utils.today_tdate()

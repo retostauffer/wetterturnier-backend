@@ -317,6 +317,10 @@ class database(object):
       Loads all active cities from the database which can then be used
       to loop over or whatever you'll do with it. 
 
+      Args:
+         sort (:obj:`bool`): True if the cities should be sorted by their cityID.
+         active (:obj:`bool`): True if only active cities should be shown.
+
       Returns:
          list: A list containing one dict per city where each dict
          consists of the keys 'name', 'hash' and 'ID'.
@@ -947,6 +951,7 @@ class database(object):
       Args:
         active (:obj:`bool`, optional): If True only active parameters will
         be returned.
+        sort (:obj:`bool`): True if the params should be sorted by the sort column in the wetterturnier_params table.
 
       Return:
         list or bool: False if no parameters can be found. Else a list will
@@ -1135,8 +1140,18 @@ class database(object):
          return int(data[0])
 
 
-   def get_users_in_group(self, groupID, group=None, active=True, sort=False):
-      #group == str, groupID == int
+   def get_users_in_group(self, groupID, group=False, active=True, sort=False):
+      """Returns all members of a given groupID or group name.
+
+      Args:
+        groupID (:obj:`int`): GroupID.
+        group (:obj:`str`): Group name.
+        active (:obj:`bool`): True if only active members should be returned.
+        sort (:obj:`bool`): True if the user should be sorted by the sort column in the wetterturnier_groupusers table. 
+      
+      Returns:
+        List of userIDs for the given group.
+      """
       if group:
          return self.db.get_users_in_group( groupID = self.db.get_group_id(group) )
       else:
@@ -1324,7 +1339,7 @@ class database(object):
          i += day_str
          if i == "points"+day_str:
             res[i] = sum(points)
-         elif i in ["points_adj","points_adj_med","points_adj_fit"]:
+         elif i in ["points_adj","points_adj_med","points_adj_fit","points_adj_poly"]:
             #inflation adjusted points, only for all days
             """
             find all dates where the user actually played
@@ -1346,12 +1361,19 @@ class database(object):
                sql = "SELECT tdate, median FROM %swetterturnier_tdatestats WHERE tdate IN%s AND cityID=%d"
                cur.execute( sql % (self.prefix, sql_tuple(tdates.keys()), cityID) )
                data = cur.fetchall()
-            if i in ["points_adj","points_adj_fit"]:
-               sql = "SELECT A,B,C FROM %swetterturnier_citystats WHERE cityID=%d"
-               cur.execute( sql % (self.prefix, cityID) )
+            if i in ["points_adj","points_adj_fit","points_adj_poly"]:
+               sql = "SELECT %s FROM %swetterturnier_citystats WHERE cityID=%d"
+               if i in ["points_adj","points_adj_fit"]:
+                  what = "A,B,C"
+               elif i == "points_adj_poly": what = "p,q,r,s"
+               cur.execute( sql % ( what, self.prefix, cityID ) )
                data2 = cur.fetchall()
-               for j in data2:
-                  A = j[0]; B = j[1]; C = j[2]
+               if i in ["points_adj","points_adj_fit"]:
+                  for j in data2:
+                     A = j[0]; B = j[1]; C = j[2]
+               elif i == "points_adj_poly":
+                   for j in data2:
+                     p = j[0]; q = j[1]; r = j[2]; s = j[3]
 
             if i in ["points_adj","points_adj_med"]:
                for j in data:
@@ -1359,6 +1381,10 @@ class database(object):
             if i in ["points_adj","points_adj_fit"]:
                for j in data:
                   tdates[j[0]]["median_fit"] = A * log( B * j[0] ) + C
+            elif i == "points_adj_poly":
+               for j in data:
+                  x = j[0]
+                  tdates[j[0]]["median_poly"] = p*x**3 + q*x**2 + r*x + s
 
             points_adj = 0
             for t in tdates.keys():
@@ -1369,7 +1395,7 @@ class database(object):
                elif {"points","median_fit"} <= set(tdates[t]):
                   med = tdates[t]["median_fit"]
                else: continue
-               if med in  [None,200] or tdates[t]["points"] == None: continue
+               if med in [None,200] or tdates[t]["points"] == None: continue
                points_adj += (tdates[t]["points"] - med) / (200 - med)
 
             #if participations of user below 50 we calculate a natural coefficient K to lower his/her points
@@ -1406,7 +1432,7 @@ class database(object):
             res[i] = min(points)
          elif i == "sd"+day_str: #standard deviation
             import math
-            sd = std(points, ddof=1)
+            sd = std(points)
             if math.isnan(sd): res[i] = 0
             else: res[i] = sd
          elif i == "part":
@@ -1470,8 +1496,24 @@ class database(object):
             cur.execute( sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) ) )
 
 
-   def get_participants_in_city(self, cityID, tdate=False, human=False, sort=False ):
+   def get_participants_in_city(self, cityID, tdate=False, human=False, sort=False, what="display_name" ):
+      """All users participating in a tournament.
+      Getting all players who take place in a certain tournament for a
+      given city and tdate.
 
+      Args:                                                                                                        
+         cityID  (:obj:`int`): ID of the current city.
+         tdate   (:obj:`int`): tournament date as integer representation.
+         human   (:obj:`bool`): Load only human players.
+         sort    (:obj:`int`): Order users by their...
+         what    (:obj:`str`): display_name (default). Other possible arguments:
+         "user_login", "nicename"
+
+      Returns:
+         list: List containing the user IDs of the players
+         participating in the tournament for a given cityID and tdate.
+         Can be a list of length 0 as well.
+      """
       cur = self.db.cursor()
       exclude = [self.get_user_id("Sleepy")]
 
@@ -1490,7 +1532,9 @@ class database(object):
       exclude = sql_tuple( exclude )
 
       if sort:
-         sql = "SELECT userID FROM %swetterturnier_bets wb JOIN wp_users wu ON wb.userID=wu.ID WHERE cityID=%d AND tdate=%d AND userID NOT IN%s ORDER BY display_name"
+         if what not in ["display_name", "user_login", "nicename"]:
+            utils.exit("Wrong input on database.get_participants_in city!")
+         sql = "SELECT userID FROM %swetterturnier_bets wb JOIN wp_users wu ON wb.userID=wu.ID WHERE cityID=%d AND tdate=%d AND userID NOT IN%s ORDER BY "+what
 
       else:
          sql = "SELECT userID FROM %swetterturnier_bets WHERE cityID=%d AND tdate=%d AND userID NOT IN%s"

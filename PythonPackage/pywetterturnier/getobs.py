@@ -17,13 +17,14 @@ import datetime as dt
 import numpy as np
 
 class getobs( object ):
-   """Main observation handling class. Loading observations from the
+   """
+   Main observation handling class. Loading observations from the
    'raw' database (Obsdatabase) and computes the observations required
    for the tournament (e.g, daily sunshine duration or precipitation sums
    (sum over 24h between pre-specified times).
    These values are stored into the `Wetterturnier Wordpress Plugin <https://github.com/retostauffer/wp-wetterturnier>`_
    and used for the penalties/judging.
-   
+ 
    Args:
       config (:obj:`list`): Contains all necessary configs for the
              pywetterturnier package. Please have a look into 
@@ -34,8 +35,7 @@ class getobs( object ):
       date (:obj:`datetime.datetime.date` object with the date for which
              the request should be made.
       wmoww (:obj:`utils.wmowwConversion`): Or None. If None, no conversion will
-            be performed. If set the :meth:`utils.wmowwConversion.convert` method
-            is used to convert observed weather codes into the required ones.
+             be performed. If set the :meth:`utils.wmowwConversion.convert` method is used to convert observed weather codes into the required ones.
    """
 
 
