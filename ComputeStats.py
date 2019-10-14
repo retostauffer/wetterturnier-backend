@@ -44,7 +44,7 @@ if __name__ == '__main__':
    if today > current + 2:
       last_tdate = current
    else:
-      if len(tdates) == 1: tdates = [current - 7]
+      if len(tdates) == 1 and tdates[0] == current: tdates = [current - 7]
       elif current in tdates: tdates.remove( current )
       last_tdate = current - 7
 
@@ -56,34 +56,40 @@ if __name__ == '__main__':
          print 'ALL DATES'
       for tdate in tdates:
          for day in range(3):
-            stats = db.get_stats( city['ID'], measures[5:], 0, tdate, day )
-            db.upsert_stats( city['ID'], stats, 0, tdate, day)
+            stats = db.get_stats( city['ID'], measures[-8:], 0, tdate, day )
+            #if all stats are 0 we assume that no tournament took place on tdate
+            if stats.values() == [0] * len(stats):
+               continue
+            else:
+               db.upsert_stats( city['ID'], stats, 0, tdate, day)
       
       #Compute citystats which can be used for plotting box whiskers etc
       #TODO: we could already calculate the fit coefficients A,B,C later used for plotting here
       stats = db.get_stats( city['ID'], measures[-7:] + ["mean_part","max_part","min_part","tdates"], last_tdate = last_tdate )
       db.upsert_stats( city['ID'], stats )
 
-   #calculate userstats
-   for userID in userIDs:
-      user = db.get_username_by_id(userID)
-      for city in cities:
-         for day in range(3):
-            stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate)
-            db.upsert_stats( city['ID'], stats, userID, 0, day)
-   
-   #generating ranking table output, write to .xls file
-   with pd.ExcelWriter( "plots/eternal_list.xls" ) as writer:
-      for city in cities:
-         sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d ORDER BY points_adj_mean DESC LIMIT 0,100"
-	 cols = ",".join( measures[:6] )
-	 table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
-         table.to_excel( writer, sheet_name = city["hash"] )
+   if config['input_tdate'] == None:
 
-   #now we call a plotting routine which draws some nice statistical plots
-   import PlotStats
-   tdate = max(tdates) - 7
-   PlotStats.plot(db, cities, tdate)
+      #calculate userstats
+      for userID in userIDs:
+	 user = db.get_username_by_id(userID)
+	 for city in cities:
+	    for day in range(3):
+	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate)
+	       db.upsert_stats( city['ID'], stats, userID, 0, day)
+      
+      #generating ranking table output, write to .xls file
+      with pd.ExcelWriter( "plots/eternal_list.xls" ) as writer:
+	 for city in cities:
+	    sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d ORDER BY points_adj_mean DESC LIMIT 0,100"
+	    cols = ",".join( measures[:7] )
+	    table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
+	    table.to_excel( writer, sheet_name = city["hash"] )
+
+      #now we call a plotting routine which draws some nice statistical plots
+      import PlotStats
+      tdate = max(tdates) - 7
+      PlotStats.plot(db, cities, tdate)
 
    db.commit()
    db.close()

@@ -1332,7 +1332,6 @@ class database(object):
          if i[0] == None: continue
          else: points.append( float(i[0]) )
 
-      # important for participant/participation count, otherwise part would be 1 if a player/date actually has 0 part*s
       if len(points) == 0: points = [.0]
 
       for i in measures:
@@ -1384,7 +1383,7 @@ class database(object):
             elif i == "points_adj_poly":
                for j in data:
                   x = j[0]
-                  tdates[j[0]]["median_poly"] = p*x**3 + q*x**2 + r*x + s
+                  tdates[j[0]]["median_fit"] = p*x**3 + q*x**2 + r*x + s
 
             points_adj = 0
             for t in tdates.keys():
@@ -1436,6 +1435,7 @@ class database(object):
             if math.isnan(sd): res[i] = 0
             else: res[i] = sd
          elif i == "part":
+            # important for participant/participation count, otherwise part would be 1 if a player/date actually has 0 part*s
             #participants/participations, only for all days
             if len(points) == 1 and points[0] == 0: res[i] = 0
             else: res[i] = len(points)
