@@ -1256,7 +1256,7 @@ class database(object):
 
       res = {} #results will be saved here with measures as keys
 
-      from numpy import mean, std, median, percentile, exp, log
+      from numpy import mean, std, median, percentile, exp, log, float128
 
       Qlow = lambda points : percentile(points, 25, interpolation="midpoint")
       Qupp = lambda points : percentile(points, 75, interpolation="midpoint")
@@ -1362,17 +1362,21 @@ class database(object):
                data = cur.fetchall()
             if i in ["points_adj","points_adj_fit","points_adj_poly"]:
                sql = "SELECT %s FROM %swetterturnier_citystats WHERE cityID=%d"
-               if i in ["points_adj","points_adj_fit"]:
-                  what = "A,B,C"
+               
+               if i == "points_adj":      what = "A,B,C,p,q,r,s"
+               elif i == ["points_adj_fit"]:  what = "A,B,C"
                elif i == "points_adj_poly": what = "p,q,r,s"
+               
                cur.execute( sql % ( what, self.prefix, cityID ) )
                data2 = cur.fetchall()
                if i in ["points_adj","points_adj_fit"]:
                   for j in data2:
                      A = j[0]; B = j[1]; C = j[2]
-               elif i == "points_adj_poly":
+               if i in ["points_adj","points_adj_poly"]:
+                   a = 0
+                   if i == "points_adj": a=3
                    for j in data2:
-                     p = j[0]; q = j[1]; r = j[2]; s = j[3]
+                     p = j[0+a]; q = j[1+a]; r = j[2+a]; s = j[3+a]
 
             if i in ["points_adj","points_adj_med"]:
                for j in data:
@@ -1380,42 +1384,47 @@ class database(object):
             if i in ["points_adj","points_adj_fit"]:
                for j in data:
                   tdates[j[0]]["median_fit"] = A * log( B * j[0] ) + C
-            elif i == "points_adj_poly":
+            if i in ["points_adj","points_adj_poly"]:
                for j in data:
                   x = j[0]
-                  tdates[j[0]]["median_fit"] = p*x**3 + q*x**2 + r*x + s
+                  tdates[j[0]]["median_poly"] = p*x**3. + q*x**2. + r*x + s
 
             points_adj = 0
             for t in tdates.keys():
-               if {"points","median","median_fit"} <= set(tdates[t]):
-                  med = ( tdates[t]["median"] + tdates[t]["median_fit"] ) / 2
+               if {"points","median","median_fit","median_poly"} <= set(tdates[t]):
+                  med = ( tdates[t]["median"] + tdates[t]["median_fit"] + tdates[t]["median_poly"] ) / 3.
                elif {"points","median"} <= set(tdates[t]):
                   med = tdates[t]["median"]
                elif {"points","median_fit"} <= set(tdates[t]):
                   med = tdates[t]["median_fit"]
+               elif {"points","median_poly"} <= set(tdates[t]):
+                  med = tdates[t]["median_poly"]
                else: continue
                if med in [None,200] or tdates[t]["points"] == None: continue
-               points_adj += (tdates[t]["points"] - med) / (200 - med)
+               else: points_adj += (tdates[t]["points"] - med) / (200 - med)
 
-            #if participations of user below 50 we calculate a natural coefficient K to lower his/her points
-            parts = len(points)
+            #if participations of user below 50 we calculate a coefficient K to lower his/her points
+            parts = float(len(points))
             if parts >= 50:
-               K = 1
-            else: #K = exp(0) * exp(parts-51)
-               e = exp(0)
-               K = parts**e / 50**e
+               K = 1.
+            else:
+               #e = exp(1)
+               #K = e * e^(parts-51)
+               from numpy import pi
+               K = parts**4. / 50.**4.
+               if parts > 0: print "parts:", parts; print "K = ", K
 
             if len(tdates) == 0: res[i] = 0
-            else: res[i] = K * (points_adj / len(tdates)) * 100
+            else: res[i] = float128(K * (points_adj / len(tdates)) * 100.)
 
          elif i == "points_adj_mean":
-            sql = "SELECT points_adj_med, points_adj_fit FROM %swetterturnier_userstats WHERE cityID=%d AND userID=%d"
+            sql = "SELECT points_adj_med, points_adj_fit, points_adj_poly FROM %swetterturnier_userstats WHERE cityID=%d AND userID=%d"
             cur.execute( sql % (self.prefix, cityID, userID) )
             data = cur.fetchall()
-            adj_med, adj_fit = 0, 0
+            adj_med, adj_fit, adj_poly = 0,0,0
             for j in data:
-               adj_med += j[0]; adj_fit += j[1]
-            res[i] = 0.5*adj_med + 0.5*adj_fit
+               adj_med += j[0]; adj_fit += j[1]; adj_poly += j[2]
+            res[i] = mean([res["points_adj_med"], res["points_adj_fit"], res["points_adj_poly"]])
 
          elif i == "mean"+day_str:
             res[i] = mean(points)
@@ -1430,9 +1439,9 @@ class database(object):
          elif i == "min"+day_str:
             res[i] = min(points)
          elif i == "sd"+day_str: #standard deviation
-            import math
+            from math import isnan
             sd = std(points)
-            if math.isnan(sd): res[i] = 0
+            if isnan(sd): res[i] = 0
             else: res[i] = sd
          elif i == "part":
             # important for participant/participation count, otherwise part would be 1 if a player/date actually has 0 part*s
@@ -1445,7 +1454,6 @@ class database(object):
 
    def upsert_stats(self, cityID, stats, userID=False, tdate=False, day=0):
       cur = self.db.cursor()
-      print stats
       mstr   = ""
       values, sql_vals = [], ""
       update = " ON DUPLICATE KEY UPDATE "

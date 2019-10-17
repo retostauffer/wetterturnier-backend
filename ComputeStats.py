@@ -77,11 +77,11 @@ if __name__ == '__main__':
 	    for day in range(3):
 	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate)
 	       db.upsert_stats( city['ID'], stats, userID, 0, day)
-      
+       
       #generating ranking table output, write to .xls file
       with pd.ExcelWriter( "plots/eternal_list.xls" ) as writer:
 	 for city in cities:
-	    sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d ORDER BY points_adj_mean DESC LIMIT 0,100"
+	    sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d ORDER BY points_adj_mean DESC LIMIT 0,80"
 	    cols = ",".join( measures[:7] )
 	    table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
 	    table.to_excel( writer, sheet_name = city["hash"] )
