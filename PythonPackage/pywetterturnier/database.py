@@ -1252,7 +1252,7 @@ class database(object):
          return data
 
    #compute statistics out of some wetterturnier tables like betstat
-   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=False, mitteltips=False):
+   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=False, mitteltips=False, aliases=False):
 
       res = {} #results will be saved here with measures as keys
 
@@ -1310,17 +1310,37 @@ class database(object):
             cur.execute( sql % ( self.prefix, cityID, tuple(exclude) ) )
 
       elif userID:
-         print userID
+         userIDs = [userID]
+         #if we are using an alias dict we replace all aliases of a user with his/her original/main username (dict keys)
+         if aliases:
+            username = self.get_username_by_id( userID )
+            if username in aliases.keys() or username in sum(aliases.values(), []):
+               print username
+               for i in aliases.keys():
+                  if username == i:
+                     for j in aliases[i]:
+                        userIDs.append( self.get_user_id( j ) )
+                     break
+                  else:
+                     if username in aliases[i]:
+                        userIDs.append( self.get_user_id( i ) )
+                        for j in aliases[i]:
+                           userID = self.get_user_id( j )
+                           if userID not in userIDs:
+                              userIDs.append( userID )
+               print userIDs
+
          #again only if a user actually participated on tdate we add his points to the stats
-         sql2 = "SELECT tdate FROM %swetterturnier_bets WHERE userID=%d AND cityID=%d"
-         cur.execute( sql2 % ( self.prefix, userID, cityID ) )
+         sql2 = "SELECT tdate FROM %swetterturnier_bets WHERE userID IN%s AND cityID=%d"
+         #print sql2 % ( self.prefix, sql_tuple(userIDs), cityID )
+         cur.execute( sql2 % ( self.prefix, sql_tuple(userIDs), cityID ) )
          data2 = cur.fetchall()
          tdates = []
          for i in data2:
             if i[0] not in tdates: tdates.append( int(i[0]) )
 
-         sql += "userID=%d AND cityID=%d AND tdate IN%s" + lt
-         cur.execute( sql % ( self.prefix, userID, cityID, sql_tuple(tdates) ) )
+         sql += "userID IN%s AND cityID=%d AND tdate IN%s" + lt
+         cur.execute( sql % ( self.prefix, sql_tuple(userIDs), cityID, sql_tuple(tdates) ) )
 
       else:
          utils.exit( "Wrong usage of get_stats!")
@@ -1349,8 +1369,8 @@ class database(object):
               should be calculated earlier in ComputeStats with other citystats!
             """
             tdates = {}
-            sql = "SELECT tdate, points FROM %swetterturnier_betstat WHERE userID=%d AND cityID=%d"
-            cur.execute( sql % (self.prefix, userID, cityID) )
+            sql = "SELECT tdate, points FROM %swetterturnier_betstat WHERE userID IN%s AND cityID=%d"
+            cur.execute( sql % (self.prefix, sql_tuple(userIDs), cityID) )
             data = cur.fetchall()
             for j in data:
                tdates[j[0]] = {}
@@ -1363,9 +1383,9 @@ class database(object):
             if i in ["points_adj","points_adj_fit","points_adj_poly"]:
                sql = "SELECT %s FROM %swetterturnier_citystats WHERE cityID=%d"
                
-               if i == "points_adj":      what = "A,B,C,p,q,r,s"
-               elif i == ["points_adj_fit"]:  what = "A,B,C"
-               elif i == "points_adj_poly": what = "p,q,r,s"
+               if i == "points_adj":         what = "A,B,C,p,q,r,s"
+               elif i == ["points_adj_fit"]: what = "A,B,C"
+               elif i == "points_adj_poly":  what = "p,q,r,s"
                
                cur.execute( sql % ( what, self.prefix, cityID ) )
                data2 = cur.fetchall()
@@ -1408,24 +1428,13 @@ class database(object):
             if parts >= 50:
                K = 1.
             else:
-               #e = exp(1)
-               #K = e * e^(parts-51)
-               from numpy import pi
                K = parts**4. / 50.**4.
-               if parts > 0: print "parts:", parts; print "K = ", K
 
             if len(tdates) == 0: res[i] = 0
             else: res[i] = float128(K * (points_adj / len(tdates)) * 100.)
 
          elif i == "points_adj_mean":
-            sql = "SELECT points_adj_med, points_adj_fit, points_adj_poly FROM %swetterturnier_userstats WHERE cityID=%d AND userID=%d"
-            cur.execute( sql % (self.prefix, cityID, userID) )
-            data = cur.fetchall()
-            adj_med, adj_fit, adj_poly = 0,0,0
-            for j in data:
-               adj_med += j[0]; adj_fit += j[1]; adj_poly += j[2]
             res[i] = mean([res["points_adj_med"], res["points_adj_fit"], res["points_adj_poly"]])
-
          elif i == "mean"+day_str:
             res[i] = mean(points)
          elif i == "median"+day_str:

@@ -76,7 +76,6 @@ if __name__ == '__main__':
                     'ComputePoints.py',
                     'ComputeSleepy.py']
          if today == current_tdate:
-            scripts.append( 'MOS.py' )
             print "Today is a tournament day!"  
       else:
          scripts = ['ComputePetrus.py',

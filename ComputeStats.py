@@ -70,12 +70,16 @@ if __name__ == '__main__':
 
    if config['input_tdate'] == None:
 
-      #calculate userstats
+      #calculate userstats, first import user_aliases.json as dict
+      from json import load
+      with open("user_aliases.json") as aliases:
+         aliases = load( aliases )
+      print aliases
       for userID in userIDs:
 	 user = db.get_username_by_id(userID)
 	 for city in cities:
 	    for day in range(3):
-	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate)
+	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases )
 	       db.upsert_stats( city['ID'], stats, userID, 0, day)
        
       #generating ranking table output, write to .xls file
