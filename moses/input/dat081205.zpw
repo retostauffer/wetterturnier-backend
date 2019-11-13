@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  8   0 240 10 29  7  7 1010.7   4.8   2.7   0.8   3.5
 Kloten                    8   0 240 12 29  8  8 1011.0   4.6   3.4   1.8   5.6
@@ -44,13 +43,12 @@ Thermik                   7   0 240  9 28  8  8 1009.5   4.1   2.0   1.0   4.0
 ww75                      8   1 240 11 35  8  8 1011.0   4.5   2.9   1.0   6.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  7   5 290  2  0  6  0 1026.5   3.8   2.0   0.2   0.8
 Kloten                    7  12 360  2  0  8  0 1026.8   5.1   1.7   1.0   0.0
@@ -87,4 +85,4 @@ Stocken                   6  20 270  3  0  7  0 1028.0   4.0   0.0   0.0   0.0
 Sven/Titisee-Neustadt     6  15 280  4  0  0  0 1025.9   5.0   2.0   0.5  -3.0
 Thermik                   7  18 250  3  0  8  0 1027.0   3.9   1.2  -0.4   0.0
 ww75                      5  55 300  3  0  8  0 1027.2   5.5   1.0  -1.0   0.0
-
+

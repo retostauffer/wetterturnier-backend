@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                8  51 270 10 35  0  7 1014.5   4.5   1.0  -1.7  18.0
 Schwechat                 7  55 280 10 33  0  7 1015.3   4.7   1.0  -2.8  11.0
@@ -46,13 +45,12 @@ Tjure                     7  35 270 12 44  0  6 1014.6   5.5   1.0  -2.0   8.0
 Uwetter                   7  35 260 12 47  0  7 1014.7   3.2   1.0  -1.8   8.5
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                7   8 270 16 45  6  6 1009.0   7.5   0.5  -0.2   0.2
 Schwechat                 7  27 280 17 45  8  6 1009.3   8.3   0.0  -1.4   0.0
@@ -91,4 +89,4 @@ Shotte                    8   0 260 18 46  0  0 1008.5   3.6   1.5   1.8  -3.0
 SturmTief                 5  55 280 18 45  0  0 1007.5  10.0   2.8   1.0   2.0
 Tjure                     5  60 280 16 45  8  0 1007.5   9.0   2.5   0.5   2.0
 Uwetter                   5  50 280 24 49  8  0 1008.2   6.2   1.7   0.7   2.0
-
+

@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  5  56 240  6  0  n  n 1014.7  19.9   9.4   6.1     n
 Kloten                    7  59 240  6  0  0  0 1014.5  21.2   8.5   6.3  -3.0
@@ -63,13 +62,12 @@ Weatherfrogs              5  40 290  3  0  0  6 1015.5  18.0   7.0   6.0   0.4
 Wetterschmoecker          2  40 290  3  0  0  0 1009.0  18.0   6.5   7.0  -3.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  5  72 270  5  0  n  n 1018.3  18.0  10.8   3.0  -3.0
 Kloten                    3  72 270  6  0  0  0 1018.5  18.5   9.5   2.0  -3.0
@@ -125,4 +123,4 @@ Thurgauer                 2  60 280  4  0  0  0 1019.5  18.0   9.0   4.0  -3.0
 Uwetter                   4  68 250  4  0  0  0 1021.0  18.6   8.8   5.7  -3.0
 Weatherfrogs              4  57 290  5  0  6  0 1020.0  18.0  11.0   5.5   0.0
 Wetterschmoecker          1  60 300  3  0  0  0 1022.0  16.5   8.8   8.8  -3.0
-
+

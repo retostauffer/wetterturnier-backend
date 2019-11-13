@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                0  98 270 10  0  0  0 1014.5  32.3  18.6  14.8  -3.0
 Schwechat                 1   n 320 16 29  0  0 1014.8  33.1  20.2   9.2  -3.0
@@ -40,13 +39,12 @@ Wetterfreak               1  91 310 10  0  0  0 1017.2  31.3  18.3  14.6  -3.0
 WMB                       1  91 320  6  0  0  0 1016.5  30.3  18.1  16.7  -3.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                1  67 300  6  0  0  0 1014.6  28.7  18.1  17.0  -3.0
 Schwechat                 1   n 330 12  0  0  0 1014.9  29.0  17.3  13.8  -3.0
@@ -79,4 +77,4 @@ Tjure                     2  75 300  8  0  0  0 1016.0  28.1  18.0  13.2  -3.0
 Tornado                   4  62 340  6  0  0  0 1015.7  27.1  17.7  14.9  -3.0
 Wetterfreak               2  80 330 12 25  0  0 1016.4  26.6  18.5  13.1  -3.0
 WMB                       5  63 330  6  0  0  0 1015.2  27.3  17.5  15.4  -3.0
-
+

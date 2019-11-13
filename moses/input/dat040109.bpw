@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   0 290  4  0  6  5 1011.1   2.6   2.3   1.0   0.7
 Tempelhof                 8   0 310  6  0  6  7 1011.0   2.9   2.0   1.7   1.1
@@ -76,13 +75,12 @@ Windmueller               8   0 320  7  0  6  0 1008.2   2.7  -0.4   1.4   0.0
 WMB                       8   0 270  7  0  7  5 1007.1   3.7   1.4   1.5   0.3
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7   0 160 10 25  4  6 1006.2   6.9  -0.1   2.1  11.3
 Tempelhof                 8   0 150 10  0  4  6 1006.8   6.5  -0.8   2.7  12.2
@@ -151,4 +149,4 @@ vesper                    5   4 180 10  0  6  6 1011.5   5.2   3.0   4.8   6.0
 Wetterfrosch              7   6 320 10  0  6  7 1011.9   4.1   3.6  -3.9   6.7
 Windmueller               4  29 180 14 38  0  0 1010.7   4.8  -0.7   1.0   9.5
 WMB                       8   8 170  9  0  6  6 1010.2   5.8   2.5   2.8   5.0
-
+

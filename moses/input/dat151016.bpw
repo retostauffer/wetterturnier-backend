@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   0 250  6  0  0  0 1018.5   8.8   7.2   7.3  -3.0
 Schoenefeld               8   0 240  6  0  0  0 1018.6   9.0   7.2   6.9  -3.0
@@ -27,7 +26,7 @@ Frosch410                 8   0 250  6  0  5  6 1019.0  10.0   7.0   7.5   0.4
 Georg                     8   0 250  6  0  5  5 1018.3   9.5   7.0   7.5   0.1
 GHOSTofTEMPELHOF          8   0 250  6  0  6  6 1018.9   9.5   6.9   7.2   0.5
 Greg                      8   0 240  6  0  5  5 1018.6   9.5   7.1   6.9   0.0
-GRP_DahlemOBser           8   0 250  6  0  6  5 1018.9   9.4   7.1   7.6   0.8
+GRP_DahlemOBSer           8   0 250  6  0  6  5 1018.9   9.4   7.1   7.6   0.8
 GRP_Deutscher_Wetterd     8   0 250  6  0  6  6 1018.9   9.6   7.2   7.3   0.6
 GRP_MeteoGroup            8   0 250  6  0  6  5 1018.5   9.5   7.1   7.5   0.7
 Haasen                    8   0 240  6  0  5  6 1018.8   9.6   6.9   7.2   0.0
@@ -72,13 +71,12 @@ Weatherdevil              8   0 250  6  0  6  6 1019.2   9.5   6.7   7.2   0.6
 WetterStefan              8   0 260  7  0  5  6 1018.9   9.2   6.9   8.4   1.9
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7  16 240 10  0  0  0 1018.7  11.8   6.5   5.7   3.5
 Schoenefeld               7  20 280  6  0  0  0 1018.7  11.3   6.0   5.8   3.5
@@ -100,7 +98,7 @@ Frosch410                 8   0 270  6  0  6  6 1019.3  10.6   6.3   7.0   4.5
 Georg                     8   0 260  6  0  6  6 1019.0   9.9   6.2   6.7   5.0
 GHOSTofTEMPELHOF          7   7 270  6  0  6  6 1019.2  10.4   5.8   7.0   2.8
 Greg                      8   0 290  6  0  6  6 1019.4   9.5   5.3   7.1   4.3
-GRP_DahlemOBser           8   0 270  6  0  6  6 1019.2  10.4   6.3   7.3   5.0
+GRP_DahlemOBSer           8   0 270  6  0  6  6 1019.2  10.4   6.3   7.3   5.0
 GRP_Deutscher_Wetterd     8   1 270  6  0  6  6 1019.4  10.3   6.1   6.7   4.1
 GRP_MeteoGroup            8   1 270  6  0  6  6 1019.1  10.1   5.8   7.0   4.3
 Haasen                    8   0 290  6  0  6  6 1019.7  10.1   4.9   6.8   3.8
@@ -143,4 +141,4 @@ Uwetter                   8   0 270  6  0  5  6 1018.2  10.4   5.8   7.0   3.8
 Weathercow                8   0 270  6  0  6  6 1019.4  10.4   6.0   7.2   2.0
 Weatherdevil              7  10 270  6  0  6  6 1019.2  10.4   6.0   7.0   3.1
 WetterStefan              8   0 270  7  0  6  6 1019.1  10.0   5.8   7.8   4.4
-
+

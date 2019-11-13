@@ -63,7 +63,7 @@ def inputcheck(what):
    db        = database.database(config)
    # - Evaluating input arguments from the __main__ script.
    try:
-      opts, args = getopt.getopt(sys.argv[1:], "c:u:t:p:ahi", ["city=", "user=", "tdate=","param=","alldates","help","ignore"])
+      opts, args = getopt.getopt(sys.argv[1:], "c:u:s:t:p:ahi", ["city=", "user=", "users=", "tdate=","param=","alldates","help","ignore"])
    except getopt.GetoptError as err:
       print str(err) # will print something like "option -a not recognized"
       usage(what)
@@ -77,7 +77,7 @@ def inputcheck(what):
    inputs['input_param']     = None 
    inputs['input_ignore']    = False
    inputs['input_force']     = False
-   inputs['input_usres']     = None
+   inputs['input_users']     = None
 
    # - Overwrite the defaults if inputs are set
    for o, a in opts:
@@ -106,7 +106,12 @@ def inputcheck(what):
             user = int(a)
          except:
             user = str(a) 
-         inputs['input_user'] = user 
+         inputs['input_user'] = user
+      elif o in ("-s", "--users"):
+         try:
+            inputs['input_users'] = a.split(",")
+         except:
+            print "Could not convert input to list"; usage(what)
       elif o in ("-f", "--force"):
          inputs['input_force'] = True
       elif o in ("-i", "--ignore"):
@@ -168,6 +173,7 @@ def usage(what=None):
       -u/--user:     A userID or a user_login name. Most 
                      script accept this and compute the points
                      or whatever it is for this user only.
+      -s/--users:    A list of user names, seperated by commas, no spaces!
       -c/--city:     City can be given by its ID, nam
 e or hash
                      IDs:                                                 %s
@@ -505,12 +511,19 @@ def tdate2string( tdate, moses=False ):
    return tdate2datetime( tdate ).strftime( fmt )
 
 
-def string2tdate( datestring ):
+def string2tdate( datestring, moses = False ):
     "opposite of the above function"
     from datetime import datetime as dt
-    year  = int(datestring[0:4])
-    mon   = int(datestring[5:7])
-    day   = int(datestring[8:10])
+
+    if moses: #mosesYYMMDD
+       year = int(datestring[0:2])
+       mon  = int(datestring[2:4])
+       day  = int(datestring[4:6])
+    else:
+       year  = int(datestring[0:4])
+       mon   = int(datestring[5:7])
+       day   = int(datestring[8:10])
+
     dtobj = dt(year, mon, day)
     return int( timestamp2tdate( timestamp( dtobj ) ) )
 

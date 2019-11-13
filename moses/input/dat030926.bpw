@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     5  30 280 14  0  6  0 1016.7  18.3  10.0   5.1   0.0
 Tempelhof                 3  27 280 14  0  0  0 1016.7  18.5  11.1   5.0  -3.0
@@ -75,13 +74,12 @@ Wetterfrosch              7  20 240 10  0  0  8 1014.2  18.0  13.0   9.7   0.2
 WMB                       7  26 270 11  0  6  0 1017.7  17.1   8.1   9.2   0.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     1  56 130  4  0  0  6 1014.5  17.8   4.8   4.4  10.0
 Tempelhof                 1  57  60  6  0  0  6 1014.7  18.5   5.3   4.5  10.1
@@ -149,4 +147,4 @@ Vanessa                   5  57 270  6  0  0  0 1016.4  16.5   7.3   6.3  -3.0
 Wetterfreak               2  70  70  4  0  0  0 1018.8  16.7   5.0   4.8   0.5
 Wetterfrosch              1  95  40  6  0  0  0 1016.8  17.9   9.4   0.2  -3.0
 WMB                       5  60 300  5  0  0  0 1016.3  17.3   6.4   6.0   0.0
-
+

@@ -14,6 +14,7 @@
 
 #import python3's print function, back2thefuture!
 from __future__ import print_function
+from pywetterturnier import utils
 
 # -------------------------------------------------------------------
 # - Embedded function. Can be used on its own (called from
@@ -54,9 +55,21 @@ def print_moses( db, config, cities, tdates ):
       cityID = city['ID']
       if config['input_alldates']:
          tdates = db.all_tournament_dates( city['ID'] )
+         current = db.current_tournament()
+         if current in tdates:
+            tdates.remove( current )
+         tdates = [i for i in tdates if i > 12027]
+
       for tdate in tdates:
-         #workaround for missing ZUR bets on 3 tdates, dirty
-         if cityID == 3 and tdate in [15870, 15849, 15898]: continue
+
+         missing_bets = db.find_missing_bets( cityID, tdate )
+         missing_obs  = db.find_missing_obs( cityID, tdate )
+
+         #if *missing_bets returns False, it's a bool, missing obs returns either True or False
+         if type(missing_bets) != bool or missing_obs:
+            print("To many missing obs or parameters!")
+            continue
+         
          stations = db.get_stations_for_city( cityID, active=False, tdate=tdate )
          #print output to file, first get prober filename
          filename = path + utils.tdate2string( tdate, moses=True )+"."+city['name'].lower()[0]+"pw"
@@ -119,6 +132,7 @@ if __name__ == '__main__':
       tdates     = [db.current_tournament()]
    else:
       tdates     = [config['input_tdate']]
+
 
    # - Loading all different cities (active cities)
    cities     = db.get_cities()

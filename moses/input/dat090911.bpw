@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     2  64 250  4  0  0  0 1024.5  21.4  10.1   8.0   0.0
 Schoenefeld               3  65 100  4  0  0  0 1024.4  21.1  10.9   3.4   0.0
@@ -75,13 +74,12 @@ Troepfchen                4  52 320  6  0  0  0 1023.4  20.3  10.7   9.3  -3.0
 Uwetter                   5  65 330  8  0  0  0 1022.5  21.0  11.0   8.5   0.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   2 320  8  0  8  8 1013.7  15.5   9.7  10.5   4.9
 Schoenefeld               7   3 290  8  0  8  8 1013.3  16.1   8.9  11.0   7.3
@@ -149,4 +147,4 @@ Sven/Titisee-Neustadt     7  19 300 10  0  6  8 1015.2  16.0  10.4  10.0   2.2
 Thermik                   7  26 300  8  0  6  8 1018.0  16.2  10.1   9.8   5.7
 Troepfchen                8  21 290  8  0  6  8 1015.5  16.6  10.1   9.8   1.8
 Uwetter                   7  10 300 10  0  8  6 1017.0  15.5  10.0  10.0   3.0
-
+

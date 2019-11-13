@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                6  35 290 14 29  6  0 1020.6  14.5   6.6   2.0   0.0
 Schwechat                 4   n 280 23 31  6  0 1020.8  14.5   5.4   0.0   0.0
@@ -39,13 +38,12 @@ Uluru                     4  55 290 14 27  8  0 1021.5  14.0   6.0   2.2   0.4
 Uwetter                   6  35 290 12 30  6  0 1021.5  14.5   5.5   4.5   0.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                2  96 140  8  0  0  0 1017.9  18.1   1.5   2.8  -3.0
 Schwechat                 1   n 150 16 25  0  0 1018.7  17.0  -0.4  -0.5  -3.0
@@ -77,4 +75,4 @@ statical                  2  94 130 10  0  0  0 1021.0  15.6  -0.7   1.0  -3.0
 Stocken                   2  85 140 10  0  0  0 1020.0  16.0   2.0   2.0  -3.0
 Uluru                     3  88 140 10  0  0  0 1020.5  16.0   1.7   1.9  -3.0
 Uwetter                   5  75 130 10 25  0  0 1022.0  15.5   0.5   1.5  -3.0
-
+

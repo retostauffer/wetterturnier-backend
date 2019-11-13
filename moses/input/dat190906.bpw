@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7  15 110  5  0  0  6 1017.8  20.0   8.6   5.7   0.1
 Schoenefeld               8   4 130  4  0  0  6 1018.0  18.8   6.0   8.3   0.0
@@ -29,7 +28,7 @@ Grisuji-EZ-L1-MOS         6  38 230  6  0  0  6 1017.6  20.9   9.9   6.3   1.8
 Grisuji-GFS-L1-MOS        7  38 250  6  0  0  0 1018.6  19.8   9.5   7.8   0.4
 Grisuji-GFS-L2-MOS        7  38 250  6  0  0  0 1019.0  19.6   9.0   7.9   0.3
 GRP_ARD-Wetterstudio      6  41 260  5  0  0  0 1017.5  21.4   9.0   5.7   0.4
-GRP_DahlemOBser           6  36 250  5  0  0  6 1017.5  20.9   8.9   6.2   0.7
+GRP_DahlemOBSer           6  36 250  5  0  0  6 1017.5  20.9   8.9   6.2   0.7
 GRP_Deutscher_Wetterd     6  38 240  6  0  0  6 1017.4  20.7   9.6   6.6   2.0
 GRP_FU-Studenten          6  36 240  5  0  0  0 1017.5  21.0   8.7   6.4   0.7
 GRP_MeteoGroup            6  34 250  5  0  0  6 1017.4  20.8   9.5   6.7   0.7
@@ -70,13 +69,12 @@ wetteregon                6  40 240  6  0  0  8 1017.6  20.8   9.3   6.1   1.0
 Wolkenteiler              6  38 240  5  0  0  6 1017.5  21.0   8.8   6.4   0.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     4  41 310  5  0  0  0 1017.8  21.1  12.2   8.8   1.7
 Schoenefeld               6  49  10  4  0  0  0 1017.5  21.2  10.2   8.3   2.3
@@ -100,7 +98,7 @@ Grisuji-EZ-L1-MOS         7  18 310  5  0  6  8 1016.8  18.1  11.8  10.7   5.4
 Grisuji-GFS-L1-MOS        8  17 220  4  0  6  8 1017.0  18.1  10.9   9.4   3.4
 Grisuji-GFS-L2-MOS        8   7 170  5  0  6  6 1017.0  17.6  10.6   9.0   3.8
 GRP_ARD-Wetterstudio      7  20 310  4  0  6  8 1016.8  19.0  11.6   9.8   1.7
-GRP_DahlemOBser           6  28 310  5  0  6  8 1016.9  18.7  11.2  10.2   2.0
+GRP_DahlemOBSer           6  28 310  5  0  6  8 1016.9  18.7  11.2  10.2   2.0
 GRP_Deutscher_Wetterd     8  18 320  4  0  6  8 1016.7  17.8  11.5  10.4   4.2
 GRP_FU-Studenten          6  29 300  5  0  6  8 1016.9  19.2  11.0  10.2   2.4
 GRP_MeteoGroup            7  22 320  4  0  6  6 1016.7  18.3  11.5  10.3   4.4
@@ -139,4 +137,4 @@ Weathercow                7  14 310  5  0  6  8 1017.2  18.2  11.0   9.4   3.7
 Weatherdevil              8  20 310  4  0  6  8 1016.9  18.4  11.6  10.7   4.2
 wetteregon                7  21 310  5  0  6  8 1016.8  18.4  11.4  10.3   4.2
 Wolkenteiler              7  38 310  5  0  6  6 1016.5  19.5  11.7  10.2   2.3
-
+

@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   1  90  6  0  6  6 1016.2  13.7   7.3   5.9   0.0
 Schoenefeld               7   7  90  8  0  6  6 1016.0  14.1   6.9   6.4   0.0
@@ -24,7 +23,7 @@ fresh                     7  41 110  6  0  6  0 1014.3  17.4   7.0   4.8   0.6
 Georg                     7   9 100  6  0  6  0 1015.1  14.9   7.8   5.0   0.9
 GERHARD                   4  41 110  8  0  0  8 1015.0  16.1   7.7   6.7   2.0
 GHOSTofTEMPELHOF          6  46 110  7  0  0  0 1015.1  17.8   7.8   4.0   0.5
-GRP_DahlemOBser           7  29 110  7  0  0  0 1015.0  16.5   7.8   3.6   0.8
+GRP_DahlemOBSer           7  29 110  7  0  0  0 1015.0  16.5   7.8   3.6   0.8
 GRP_Deutscher_Wetterd     7  29 100  7  0  0  0 1015.3  16.2   7.4   4.6   0.8
 GRP_Zueberle              7  34 110  7  0  6  0 1014.8  15.8   7.5   3.7   1.3
 Halber_Ösi                6  45 110  7  0  6  0 1014.9  17.4   7.8   4.9   0.8
@@ -69,13 +68,12 @@ Sven/Titisee-Neustadt     6  45 110  7  0  0  0 1014.7  17.0   7.7   3.9   0.6
 Weathercow                6  45 110  7  0  0  0 1015.3  17.6   7.5   3.8   0.4
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     5  63 220  6  0  0  0 1017.5  18.0   8.6   6.1   2.8
 Schoenefeld               3  58 240  6  0  0  0 1017.7  17.7   7.0   7.6   1.1
@@ -94,7 +92,7 @@ fresh                     6  30 250  6  0  5  0 1016.1  18.4   7.8   7.7   0.2
 Georg                     7  27 260  6  0  6  0 1016.7  17.9   9.0   9.0   0.5
 GERHARD                   6  36 260  5  0  0  0 1017.0  17.6   7.2   8.5  -3.0
 GHOSTofTEMPELHOF          6  40 260  6  0  6  0 1017.0  19.2   8.4   8.0   0.4
-GRP_DahlemOBser           7  32 270  6  0  6  0 1016.3  18.6   8.6   8.2   0.4
+GRP_DahlemOBSer           7  32 270  6  0  6  0 1016.3  18.6   8.6   8.2   0.4
 GRP_Deutscher_Wetterd     6  31 260  6  0  6  0 1016.6  18.6   8.7   8.6   0.4
 GRP_Zueberle              7  25 270  6  0  6  0 1016.6  18.0   8.7   8.6   0.4
 Halber_Ösi                7  30 260  7  0  8  0 1016.9  18.3   8.5   8.3   0.7
@@ -137,4 +135,4 @@ SturmTief                 7  20 260  6  0  6  0 1016.0  17.5   8.5   8.0   0.1
 Subminolumucchaser        5  45 230  5  0  0  0 1015.4  19.6   8.9   6.8   0.3
 Sven/Titisee-Neustadt     6  45 260  6  0  0  8 1016.1  19.1   8.4   7.3   0.6
 Weathercow                6  35 260  6  0  6  0 1017.2  18.7   8.8   8.4   0.3
-
+

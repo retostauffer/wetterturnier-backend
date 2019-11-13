@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                8   4 280 23 45  7  7 1003.0   4.2   2.0   1.6  20.0
 Schwechat                 8   n 320 25 45  7  8 1002.8   4.9   3.2   2.3   2.0
@@ -41,13 +40,12 @@ Steinmann                 8   0 290 19 43  6  8 1001.5   6.4   4.1   2.2   4.6
 Uwetter                   8   0 290 20 54  6  6  997.5   6.0   4.0   2.0  12.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                7  49 270 12 33  0  0 1010.0   9.2   2.3  -1.9   0.8
 Schwechat                 7   n 300 19 35  0  0 1010.3   9.2   2.7  -1.8  -3.0
@@ -81,4 +79,4 @@ Pfingstochse              6  35 300 15 34  0  0 1009.8   9.9   3.2   0.3   2.4
 rana_2002                 6  36 300 14 34  0  0 1009.8  10.0   3.3   0.2   2.0
 Steinmann                 6  38 300 14 33  0  0 1009.4  10.2   3.7   0.1   0.8
 Uwetter                   5  40 290 14 42  0  0 1008.0  10.0   2.5   1.0   0.0
-
+

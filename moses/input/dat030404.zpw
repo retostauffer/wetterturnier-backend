@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  3  79 300  4  0  0  0 1022.9  12.5  -0.6  -0.6  -3.0
 Kloten                    2  80 330  4  0  0  0 1023.0  13.4  -3.1   0.1  -3.0
@@ -46,13 +45,12 @@ wolfi                     5  20 320 10  0  0  6 1025.0   9.0   0.0   2.0   2.2
 Zuercher                  6  19 300  5  0  0  0 1025.7   8.5  -0.5  -0.8   0.4
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  7   4 360  4  0  0  0 1020.8   6.4   4.1  -4.3   0.0
 Kloten                    7   2  10  4  0  0  0 1021.1   7.3   4.8  -4.3   0.3
@@ -91,4 +89,4 @@ Uranus                    5  10  40  7 25  0  0 1023.5   6.5   1.5  -3.5  -3.0
 Wetterruler               4  35  50  8  0  0  8 1023.7   6.4  -2.6  -5.3   1.2
 wolfi                     8  20 360 10  0  7  7 1023.0   5.0   1.0  -1.0   0.1
 Zuercher                  6  29 340  5  0  7  7 1024.3   6.3   1.8  -4.2   0.3
-
+

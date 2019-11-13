@@ -1252,8 +1252,8 @@ class database(object):
          return data
 
    #compute statistics out of some wetterturnier tables like betstat
-   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=False, mitteltips=False, aliases=False):
-
+   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, ymax=200, midyear=2010, span=False):
+      print ymax
       res = {} #results will be saved here with measures as keys
 
       from numpy import mean, std, median, percentile, exp, log, float128
@@ -1271,7 +1271,7 @@ class database(object):
 
       sql = "SELECT points"+day_str+" FROM %swetterturnier_betstat WHERE "
       if tdate or (not tdate and not userID and cityID):
-         # We don't want Sleepy, Automaten and Referenztipps in our tdatestats!
+         # We don't want Sleepy in our tdatestats!
          exclude = [self.get_user_id("Sleepy")]
          if not referenz:
             groupID = self.get_group_id( "Referenztipps" )
@@ -1358,83 +1358,100 @@ class database(object):
          i += day_str
          if i == "points"+day_str:
             res[i] = sum(points)
-         elif i in ["points_adj","points_adj_med","points_adj_fit","points_adj_poly"]:
+         elif i in ["points_adj_fit","points_adj_poly","points_adj_fit1","points_adj_fit2","points_adj_fitX","points_adj_poly1","points_adj_poly2"]:
+            
+            print self.get_username_by_id( userIDs[0] )
+            print i,"\n"
+
+            #skip Sleepy
+            if self.get_user_id("Sleepy") in userIDs: continue
             #inflation adjusted points, only for all days
             """
             find all dates where the user actually played
             for each date calculate:
-            (points-points) / (200-median*)
+            (points-points) / (ymax-median*)
             sum up and divide by number of tdates
             * daily median and median fitted by PlotStats
               should be calculated earlier in ComputeStats with other citystats!
             """
             tdates = {}
             sql = "SELECT tdate, points FROM %swetterturnier_betstat WHERE userID IN%s AND cityID=%d"
+            if "1" in i or "2" in i or "X" in i:
+               if midyear:
+                  middle_tdate = str(utils.string2tdate(str(midyear)+"-01-01"))
+               #print "Middle of tournament (tdate): %s" % middle_tdate
+               if "1" in i:
+                  sql+=" AND tdate<="+middle_tdate
+               elif "2" in i:
+                  sql+=" AND tdate>"+middle_tdate
+               else:
+                  sql+=" AND tdate BETWEEN "+str(utils.string2tdate(span[0]))+" AND "+str(utils.string2tdate(span[1]))
+                  print sql
             cur.execute( sql % (self.prefix, sql_tuple(userIDs), cityID) )
             data = cur.fetchall()
+
             for j in data:
                tdates[j[0]] = {}
                tdates[j[0]]["points"] = j[1]
 
-            if i in ["points_adj","points_adj_med"]:
-               sql = "SELECT tdate, median FROM %swetterturnier_tdatestats WHERE tdate IN%s AND cityID=%d"
-               cur.execute( sql % (self.prefix, sql_tuple(tdates.keys()), cityID) )
-               data = cur.fetchall()
-            if i in ["points_adj","points_adj_fit","points_adj_poly"]:
-               sql = "SELECT %s FROM %swetterturnier_citystats WHERE cityID=%d"
-               
-               if i == "points_adj":         what = "A,B,C,p,q,r,s"
-               elif i == ["points_adj_fit"]: what = "A,B,C"
-               elif i == "points_adj_poly":  what = "p,q,r,s"
-               
-               cur.execute( sql % ( what, self.prefix, cityID ) )
-               data2 = cur.fetchall()
-               if i in ["points_adj","points_adj_fit"]:
-                  for j in data2:
-                     A = j[0]; B = j[1]; C = j[2]
-               if i in ["points_adj","points_adj_poly"]:
-                   a = 0
-                   if i == "points_adj": a=3
-                   for j in data2:
-                     p = j[0+a]; q = j[1+a]; r = j[2+a]; s = j[3+a]
+            #get the actual median for each tdate
+            sql = "SELECT tdate, median from %swetterturnier_tdatestats WHERE cityID=%d AND tdate IN%s"
+            cur.execute( sql % (self.prefix, cityID, sql_tuple(tdates.keys()) ) )
+            data3 = cur.fetchall()
+            for j in data3:
+               tdates[j[0]]["median"] = j[1]
 
-            if i in ["points_adj","points_adj_med"]:
-               for j in data:
-                  tdates[j[0]]["median"] = j[1]
-            if i in ["points_adj","points_adj_fit"]:
-               for j in data:
-                  tdates[j[0]]["median_fit"] = A * log( B * j[0] ) + C
-            if i in ["points_adj","points_adj_poly"]:
-               for j in data:
-                  x = j[0]
-                  tdates[j[0]]["median_poly"] = p*x**3. + q*x**2. + r*x + s
+            sql = "SELECT %s FROM %swetterturnier_citystats WHERE cityID=%d"
+               
+            if "points_adj_fit" in i: what = "A,B,C"
+            elif "points_adj_poly" in i:  what = "p,q,r,s"
+               
+	    cur.execute( sql % ( what, self.prefix, cityID ) )
+	    data2 = cur.fetchall()
+	    if "points_adj_fit" in i:
+	       for j in data2:
+		  A = j[0]; B = j[1]; C = j[2]
+	       for j in data:
+		  tdates[j[0]]["median_fit"] = A * log( B * j[0] ) + C
+	    elif "points_adj_poly" in i:
+		for j in data2:
+		  p = j[0]; q = j[1]; r = j[2]; s = j[3]
+		for j in data:
+		  x = j[0]
+		  tdates[j[0]]["median_poly"] = p*x**3. + q*x**2. + r*x + s
 
             points_adj = 0
-            for t in tdates.keys():
-               if {"points","median","median_fit","median_poly"} <= set(tdates[t]):
-                  med = ( tdates[t]["median"] + tdates[t]["median_fit"] + tdates[t]["median_poly"] ) / 3.
-               elif {"points","median"} <= set(tdates[t]):
-                  med = tdates[t]["median"]
-               elif {"points","median_fit"} <= set(tdates[t]):
+            
+            print "tdate points med_fit percent median"
+            for t in sorted(tdates.keys()):
+               if {"points","median_fit"} <= set(tdates[t]):
                   med = tdates[t]["median_fit"]
                elif {"points","median_poly"} <= set(tdates[t]):
                   med = tdates[t]["median_poly"]
                else: continue
-               if med in [None,200] or tdates[t]["points"] == None: continue
-               else: points_adj += (tdates[t]["points"] - med) / (200 - med)
-
+               if {"points","median"} <= set(tdates[t]):
+                  median = tdates[t]["median"]
+               if med in [None,ymax] or tdates[t]["points"] == None: continue
+               else:
+                  perc = (tdates[t]["points"] - med) / (ymax - med)
+                  points_adj += perc
+               
+               print t, str(int(round(tdates[t]["points"]))).ljust(6), str(int(round(med))).ljust(7), str(int(round(perc*100))).ljust(7), str(int(round(median))).ljust(6)
+            
+            print ""
             #if participations of user below 50 we calculate a coefficient K to lower his/her points
             parts = float(len(points))
-            if parts >= 50:
+            if parts >= 100:
                K = 1.
             else:
-               K = parts**4. / 50.**4.
+               K = parts**2. / 100.**2.
 
             if len(tdates) == 0: res[i] = 0
             else: res[i] = float128(K * (points_adj / len(tdates)) * 100.)
 
+
          elif i == "points_adj_mean":
-            res[i] = mean([res["points_adj_med"], res["points_adj_fit"], res["points_adj_poly"]])
+            res[i] = mean([res["points_adj_fit"], res["points_adj_poly"]])
          elif i == "mean"+day_str:
             res[i] = mean(points)
          elif i == "median"+day_str:
@@ -1462,6 +1479,7 @@ class database(object):
 
 
    def upsert_stats(self, cityID, stats, userID=False, tdate=False, day=0):
+      """Insert stats dict into database"""
       cur = self.db.cursor()
       mstr   = ""
       values, sql_vals = [], ""
@@ -1566,9 +1584,29 @@ class database(object):
       return res
 
 
-   # find incomplete bets for a given tdate and cityID
-   def find_missing_bets(self, cityID, tdate=False ):
+   def find_missing_obs(self, cityID, tdate=False ):
+      """
+      Check whether too many obs are missing for a given city (and tdate) to compute Moses.
+      Returns True if obs are missing and False if everything is OK.
+      """
+      if not tdate:
+         tdate = self.current_tournament()
 
+      params = self.get_parameter_names()
+
+      for param in params:
+         paramID = self.get_parameter_id( param )
+         for day in range(1,3):
+            obs = self.get_obs_data(cityID,paramID,tdate,day)
+            if type(obs) == bool:
+               print "Obs in city '%s' have to many missing parameters on %s (tdate %d)!" % ( self.get_city_name_by_ID(cityID), utils.tdate2string(tdate), tdate )
+               return True
+         
+      return False
+
+
+   def find_missing_bets(self, cityID, tdate=False ):
+      """Find incomplete bets for a given tdate and cityID"""
       if not tdate:
          tdate = self.current_tournament()
 

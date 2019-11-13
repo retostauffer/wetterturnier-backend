@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  n  17 250  6 32  n  n 1011.5  20.0  13.4  13.2   8.2
 Kloten                    5  14 260  7  0  9  9 1011.8  19.6  13.9  12.3   1.2
@@ -51,13 +50,12 @@ Uwetter                   6  25 230  6 25  8  9 1011.3  18.3  14.0  12.8  18.5
 Wolkenteiler              8  11 230  5  0  8  8 1010.8  19.1  13.2  12.7  17.5
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  n   2 230  7  0  n  n 1011.9  17.1  12.8  12.3   7.8
 Kloten                    8   1 270  7  0  8  8 1012.0  17.5  13.6  12.5   4.0
@@ -101,4 +99,4 @@ Thurgauer                 7   3 250  8  0  6  8 1012.0  19.5  12.0  12.0  14.0
 ToGo                      8   8 250 10  0  8  8 1011.6  18.4  12.7  11.8  15.2
 Uwetter                   8   5 270  8 25  6  8 1011.8  17.3  13.0  11.8  16.5
 Wolkenteiler              8   9 250  8  0  8  8 1012.2  17.8  12.7  11.7  13.6
-
+

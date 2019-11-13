@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  n   0  50  5  0  n  n 1025.1   5.0   3.2   0.8     n
 Kloten                    8   0  30  8 29  0  0 1025.3   6.6   3.8   0.6   0.0
@@ -65,13 +64,12 @@ ww75                      7  15  50  8  0  0  0 1026.4   5.8   0.5  -1.8   0.0
 Zuberle                   8  10  50  8  0  0  0 1028.3   7.0   0.5  -1.0   0.3
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  n   5  60  9 30  n  n 1024.6   7.4   3.5  -0.5  -3.0
 Kloten                    7   3  50 22 36  0  0 1024.9   7.9   4.5  -0.4  -3.0
@@ -129,4 +127,4 @@ Wetterhuehner             5  35  50 12 25  0  0 1025.2   7.5   0.6   3.4  -3.0
 WetterStefan              6  35  60 11 28  0  0 1025.4   7.3   0.5  -2.0  -3.0
 ww75                      7  15  50 12 27  0  0 1026.0   6.7   0.5  -1.6  -3.0
 Zuberle                   7  20  60 12 25  6  0 1027.3   7.5   1.0  -1.5  -3.0
-
+

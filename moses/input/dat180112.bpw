@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   4 110 12 25  7  0 1032.7   0.5   0.4  -4.2   0.0
 Schoenefeld               8   5  90 12 25  0  0 1032.5   0.3   0.2  -4.2   0.0
@@ -27,7 +26,7 @@ Georg                     8   0 100 11  0  0  0 1032.6  -0.1  -0.9  -4.2  -3.0
 GHOSTofTEMPELHOF          6  19 100 10  0  0  0 1031.5   0.5  -1.9  -3.9  -3.0
 Grisuji-GFS-L1-MOS        5  59 100  9  0  0  0 1031.2   1.1  -1.4  -4.3  -3.0
 Grisuji-GFS-L2-MOS        5  55 100  9  0  0  0 1031.2   0.7  -1.8  -4.2  -3.0
-GRP_DahlemOBser           7   3 100 11  0  0  0 1032.5  -0.1  -1.2  -4.1  -3.0
+GRP_DahlemOBSer           7   3 100 11  0  0  0 1032.5  -0.1  -1.2  -4.1  -3.0
 GRP_Deutscher_Wetterd     7   8 100 11  0  0  0 1032.5  -0.3  -1.3  -4.8  -3.0
 GRP_FU-Studenten          8   0 100 10  0  0  0 1032.4   0.0  -1.0  -4.1  -3.0
 GRP_MeteoGroup            7   5 100 10  0  0  0 1032.5  -0.3  -1.0  -4.0  -3.0
@@ -70,13 +69,12 @@ wetteregon                7   7 100 10  0  0  0 1032.1   0.4  -1.0  -4.0  -3.0
 Wolkenteiler              6  22 100 11  0  0  0 1032.3   0.5  -0.9  -4.1  -3.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7  24 120 11  0  0  0 1029.7  -0.2  -2.1  -5.2  -3.0
 Schoenefeld               7  29 110 11  0  0  0 1029.7  -0.1  -3.0  -5.0  -3.0
@@ -98,7 +96,7 @@ Georg                     2  72 110  9  0  0  0 1030.0  -0.1  -3.8  -6.4  -3.0
 GHOSTofTEMPELHOF          1  88 110  9  0  0  0 1029.9   0.1  -4.4  -6.6  -3.0
 Grisuji-GFS-L1-MOS        5  65 120  8  0  0  0 1029.4   0.7  -3.5  -5.4  -3.0
 Grisuji-GFS-L2-MOS        4  62 110  8  0  0  0 1029.8   0.8  -3.7  -6.2  -3.0
-GRP_DahlemOBser           4  62 110  9  0  0  0 1030.0  -0.3  -4.3  -6.3  -3.0
+GRP_DahlemOBSer           4  62 110  9  0  0  0 1030.0  -0.3  -4.3  -6.3  -3.0
 GRP_Deutscher_Wetterd     2  79 110  9  0  0  0 1029.9  -0.2  -4.5  -6.5  -3.0
 GRP_FU-Studenten          3  64 110 10  0  0  0 1030.0  -0.4  -4.3  -6.7  -3.0
 GRP_MeteoGroup            2  76 110  9  0  0  0 1030.0  -0.3  -4.3  -6.3  -3.0
@@ -139,4 +137,4 @@ Weathercow                3  68 110  9  0  0  0 1029.6   0.3  -3.8  -5.3  -3.0
 Weatherdevil              0  93 110  9  0  0  0 1029.5   0.3  -4.0  -6.0  -3.0
 wetteregon                4  70 110 10  0  0  0 1030.0   0.3  -4.3  -6.0  -3.0
 Wolkenteiler              4  69 110  9  0  0  0 1030.0   0.0  -4.6  -6.4  -3.0
-
+

@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  2  71  60  9  0  0  0 1016.8  16.7   5.5   4.1  -3.0
 Kloten                    2  59  60 12  0  0  0 1017.1  17.2   2.5   4.6  -3.0
@@ -42,13 +41,12 @@ SturmTief                 2  80  60  7  0  0  0 1017.5  17.0   3.6   2.5  -3.0
 Sven/Titisee-Neustadt     2  77  50  7  0  0  0 1017.8  17.0   2.8   2.7  -3.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  8  34 260  8  0  0  0 1012.0  15.3   5.1   4.1   0.5
 Kloten                    8  31 240  7  0  0  0 1011.9  17.8   0.7   4.5   0.1
@@ -83,4 +81,4 @@ rana_2002                 3  67 250  4  0  0  0 1013.5  17.0   4.0   4.2  -3.0
 Stocken                   3  65 260  4  0  0  0 1013.0  17.0   4.0   4.0  -3.0
 SturmTief                 2  70 270  4  0  0  0 1013.0  18.0   4.5   3.5  -3.0
 Sven/Titisee-Neustadt     3  65 260  4  0  0  8 1013.3  18.0   4.8   4.5   0.1
-
+

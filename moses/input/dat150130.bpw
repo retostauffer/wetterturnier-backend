@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7   5 280  6  0  7  7  979.8   1.1  -0.1  -0.7   0.3
 Schoenefeld               4  15 240  4  0  0  7  979.8   1.1  -0.3  -1.0   0.6
@@ -29,7 +28,7 @@ Georg                     7   7 240 10  0  7  7  977.0   2.3  -0.9  -1.3   0.8
 GERHARD                   7   2 230 10  0  7  7  978.3   2.6  -1.4   0.1   1.5
 GHOSTofTEMPELHOF          7  21 230  9  0  7  7  977.9   2.2  -1.3  -1.1   0.5
 Greg                      8   3 230 11 25  7  7  976.5   2.3  -0.2  -0.4   1.4
-GRP_DahlemOBser           8   7 230 10  0  7  7  977.9   2.9  -0.8  -0.6   0.7
+GRP_DahlemOBSer           8   7 230 10  0  7  7  977.9   2.9  -0.8  -0.6   0.7
 GRP_Deutscher_Wetterd     7   8 230 10  0  7  7  977.8   2.5  -1.1  -1.1   1.0
 GRP_MeteoGroup            7   5 230 10  0  7  7  977.8   2.4  -0.9  -0.8   0.6
 GRP_Zueberle              8   9 230 11  0  7  7  977.9   2.5  -1.3  -1.2   0.5
@@ -72,13 +71,12 @@ Weatherdevil              7  23 230 10  0  7  7  978.0   2.1  -1.2  -1.0   0.6
 WetterStefan              8   0 230  8  0  7  7  976.1   2.9  -1.0  -0.7   1.2
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7  29 240 12  0  7  0  989.4   3.4   0.4   0.1   0.0
 Schoenefeld               6  61 240 10  0  7  0  989.7   3.8  -0.4   0.6   0.0
@@ -102,7 +100,7 @@ Georg                     6  19 250 12 25  7  8  985.2   3.2  -0.8  -1.0   1.0
 GERHARD                   7   6 240 10  0  0  7  985.6   2.3  -1.2  -1.2   1.4
 GHOSTofTEMPELHOF          6  23 240 11  0  7  8  985.6   3.3  -1.9  -1.1   0.3
 Greg                      7  15 240 12 25  8  8  985.8   2.9   0.0  -0.5   1.7
-GRP_DahlemOBser           6  15 240 11  0  7  7  986.4   3.4  -0.5  -0.8   0.6
+GRP_DahlemOBSer           6  15 240 11  0  7  7  986.4   3.4  -0.5  -0.8   0.6
 GRP_Deutscher_Wetterd     6  16 240 12  0  7  8  986.1   2.9  -0.7  -0.8   0.7
 GRP_MeteoGroup            7  14 240 12  0  7  7  986.5   2.8  -0.9  -0.7   0.8
 GRP_Zueberle              7  16 240 11  0  7  8  986.2   2.9  -1.0  -1.3   0.8
@@ -143,4 +141,4 @@ Sven/Titisee-Neustadt     7   5 240 13 30  7  8  986.3   3.6  -0.6  -0.5   2.5
 Uwetter                   8   5 230 12  0  7  7  986.8   1.7  -1.5  -0.7   1.3
 Weatherdevil              6  25 250 11  0  7  8  985.8   3.4  -1.7  -0.9   0.4
 WetterStefan              7   5 230  9  0  7  7  986.0   3.1  -0.4  -0.3   0.8
-
+

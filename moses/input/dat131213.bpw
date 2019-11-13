@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   0 220  6  0  5  5 1025.0   3.1  -0.6   0.3   0.0
 Schoenefeld               8   0 220  8  0  4  0 1024.7   2.9  -0.6   0.5   0.0
@@ -27,7 +26,7 @@ ehc_axel                  5  12 240  8  0  0  0 1023.7   3.6  -1.3   0.2   0.1
 fresh                     7  10 240  7  0  5  6 1024.0   3.7  -0.2   1.4   0.2
 Georg                     7   5 240  8  0  0  6 1023.9   3.6  -0.8   0.2   0.3
 GERHARD                   8   4 260  9  0  4  6 1025.1   3.6  -2.1   0.0   0.2
-GRP_DahlemOBser           7  10 240  6  0  0  5 1024.1   3.6  -0.7   0.6   0.1
+GRP_DahlemOBSer           7  10 240  6  0  0  5 1024.1   3.6  -0.7   0.6   0.1
 GRP_Deutscher_Wetterd     7  12 240  7  0  0  6 1024.4   3.5  -0.5   0.0   0.3
 GRP_Uni-Innsbruck         7   2 240  7  0  4  6 1024.2   3.6  -0.1   1.2   0.1
 GRP_Zueberle              7   7 240  8  0  4  6 1024.2   3.8  -0.7   1.2   0.4
@@ -69,13 +68,12 @@ Sven/Titisee-Neustadt     7   0 240  8  0  0  6 1026.0   4.0  -0.1   0.4   1.0
 WetterStefan              7   0 240  7  0  0  6 1023.8   3.4  -0.7   0.3   0.1
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   0 220 10  0  6  6 1026.4   6.9   2.1   3.2   1.0
 Schoenefeld               8   0 220 14  0  6  6 1026.8   6.1   1.6   3.0   0.3
@@ -97,7 +95,7 @@ ehc_axel                  6  37 240 13  0  0  0 1024.9   6.3   2.0   2.1   0.1
 fresh                     7  12 230 12 26  6  6 1025.0   6.1   2.0   3.0   0.2
 Georg                     8  10 230 12  0  6  6 1025.5   6.5   1.7   1.9   0.0
 GERHARD                   8   5 230 11  0  0  6 1025.2   5.7   0.6   1.3   0.2
-GRP_DahlemOBser           7  17 230 15  0  6  6 1025.3   6.3   1.6   2.2   0.2
+GRP_DahlemOBSer           7  17 230 15  0  6  6 1025.3   6.3   1.6   2.2   0.2
 GRP_Deutscher_Wetterd     7  18 230 11  0  6  6 1025.8   6.0   1.7   1.9   0.1
 GRP_Uni-Innsbruck         8  15 230 13  0  6  6 1026.2   5.8   1.7   1.9   0.1
 GRP_Zueberle              7  16 230 12 25  6  6 1025.3   6.3   1.8   2.7   0.2
@@ -137,4 +135,4 @@ snowthom                  7  10 230 13  0  6  6 1025.1   6.4   2.1   2.0   0.2
 SturmTief                 7  20 240 25  0  6  6 1025.0   7.0   2.0   2.0   0.2
 Sven/Titisee-Neustadt     7  25 230 12  0  5  0 1024.0   6.8   2.2   2.5   0.0
 WetterStefan              7  20 230 13  0  6  6 1024.8   6.5   1.9   1.9   0.3
-
+

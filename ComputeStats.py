@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=["points","points_adj","points_adj_med","points_adj_fit","points_adj_poly","points_adj_mean","part","mean","median","Qlow","Qupp","max","min","sd"]
+   measures=["points","points_adj_fit","points_adj_poly","part","mean","median","Qlow","Qupp","max","min","sd"]
 
    # check whether current tournament is finished to keep open tournaments out of the userstats
    today              = utils.today_tdate()
@@ -85,7 +85,7 @@ if __name__ == '__main__':
       #generating ranking table output, write to .xls file
       with pd.ExcelWriter( "plots/eternal_list.xls" ) as writer:
 	 for city in cities:
-	    sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d ORDER BY points_adj_mean DESC LIMIT 0,80"
+	    sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d ORDER BY points_adj_fit DESC LIMIT 0,80"
 	    cols = ",".join( measures[:7] )
 	    table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
 	    table.to_excel( writer, sheet_name = city["hash"] )

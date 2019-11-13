@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  9   0 180  1  0  5  4 1027.1   1.7  -0.8   0.4  -3.0
 Kloten                    8   0 360  1  0  4  0 1027.8   1.6  -1.2  -0.5  -3.0
@@ -40,13 +39,12 @@ WMB                       8   0  30  2  0  0  0 1026.9   1.8  -1.1  -1.3  -3.0
 Xiaerger                  6  60 290  2  0  0  0 1027.3   2.5  -0.3  -3.5  -3.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  8   0  70  1  0  5  5 1021.4   1.2   0.5   0.2  -3.0
 Kloten                    8   0 300  1  0  7  0 1021.9   1.9   0.5   0.6   0.7
@@ -79,4 +77,4 @@ Troepfchen                8   0  30  3  0  4  0 1021.1   0.8  -2.8  -2.3   1.0
 Uwetter                   7  10 340  3  0  0  8 1018.0   2.0  -3.0   0.0   0.0
 WMB                       7   6  10  3  0  0  0 1022.7   1.5  -3.1  -2.1  -3.0
 Xiaerger                  7  30 330  2  0  0  0 1021.6   2.2  -0.5  -3.0  -3.0
-
+

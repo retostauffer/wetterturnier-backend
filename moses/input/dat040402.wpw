@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                2  75 130  6  0  0  0 1021.4  18.4   6.3   5.7   2.0
 Schwechat                 5   n 150 10  0  0  0 1022.0  17.8   7.3   5.1   1.0
@@ -51,13 +50,12 @@ vesper                    7  11 130 11  0  0  0 1022.8  13.4   6.5   4.7  -3.0
 WMB                       6  38 150 11  0  0  0 1023.1  15.0   6.8   6.2   2.1
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                7   5  10  6  0  6  0 1021.3  16.1  10.2   9.6   2.0
 Schwechat                 7   n  40  8  0  6  9 1021.5  16.5   9.5  11.4   2.0
@@ -101,4 +99,4 @@ Troepfchen                7  15 160  6  0  6  8 1019.8  15.9   7.0   7.3   3.0
 Uwetter                   7  10 220  5  0  6  6 1017.3  12.8   7.3  10.8   2.1
 vesper                    8   7 230  6  0  6  8 1019.5  13.1   7.3   7.0   2.2
 WMB                       8   8 280  7  0  6  8 1019.9  14.0   6.9   7.3   1.3
-
+

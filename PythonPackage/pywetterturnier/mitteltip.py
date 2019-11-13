@@ -204,7 +204,7 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
       # - Else if more than 50% are 0, take it.
       elif float(len(np.where( data < 0. )[0])) / float(len(data)) > 0.5:
          bet[day-1]['RR'] = 0
-      # - Else take mean value of all >= 25
+      # - Else take mean value of all >= 0
       else:
          bet[day-1]['RR'] = np.round(np.mean(data[ np.where( data >= 0. ) ]),0)
    

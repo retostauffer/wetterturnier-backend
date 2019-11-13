@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7  39 270  8  0  9  6 1016.6  29.0  21.6  19.8   4.3
 Schoenefeld               7  24 260  8  0  9  0 1017.2  28.6  20.3  19.6   7.9
@@ -66,13 +65,12 @@ Weatherdevil              7  28 280  7  0  8  9 1014.7  28.1  22.2  19.3   7.8
 Wolkenfahnderin           7  30 290  6  0  9  8 1016.1  28.7  21.4  17.5  13.2
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     6  29 300  8  0  0  0 1026.8  24.2  16.3  10.4  -3.0
 Schoenefeld               6  18 330 10  0  6  0 1026.8  23.4  16.8   8.8   0.0
@@ -131,4 +129,4 @@ Sven/Titisee-Neustadt     5  60 320  9  0  0  0 1024.1  24.4  16.0  10.0  -3.0
 Weathercow                5  56 320  9  0  0  0 1024.7  25.0  16.5  10.6  -3.0
 Weatherdevil              5  52 320  9  0  0  0 1024.8  25.2  16.2  10.6  -3.0
 Wolkenfahnderin           2  80 310 10  0  0  0 1025.1  24.8  16.4   9.8  -3.0
-
+

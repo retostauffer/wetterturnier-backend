@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                1  79 160 10 27  0  0 1014.3  23.3   9.5   9.8   0.0
 Schwechat                 2  81 150 23 31  0  0 1015.2  23.1   9.1   9.9   0.0
@@ -45,13 +44,12 @@ whoami                    4  65 150 15 27  0  0 1016.9  20.6   9.0   8.9   0.2
 Wolkenteiler              5  68 150 14 28  0  0 1015.4  21.3   8.4   9.3  -3.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Hohe Warte                7  45 100  2  0  0  0 1013.3  22.0  14.1  13.1  -3.0
 Schwechat                 7  42  10  6  0  0  0 1013.4  22.3  13.6  13.1  -3.0
@@ -89,4 +87,4 @@ Uwetter                   7  42 130  8  0  0  8 1012.8  23.3  13.7  12.8   5.0
 wetteregon                7  30 130  5  0  0  0 1014.3  20.5  12.1  13.0   0.6
 whoami                    6  50 110  5  0  0  0 1013.0  23.0  12.8  13.5   1.5
 Wolkenteiler              7  42 130  5  0  0  0 1014.5  19.7  12.2  12.6   0.4
-
+

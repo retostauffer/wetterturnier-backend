@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     3  62  90  6  0  0  0 1014.1  21.1  10.7   4.7  -3.0
 Tempelhof                 4  66  50  6  0  0  0 1014.3  21.8  10.5   6.6  -3.0
@@ -72,13 +71,12 @@ Sven/Titisee-Neustadt     4  70  40  8  0  0  0 1013.3  20.0   9.0   6.5  -3.0
 ti                        4  66  60  8  0  0  0 1014.0  20.5   8.5   6.0  -3.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     4  70  80  8  0  0  0 1018.3  21.9   8.6   7.3   0.0
 Tempelhof                 4  67  50  6  0  0  0 1018.6  22.2   8.2   5.8  -3.0
@@ -143,4 +141,4 @@ sohnemus                  7  40  80  9  0  0  0 1019.5  20.2  10.1   5.1   0.0
 Stocken                   3  75  70 10  0  0  0 1018.0  22.0   8.0   5.0  -3.0
 Sven/Titisee-Neustadt     1  90  80 10  0  0  0 1016.8  21.3   8.0   5.5  -3.0
 ti                        3  75  90 10  0  0  0 1017.0  21.5   8.7   5.5  -3.0
-
+

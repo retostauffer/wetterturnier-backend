@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  n  14  60  1  0  n  n 1012.2  21.8  13.8  13.6  12.6
 Kloten                    7  30 340  3  0  0  8 1012.4  22.6  13.9  13.1   4.8
@@ -53,13 +52,12 @@ Thurgauer                 6  15 280  4  0  0  9 1012.0  21.5  14.5  15.0   5.0
 Uwetter                   7  25 250  3  0  8  8 1012.3  20.7  15.0  15.3   5.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Fluntern                  n  21 190  6  0  n  n 1011.8  20.0  14.2  14.6  11.1
 Kloten                    7  13 290  9  0  8  9 1012.5  20.9  14.6  14.0   1.9
@@ -105,4 +103,4 @@ Subminolumucchaser        8  20   0  0  0  0  9 1012.8  21.4  14.7  14.4   7.0
 Sven/Titisee-Neustadt     7  25 250  5  0  8  8 1012.8  23.0  14.3  13.9  10.0
 Thurgauer                 8  10 270  5  0  6  8 1013.0  21.0  14.5  14.0   3.5
 Uwetter                   7  17 250  4  0  8  9 1012.7  21.0  15.0  15.0  10.0
-
+

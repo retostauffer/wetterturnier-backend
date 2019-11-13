@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   0  40  7  0  6  0 1032.6   4.6   1.9  -0.3   0.0
 Schoenefeld               8   0  20  9  0  0  0 1032.4   4.1   1.5  -0.3   0.0
@@ -30,7 +29,7 @@ Frosch410                 8   0  30  8  0  5  5 1031.5   5.2   1.0   0.3   0.3
 Georg                     8   0  20  8  0  6  6 1032.3   4.9   1.8   1.2   0.4
 GHOSTofTEMPELHOF          8   0  20  7  0  7  6 1032.2   5.1   0.5   0.5   0.3
 Greg                      8   0  30  8  0  7  6 1032.0   4.7   1.5   1.0   0.0
-GRP_DahlemOBser           8   1  30  8  0  6  6 1032.7   5.1   1.5   0.7   0.2
+GRP_DahlemOBSer           8   1  30  8  0  6  6 1032.7   5.1   1.5   0.7   0.2
 GRP_Deutscher_Wetterd     8   0  20  8  0  6  6 1032.2   5.0   1.5   0.8   0.2
 GRP_FU-Studenten          8   1  30  8  0  6  6 1032.6   5.3   1.6   0.7   0.3
 GRP_MeteoGroup            8   1  30  8  0  7  6 1032.3   5.0   1.3   0.6   0.2
@@ -76,13 +75,12 @@ wetteregon                7  10  30  8  0  6  6 1039.1   6.3   1.0   0.9   0.3
 WetterStefan              8   3  20  8  0  6  6 1032.2   6.0   1.0   1.0   0.7
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7   0  30  6  0  0  0 1037.4   3.6   0.4  -2.4  -3.0
 Schoenefeld               8   0  60  8  0  0  0 1037.2   2.8  -0.4  -1.4  -3.0
@@ -107,7 +105,7 @@ Frosch410                 7  20  40  7  0  5  0 1035.4   6.5   0.9  -1.5   0.0
 Georg                     6  48  30  7  0  0  0 1035.9   7.1   1.0  -0.9  -3.0
 GHOSTofTEMPELHOF          4  60  40  7  0  0  0 1035.5   8.6   0.4  -1.0  -3.0
 Greg                      6  35  40  8  0  0  0 1035.2   6.0   1.7  -0.2  -3.0
-GRP_DahlemOBser           5  50  40  7  0  0  0 1035.8   8.0   0.3  -1.4  -3.0
+GRP_DahlemOBSer           5  50  40  7  0  0  0 1035.8   8.0   0.3  -1.4  -3.0
 GRP_Deutscher_Wetterd     6  31  40  7  0  0  0 1036.0   7.1   1.0  -1.3  -3.0
 GRP_FU-Studenten          5  52  40  7  0  0  0 1035.7   7.8   0.3  -1.3  -3.0
 GRP_MeteoGroup            5  47  40  8  0  0  0 1035.8   7.3   0.9  -1.2  -3.0
@@ -151,4 +149,4 @@ WB-Berlin                 5  55  40  7  0  0  0 1035.7   8.2  -0.2  -1.3  -3.0
 Weathercow                5  60  40  7  0  0  0 1035.6   8.0   0.4  -1.3  -3.0
 wetteregon                5  62  40  8  0  0  0 1036.0   8.2  -1.8  -2.0  -3.0
 WetterStefan              5  60  40  8  0  0  0 1035.5   7.9   0.4  -1.6  -3.0
-
+

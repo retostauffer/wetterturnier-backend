@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   0 100 10  0  0  0 1008.0  11.2   8.5   8.1   0.0
 Schoenefeld               8   0  90 12  0  0  0 1007.9  11.1   8.3   8.3  -3.0
@@ -26,7 +25,7 @@ Frosch410                 8   0 100 12  0  0  5 1007.6  12.0   7.2   8.0   0.0
 Georg                     8   4 100 12  0  0  6 1007.4  12.1   7.6   8.4   0.0
 GERHARD                   8   1  90 11  0  0  0 1007.3  11.9   6.8   8.5  -3.0
 GHOSTofTEMPELHOF          8  10 110 11  0  0  6 1008.1  12.2   8.1   7.9   0.4
-GRP_DahlemOBser           8   8 100 12  0  0  0 1007.7  11.8   7.9   8.3   0.1
+GRP_DahlemOBSer           8   8 100 12  0  0  0 1007.7  11.8   7.9   8.3   0.1
 GRP_Deutscher_Wetterd     8   0 100 11  0  0  0 1007.6  11.7   7.7   8.1   0.1
 GRP_MeteoGroup            8   4 100 12  0  0  6 1007.7  11.6   7.7   8.3  -3.0
 GRP_Uni-Innsbruck         8   0 110 12  0  0  0 1007.9  11.9   7.8   8.2   0.1
@@ -72,13 +71,12 @@ Uwetter                   8   0 100 12  0  0  0 1007.7  11.0   8.0   8.2  -3.0
 Weathercow                8  15 110 11  0  0  0 1008.5  12.0   8.0   8.0   0.1
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     8   0 100  8  0  5  5 1002.1  10.1   7.4   7.2   0.0
 Schoenefeld               8   0  90 12  0  5  6 1002.1  10.3   7.8   7.7   0.0
@@ -99,7 +97,7 @@ Frosch410                 8   0 110  8  0  6  6 1001.4  10.8   8.1   8.0   1.5
 Georg                     8   0 110 10  0  6  6 1002.0  11.1   9.3   8.2   2.9
 GERHARD                   8   1 190  8  0  6  6 1003.4  11.0   9.5   8.4   0.9
 GHOSTofTEMPELHOF          8   0 100  9  0  6  6 1003.4  10.3   9.3   8.1   1.7
-GRP_DahlemOBser           8   0 110  9  0  6  6 1002.4  10.8   8.7   8.5   2.6
+GRP_DahlemOBSer           8   0 110  9  0  6  6 1002.4  10.8   8.7   8.5   2.6
 GRP_Deutscher_Wetterd     8   0 100  9  0  6  6 1002.3  10.8   8.7   8.2   2.3
 GRP_MeteoGroup            8   0 110 10  0  6  6 1001.9  11.0   9.3   8.5   2.3
 GRP_Uni-Innsbruck         8   0 130 10  0  6  6 1002.3  10.9   9.2   8.6   2.1
@@ -143,4 +141,4 @@ SturmTief                 8   0 110 10  0  6  6 1002.5  11.0   9.0   9.0   3.0
 Sven/Titisee-Neustadt     8   0 120  8  0  0  6 1002.4  11.5   9.1   7.5   2.5
 Uwetter                   8   0 110 10  0  0  6 1002.5  11.0   9.0   8.2   2.0
 Weathercow                8   0 100  9  0  6  6 1003.6  10.5   9.2   8.1   1.5
-
+

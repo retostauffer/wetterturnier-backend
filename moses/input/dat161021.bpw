@@ -1,11 +1,10 @@
                                       Samstag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     7   7 190  3  0  0  6 1013.9  10.6   6.3   3.9   0.0
 Schoenefeld               6   5 170  7  0  6  6 1014.0   9.8   5.1   5.3   0.0
@@ -25,7 +24,7 @@ fresh                     7  10 170  6  0  5  8 1013.9   9.6   2.5   4.8   1.0
 Frosch410                 7  16 160  5  0  6  6 1013.5   9.0   3.3   5.0   1.0
 Georg                     7   9 150  4  0  4  8 1013.7   9.2   3.9   4.8   0.8
 GHOSTofTEMPELHOF          7  19 180  6  0  6  6 1013.8   9.5   4.4   3.9   1.1
-GRP_DahlemOBser           8   9 160  5  0  6  8 1013.7   9.1   3.8   4.8   1.2
+GRP_DahlemOBSer           8   9 160  5  0  6  8 1013.7   9.1   3.8   4.8   1.2
 GRP_Deutscher_Wetterd     7   9 180  5  0  6  6 1013.6   9.3   3.3   4.9   2.0
 GRP_FU-Studenten          8   9 160  5  0  6  8 1013.7   9.1   3.8   4.8   1.2
 GRP_MeteoGroup            7  10 160  5  0  4  8 1013.8   9.2   3.5   4.6   1.1
@@ -73,13 +72,12 @@ WetterStefan              7  12 170  5  0  6  8 1013.7   9.1   3.9   5.0   1.2
 Wolkenteiler              8  16 150  5  0  6  8 1014.0   9.3   3.7   4.6   1.0
 
                                       Sonntag
-
 
 
 
 
 
-Spielername               N  SD  DD FF FX Wv Wn    PPP   TX     TN    TD    RR
+Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR
 ------------------------------------------------------------------------------
 Tegel                     5  26 170  5  0  0  0 1016.9  10.0   6.0   4.7  -3.0
 Schoenefeld               5  15 120  5  0  0  0 1017.2   9.2   5.6   5.8  -3.0
@@ -99,7 +97,7 @@ fresh                     6  35 170  6  0  4  0 1017.5  10.0   3.0   4.5   0.0
 Frosch410                 6  30 170  7  0  5  0 1018.3   9.4   4.4   4.2   0.0
 Georg                     7  24 170  5  0  5  0 1017.4   9.6   4.0   4.6   0.0
 GHOSTofTEMPELHOF          6  33 170  6  0  6  0 1017.7   9.9   3.3   4.1   0.1
-GRP_DahlemOBser           7  26 180  6  0  0  0 1017.5   9.7   3.8   4.3  -3.0
+GRP_DahlemOBSer           7  26 180  6  0  0  0 1017.5   9.7   3.8   4.3  -3.0
 GRP_Deutscher_Wetterd     7  20 180  6  0  5  0 1017.4   9.6   3.9   4.5   0.3
 GRP_FU-Studenten          7  26 180  6  0  0  0 1017.5   9.7   3.8   4.3  -3.0
 GRP_MeteoGroup            7  22 180  6  0  6  0 1017.2   9.7   3.8   4.4   0.0
@@ -145,4 +143,4 @@ Weatherdevil              6  33 170  6  0  6  0 1018.0  10.0   4.0   4.5   0.1
 wetteregon                6  32 180  6  0  6  0 1017.5   9.8   3.7   4.5   0.2
 WetterStefan              6  26 180  6  0  5  0 1017.2   9.7   3.7   4.3   0.1
 Wolkenteiler              6  33 180  6  0  6  0 1017.7  10.0   3.3   4.6   0.0
-
+
