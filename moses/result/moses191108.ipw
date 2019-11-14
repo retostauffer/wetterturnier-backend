@@ -1,0 +1,61 @@
+N  
+0.29477 Wolkenteiler             
+0.46154 Ms.Os                    
+0.24369 Auftrieb                 
+ 
+Sd 
+0.64552 Mammatus95               
+0.35448 DWD-EZ-MOS               
+ 
+dd 
+0.26383 DWD-ICON-MOS             
+0.25768 Ms.Os                    
+0.14440 Auftrieb                 
+0.10003 DWD-EZ-MOS               
+0.15945 DWD-MOS-MIX-test         
+0.07461 Mammatus95               
+ 
+ff 
+0.44564 adri_der_pinner          
+0.33333 DWD-ICON-MOS             
+0.22103 Ms.Os                    
+ 
+fx 
+0.28377 DWD-MOS-MIX-test         
+0.27462 Grisuji-EZ-L1-MOS        
+0.24784 DWD-ICON-MOS             
+0.19378 adri_der_pinner          
+ 
+Wv 
+0.17113 DWD-MOS-MIX-test         
+0.27563 Mammatus95               
+0.20851 Ms.Os                    
+0.14971 DWD-ICON-MOS             
+0.19503 adri_der_pinner          
+ 
+Wn 
+0.45718 Grisuji-EZ-L1-MOS        
+0.30101 DWD-EZ-MOS               
+0.24182 Auftrieb                 
+ 
+PPP
+0.78204 DWD-MOS-MIX-test         
+0.21796 Ms.Os                    
+ 
+TTm
+0.59376 adri_der_pinner          
+0.40624 Wolkenteiler             
+ 
+TTn
+0.48058 adri_der_pinner          
+0.20841 Ms.Os                    
+0.31101 DWD-MOS-MIX-test         
+ 
+TTd
+0.58220 adri_der_pinner          
+0.41780 Ms.Os                    
+ 
+RR 
+0.48173 Wolkenteiler             
+0.32931 adri_der_pinner          
+0.18896 Ms.Os                    
