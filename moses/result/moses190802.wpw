@@ -1,0 +1,64 @@
+N  
+0.12039 Grisuji-EZ-L1-MOS        
+0.28842 Föhni                    
+0.32354 Oberbayer                
+0.26765 MSwr-MOS-Mix             
+ 
+Sd 
+0.37835 Oberbayer                
+0.27432 meteoleipzig             
+0.34733 fleming                  
+ 
+dd 
+0.13520 fleming                  
+0.07642 meteoleipzig             
+0.23486 DWD-ICON-MOS             
+0.24052 Ms.Os                    
+0.15541 DWD-MOS-MIX-test         
+0.15760 Oberbayer                
+ 
+ff 
+0.59291 Oberbayer                
+0.40709 Ms.Os                    
+ 
+fx 
+0.35592 fleming                  
+0.37246 DWD-MOS-MIX-test         
+0.27162 Oberbayer                
+ 
+Wv 
+0.47149 Föhni                    
+0.29752 Oberbayer                
+0.23098 Ms.Os                    
+ 
+Wn 
+0.58932 wetteregon               
+0.21230 meteoleipzig             
+0.19838 fleming                  
+ 
+PPP
+0.48133 Bibertaler               
+0.33469 Grisuji-EZ-L1-MOS        
+0.18397 Föhni                    
+ 
+TTm
+0.26083 DWD-MOS-Mix              
+0.24591 Oberbayer                
+0.35267 MSwr-EZ-MOS              
+0.14059 MSwr-GFS-MOS             
+ 
+TTn
+0.37711 Bibertaler               
+0.25674 Ms.Os                    
+0.36615 DWD-MOS-MIX-test         
+ 
+TTd
+0.43385 DWD-MOS-MIX-test         
+0.35249 meteoleipzig             
+0.21366 Oberbayer                
+ 
+RR 
+0.26279 DWD-MOS-MIX-test         
+0.29501 fleming                  
+0.29846 DWD-EZ-MOS               
+0.14374 Föhni                    

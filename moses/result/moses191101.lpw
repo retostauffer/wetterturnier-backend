@@ -1,0 +1,53 @@
+N  
+0.44431 Schneegewitter           
+0.32057 Snab_LE                  
+0.23512 Mammatus95               
+ 
+Sd 
+0.45919 Snab_LE                  
+0.28122 DWD-MOS-MIX-test         
+0.25959 Schneegewitter           
+ 
+dd 
+0.56923 Mammatus95               
+0.43077 humilis91                
+ 
+ff 
+0.57056 DWD-MOS-MIX-test         
+0.42944 humilis91                
+ 
+fx 
+0.14418 Wolkenteiler             
+0.42337 fresh                    
+0.43245 Snab_LE                  
+ 
+Wv 
+0.30356 DWD-MOS-MIX-test         
+0.41422 Snab_LE                  
+0.28222 Wolkenteiler             
+ 
+Wn 
+0.57230 Schneegewitter           
+0.42770 Snab_LE                  
+ 
+PPP
+0.77246 fresh                    
+0.22754 MSwr-EZ-MOS              
+ 
+TTm
+0.24878 DWD-MOS-MIX-test         
+0.33812 Snab_LE                  
+0.41310 Wolkenteiler             
+ 
+TTn
+0.64639 Snab_LE                  
+0.35361 MSwr-EZ-MOS              
+ 
+TTd
+0.47806 fresh                    
+0.52194 Snab_LE                  
+ 
+RR 
+0.53817 DWD-MOS-MIX-test         
+0.23847 Snab_LE                  
+0.22336 Schneegewitter           
