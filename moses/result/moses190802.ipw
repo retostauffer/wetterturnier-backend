@@ -1,59 +1,59 @@
 N  
-0.31911 Georg                    
-0.33776 MSwr-GFS-MOS             
-0.34313 Ms.Os                    
+0.48767 Ms.Os                    
+0.28858 ambot_lang               
+0.22375 Auftrieb                 
  
 Sd 
-0.66340 Georg                    
-0.33660 Mammatus95               
+0.52595 ambot_lang               
+0.47405 Mammatus95               
  
 dd 
-0.31272 DWD-ICON-MOS             
-0.17620 Ms.Os                    
-0.16446 DWD-EZ-MOS               
-0.09068 MSwr-EZ-MOS              
-0.12515 Auftrieb                 
-0.13079 DWD-MOS-MIX-test         
+0.30322 DWD-ICON-MOS             
+0.18619 Ms.Os                    
+0.18542 DWD-EZ-MOS               
+0.15551 Auftrieb                 
+0.16966 DWD-MOS-MIX-test         
  
 ff 
 0.65574 adri_der_pinner          
 0.34426 DWD-ICON-MOS             
  
 fx 
-0.40002 fleming                  
-0.28016 Georg                    
-0.19000 DWD-ICON-MOS             
-0.12982 MSwr-GFS-MOS             
+0.31140 ambot_lang               
+0.30631 adri_der_pinner          
+0.23022 Grisuji-EZ-L1-MOS        
+0.15207 DWD-ICON-MOS             
  
 Wv 
-0.42734 DWD-MOS-MIX-test         
-0.38788 Georg                    
-0.18478 Ms.Os                    
+0.24039 DWD-MOS-MIX-test         
+0.27190 Ms.Os                    
+0.24137 Mammatus95               
+0.24634 adri_der_pinner          
  
 Wn 
-0.36469 Grisuji-EZ-L1-MOS        
-0.37800 DWD-EZ-MOS               
-0.25730 meteoleipzig             
+0.42134 Grisuji-EZ-L1-MOS        
+0.31470 DWD-EZ-MOS               
+0.26396 ambot_lang               
  
 PPP
-0.41410 DWD-MOS-MIX-test         
-0.44036 Georg                    
-0.14554 Ms.Os                    
+0.66121 DWD-MOS-MIX-test         
+0.20410 ambot_lang               
+0.13470 Ms.Os                    
  
 TTm
-0.70375 Georg                    
-0.29625 DWD-EZ-MOS               
+0.37260 adri_der_pinner          
+0.33938 ambot_lang               
+0.28801 DWD-EZ-MOS               
  
 TTn
-0.53408 Georg                    
-0.31411 adri_der_pinner          
-0.15181 Ms.Os                    
+0.59718 adri_der_pinner          
+0.40282 DWD-MOS-MIX-test         
  
 TTd
-0.81535 Georg                    
-0.18465 Ms.Os                    
+0.55947 adri_der_pinner          
+0.44053 Ms.Os                    
  
 RR 
-0.35745 adri_der_pinner          
-0.29161 MSwr-GFS-MOS             
-0.35094 Auftrieb                 
+0.56644 adri_der_pinner          
+0.21137 Ms.Os                    
+0.22219 Auftrieb                 

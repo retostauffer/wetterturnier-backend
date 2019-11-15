@@ -69,10 +69,20 @@ if __name__ == '__main__':
    userID = db.get_user_id( username )
    print '    The userID of the sleepy is %d' % userID
    
+   #exclude Sleepy, Referenztipps and Mitteltipps (groups)
+   ignore = [userID] 
+   referenz = db.get_users_in_group( group="Referenztipps" )
+   for i in referenz:
+      ignore.append( int(i) )
+
+   groups = db.get_groups()
+   for group in groups:
+      ignore.append( db.get_user_id( "GRP_" + group ) )
+
+
    # ----------------------------------------------------------------
    # - Compute its sleepy, one for each city 
    # ----------------------------------------------------------------
-   import numpy as np
    for city in cities:
    
       print '\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID']) 
@@ -90,7 +100,7 @@ if __name__ == '__main__':
 
          # - Returns list object containing two dicts 
          #   where all the bets are in.
-         tmp = db.get_sleepy_points(city['ID'],tdate,userID)
+         tmp = db.get_sleepy_points(city['ID'],tdate,ignore)
          if tmp == False: continue
 
          # - Else prepare the data to compute the Sleepy poins
@@ -102,6 +112,7 @@ if __name__ == '__main__':
          if len(data) == 0: continue
 
          points    = np.round(np.mean(data)  - np.mean(np.abs(data  - np.mean(data ))),1)
+         #points    = np.round(np.median(data)  - np.mean(np.abs(data  - np.median(data ))),1)
  
          # - Insert Sleepy points
          print '    Inserting Sleepy points for %d' % tdate

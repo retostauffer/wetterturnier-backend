@@ -329,7 +329,7 @@ class database(object):
          needs some effort as I have to change a few lines of code.
       """
 
-      print '  * %s' % 'looking active cities'
+      #print '  * %s' % 'looking active cities'
       sql = 'SELECT * FROM %swetterturnier_cities'
       if active: sql += ' WHERE active = 1'
       if sort: sql+=' ORDER BY ID'
@@ -1140,12 +1140,12 @@ class database(object):
          return int(data[0])
 
 
-   def get_users_in_group(self, groupID, group=False, active=True, sort=False):
+   def get_users_in_group(self, groupID=None, group=False, active=True, sort=False):
       """Returns all members of a given groupID or group name.
 
       Args:
-        groupID (:obj:`int`): GroupID.
-        group (:obj:`str`): Group name.
+        groupID (:obj:`int`): groupID.
+        group (:obj:`str`): The group name.
         active (:obj:`bool`): True if only active members should be returned.
         sort (:obj:`bool`): True if the user should be sorted by the sort column in the wetterturnier_groupusers table. 
       
@@ -1153,9 +1153,9 @@ class database(object):
         List of userIDs for the given group.
       """
       if group:
-         return self.db.get_users_in_group( groupID = self.db.get_group_id(group) )
+         return self.get_users_in_group( groupID = self.get_group_id(group) )
       else:
-         cur = self.db.cursor()
+         cur = self.cursor()
          sql = 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d'
          if active: sql+=' AND active=1'
          if sort: sql+=' ORDER BY sort'
@@ -1240,9 +1240,9 @@ class database(object):
       sql = 'SELECT b.points AS points ' + \
             'FROM %swetterturnier_betstat AS b LEFT OUTER JOIN %susers AS u ' + \
             'ON b.userID = u.ID ' + \
-            'WHERE cityID = %d AND tdate = %d AND userID != %d ' + \
+            'WHERE cityID = %d AND tdate = %d AND userID NOT IN%s ' + \
             'AND NOT b.points IS NULL'
-      cur.execute( sql % ( self.prefix, self.prefix,cityID,tdate,ignore) )
+      cur.execute( sql % ( self.prefix, self.prefix,cityID,tdate,sql_tuple(ignore)) )
       data = cur.fetchall()
 
       #print data
@@ -1252,8 +1252,8 @@ class database(object):
          return data
 
    #compute statistics out of some wetterturnier tables like betstat
-   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, ymax=200, midyear=2010, span=False):
-      print ymax
+   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, ymax=200, pmin=100, ex=2, midyear=2010, span=False):
+      #print ymax
       res = {} #results will be saved here with measures as keys
 
       from numpy import mean, std, median, percentile, exp, log, float128
@@ -1386,7 +1386,7 @@ class database(object):
                   sql+=" AND tdate>"+middle_tdate
                else:
                   sql+=" AND tdate BETWEEN "+str(utils.string2tdate(span[0]))+" AND "+str(utils.string2tdate(span[1]))
-                  print sql
+                  #print sql
             cur.execute( sql % (self.prefix, sql_tuple(userIDs), cityID) )
             data = cur.fetchall()
 
@@ -1422,7 +1422,7 @@ class database(object):
 
             points_adj = 0
             
-            print "tdate points med_fit percent median"
+            print "tdate      points med_fit percent median"
             for t in sorted(tdates.keys()):
                if {"points","median_fit"} <= set(tdates[t]):
                   med = tdates[t]["median_fit"]
@@ -1436,15 +1436,16 @@ class database(object):
                   perc = (tdates[t]["points"] - med) / (ymax - med)
                   points_adj += perc
                
-               print t, str(int(round(tdates[t]["points"]))).ljust(6), str(int(round(med))).ljust(7), str(int(round(perc*100))).ljust(7), str(int(round(median))).ljust(6)
+               print utils.tdate2string(t), str(int(round(tdates[t]["points"]))).ljust(6), str(int(round(med))).ljust(7), str(int(round(perc*100))).ljust(7), str(int(round(median))).ljust(6)
             
             print ""
             #if participations of user below 50 we calculate a coefficient K to lower his/her points
             parts = float(len(points))
-            if parts >= 100:
+            ex = float(ex)
+            if parts >= pmin:
                K = 1.
             else:
-               K = parts**2. / 100.**2.
+               K = parts**ex / float(pmin)**ex
 
             if len(tdates) == 0: res[i] = 0
             else: res[i] = float128(K * (points_adj / len(tdates)) * 100.)

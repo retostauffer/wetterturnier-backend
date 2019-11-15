@@ -122,7 +122,10 @@ def inputcheck(what):
          try:
             inputs['input_tdate'] = int( a )
          except:
-            print '-t/--tdate input has to be an integer!'; usage(what)
+            try:
+               inputs['input_tdate'] = string2tdate( str(a) )
+            except:
+               print '-t/--tdate input has to be an integer or a datestring (YYYY-MM-DD)!'; usage(what)
       else:
          assert False, "unhandled option"
 
