@@ -7,7 +7,7 @@ if __name__ == '__main__':
    from pywetterturnier import utils, database
 
    # - Evaluating input arguments
-   inputs = utils.inputcheck('ComputeStats')
+   inputs = utils.inputcheck('ComputeUserStats')
 
 
    # - Read configuration file
@@ -33,52 +33,71 @@ if __name__ == '__main__':
    if config["input_users"]:
       #print config["input_users"]
       users = config["input_users"]
-   """
-   MeteoService-GFS-MOS = MSwr-GFS-MOS
-   GME-MOS = DWD-ICON-MOS
-   DWD-MOS-Mix = DWD-EZGMEMOS
-   """
+   
+   elif config["input_user"]:
+      #print config["input_users"]
+      users = [config["input_user"]]
 
+   #-s => compare multiple users
    for i in users:
       userIDs.append( db.get_user_id(i) )
    #print users; userIDs
 
-   measures=["points_adj_fit","points_adj_poly","points_adj_fit1","points_adj_fit2","points_adj_poly1","points_adj_poly2"]
-   #measures=["points_adj_fit2"]
+   measures=["points_adj","points_adj1","points_adj2"]
+   #measures=["part","points","mean","median","sd","max","min"]
 
-   #using -t option to quickly set asymptote ymax
+   #-t option to quickly set asymptote ymax
    if config['input_tdate'] == None:
-      ymax = 200
+      ymax = 185
    else:
       ymax = config['input_tdate']
 
-   #p option for testing minimum participations and exponent formula
+   #-p option for testing minimum participations and exponent formula
    if config['input_param'] == None:
-      par = [100,2]
+      par = [50,100]
    else:
       par = config['input_param'].split(",")
 
    mids = {1:2010, 2:2010, 3:2011, 4:2012, 5:2013}
 
-   #calculate userstats only
-   for userID in userIDs:
-      user = db.get_username_by_id(userID)
-      for city in cities:
-         midyear = mids[city['ID']]
+   #verbose switch for debugging
+   if config["input_verbose"]:
+      verbose = True
+   else: verbose = False
 
-         stats = db.get_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, pmin=int(par[0]), ex=int(par[1]), midyear=midyear, span=["2010-12-01","2012-04-30"] )
+   #-d to only calculate points_adj in a certain timespan (from,to)
+   if config["input_dates"]:
+      span = config["input_dates"]
+   else: span = False
+
+   #calculate userstats only
+   for city in cities:
+      print "city = " + city["hash"]
+      midyear = mids[city['ID']]
+      print "midyear = " + str(midyear)
+      if ymax == -1:
+         sql = "SELECT max FROM %swetterturnier_citystats WHERE cityID = %d"
+         cur = db.cursor()
+         cur.execute( sql % ( db.prefix, city['ID'] ) )
+         data = cur.fetchone()
+         ymax = data[0]
+      print "ymax = "+str(ymax)+"\n"
+
+      for userID in userIDs:
+         user = db.get_username_by_id(userID)
+         stats = db.get_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, pout=int(par[0]), pmin=int(par[1]), span=span, midyear=midyear, verbose=verbose )
+         #stats = db.get_stats( city['ID'], measures, userID, 0, 0, verbose=verbose )
+
          db.upsert_stats( city['ID'], stats, userID, 0, 0 )
    
-   sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND userID IN%s ORDER BY points_adj_fit DESC LIMIT 0,80"
+   sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND userID IN%s ORDER BY points_adj DESC LIMIT 0,50"
    cols = ",".join( measures )
  
    #generating ranking table output, write to .xls file
    with pd.ExcelWriter( "plots/test_list.xls" ) as writer:
       for city in cities:
-	 sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND userID IN%s ORDER BY points_adj_fit DESC LIMIT 0,80"
-	 cols = ",".join( measures )
-	 table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'], tuple(userIDs) ), db )
-	 print table
+         table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'], database.sql_tuple(userIDs) ), db )
+         print table
          table.to_excel( writer, sheet_name=city["hash"] )
 
    db.commit()

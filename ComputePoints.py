@@ -145,7 +145,7 @@ if __name__ == '__main__':
                # - Gettig observations
                obs = db.get_obs_data(city['ID'],paramID,tdate,day)
                if not obs:
-                  print '    Observations ont available. Skip at that time.'
+                  print '    Observations not available. Skip at that time.'
                   continue
    
                # - Loading city observations

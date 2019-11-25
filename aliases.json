@@ -1,0 +1,14 @@
+{
+"wetteregon":     	["rana_2002"],
+"don_baecker":		["ambot_lang"],
+"DWD-MOS-Mix":		["DWD-MOSMixEZGME"],
+"DWD-MOS-MIX-test":	["MOS-T"],
+"DWD-ICON-MOS": 	["GME-MOS"],
+"DWD-EZ-MOS":           ["EZ-MOS"],
+"MSwr-GFS-MOS": 	["MeteoService-GFS-MOS"],
+"MM-UKMO-MOS": 		["Eugenia"],
+"MM-MOS":		["EmJay"],
+"MM-MOS-Mix":		["Enova"],
+"MM-EZ-MOS":		["Echinacin"],
+"MM-GFS-MOS":		["Egeria"]
+}

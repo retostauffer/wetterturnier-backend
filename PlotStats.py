@@ -22,6 +22,19 @@ years_fmt = mdates.DateFormatter('%Y')
 def plot(db, cities, tdate):
    boxdata, hashes = [], []
    cur = db.cursor()
+
+   #prepare figure for multi-participations plots (all cities)
+   figx, axx = pl.subplots()
+   all_citystats = []
+
+   #get dates for BER to get the maximum timespan
+   sql = "SELECT tdate FROM wp_wetterturnier_tdatestats WHERE cityID=1 ORDER BY tdate"
+   dataX = pd.read_sql_query(sql, db)
+   datesX = []
+   for i in dataX["tdate"].values:
+      datesX.append( utils.tdate2datetime(i) )
+
+
    # ----------------------------------------------------------------
    # - Now going over the cities and plot some graphs with matplotlib 
    # ----------------------------------------------------------------
@@ -54,13 +67,15 @@ def plot(db, cities, tdate):
       cur.execute( sql % city['ID'] )
       partdata = cur.fetchall()
       citystats = []
-      for i in partdata:
-         citystats.append( i[0] )
-      #TODO print citystats on graphs and mark max, min, mean
+      for i in range(3):
+         citystats.append( partdata[0][i] )
+      #TODO print citystats on graphs
 
-      ### PLOT PARTICIPANT COUNT
+      ### PLOT PARTICIPANT COUNT (CURRENT CITY)
       fig, ax = pl.subplots()
       ax.plot_date( dates, part, marker=".", markeredgecolor="black", linestyle="-")
+      for i,col in zip(range(3), ["r","b","g"]):
+         ax.axhline( citystats[i], c=col )
 
       # format the ticks
       ax.xaxis.set_major_locator(years)
@@ -77,12 +92,18 @@ def plot(db, cities, tdate):
 
       ax.set_xlabel("Tournament")
       ax.set_ylabel("Participants")
-      ax.set_title("Participants in "+city['hash'])
+      ax.set_title("Participants in "+city['name'])
       ax.grid(True)
 
       fig.set_size_inches(16,9)
       fig.autofmt_xdate()
       pl.savefig("plots/"+city['hash']+"/parts", dpi=96)
+
+      ### PLOT PARTICIPANT COUNT (ALL CITIES)
+      axx.plot_date( dates, part, "-", label=city['name'])
+      all_citystats.append(citystats)
+      #WE DONT SAVE THE PLOT YET, LOOK OUTSIDE OF LOOP
+
 
       for i, day in zip(["","_d1","_d2"], [""," (Saturday)"," (Sunday)"]):
          median=data["median"+i].values
@@ -128,7 +149,6 @@ def plot(db, cities, tdate):
          
 
          ### PLOT MEDIAN
-
          fig, ax = pl.subplots()
          ax.plot_date( dates, median, label="Median", linestyle="-", marker="")
          ax.plot_date( dates, func(x, *popt), "-r", label="Poly-Fitted Curve")
@@ -149,7 +169,7 @@ def plot(db, cities, tdate):
 
          ax.set_xlabel("Tournament")
          ax.set_ylabel("Median(points)")
-         ax.set_title("Median Points in "+city['hash']+day)
+         ax.set_title("Median Points in "+city['name']+day)
 
          ax.grid(True)
 
@@ -160,7 +180,7 @@ def plot(db, cities, tdate):
 
          ### MEDIAN + IQR
          ax.fill_between(dates, Qlow, Qupp, color="grey")
-         ax.set_title("Median Points + IQR in "+city['hash']+day)
+         ax.set_title("Median Points + IQR in "+city['name']+day)
          fig.savefig("plots/"+city['hash']+"/median_IQR"+i, dpi=96)
 
 
@@ -186,7 +206,7 @@ def plot(db, cities, tdate):
 
          ax.set_xlabel("Tournament")
          ax.set_ylabel("Median(points)")
-         ax.set_title("Median Points + Range in "+city['hash']+day)
+         ax.set_title("Median Points + Range in "+city['name']+day)
 
          ax.grid(True)
 
@@ -229,7 +249,7 @@ def plot(db, cities, tdate):
 
          ax.set_xlabel("Tournament")
          ax.set_ylabel("Mean(points)")
-         ax.set_title("Mean Points + SD in "+city['hash']+day)
+         ax.set_title("Mean Points + SD in "+city['name']+day)
 
          ax.grid(True)
 
@@ -269,7 +289,7 @@ def plot(db, cities, tdate):
 
             ax.set_xlabel("Tournament")
             ax.set_ylabel( ylab )
-            ax.set_title( title + " in " + city['hash'] + day )
+            ax.set_title( title + " in " + city['name'] + day )
 
             ax.grid(True)
 
@@ -277,7 +297,31 @@ def plot(db, cities, tdate):
             ax.legend()
             fig.autofmt_xdate()
             fig.savefig("plots/"+city['hash']+"/"+filename+i, dpi=96)
-   
+
+   #save participation plot for all cities
+   # format the ticks
+   axx.xaxis.set_major_locator(years)
+   axx.xaxis.set_major_formatter(years_fmt)
+   axx.xaxis.set_minor_locator(months)
+         
+   # round to nearest years.
+   datemin = np.datetime64(datesX[0], 'Y')
+   datemax = np.datetime64(datesX[-1], 'Y') + np.timedelta64(1, 'Y')
+   axx.set_xlim(datemin, datemax)
+
+   # format the coords message box
+   axx.format_xdata = mdates.DateFormatter('%Y-%m-%d')
+
+   axx.set_xlabel("Tournament")
+   axx.set_ylabel("Participants")
+   axx.set_title("Participants in all cities")
+   axx.grid(True)
+   axx.legend()
+
+   figx.set_size_inches(16,9)
+   figx.autofmt_xdate()
+   figx.savefig("plots/parts", dpi=96)
+ 
    #save boxplot for all cities
    fig, ax = pl.subplots()
    ax.boxplot( boxdata, showfliers=False )
@@ -287,6 +331,7 @@ def plot(db, cities, tdate):
    ax.set_xticks(list(range( 1, len(cities)+1 )))
    ax.set_xticklabels(hashes)
    ax.set_ylabel("Points")
+
    fig.set_size_inches( 16,9 )
    fig.savefig("plots/boxplot", dpi=96)
 
@@ -296,6 +341,7 @@ def plot(db, cities, tdate):
       meancities.append( np.mean(i) )
       sdcities.append( np.std(i, ddof=1) )
    fig, ax = pl.subplots()
+
    x = list(range( 1, len(cities)+1 ))
    ax.errorbar( x, meancities, yerr=sdcities, fmt='o', ecolor='blue', mec="black", marker="x", capsize=30, ms=25, lw=5 )
    ax.grid( True )
@@ -304,6 +350,7 @@ def plot(db, cities, tdate):
    ax.set_xticks(x)
    ax.set_xticklabels(hashes)
    ax.set_ylabel("Points")
+
    fig.set_size_inches( 16,9 )
    fig.savefig("plots/mean_sd", dpi=96)
 

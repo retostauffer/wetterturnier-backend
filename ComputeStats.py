@@ -25,6 +25,12 @@ if __name__ == '__main__':
    else:
       tdates     = [config['input_tdate']]
 
+   #-p option for testing minimum participations, exponent formula
+   if config['input_param'] == None:
+      par = [100,2]
+   else:
+      par = config['input_param'].split(",")
+
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
    # - If input city set, then drop all other cities.
@@ -36,7 +42,7 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=["points","points_adj_fit","points_adj_poly","part","mean","median","Qlow","Qupp","max","min","sd"]
+   measures=["points","points_adj","part","mean","median","Qlow","Qupp","max","min","sd"]
 
    # check whether current tournament is finished to keep open tournaments out of the userstats
    today              = utils.today_tdate()
@@ -70,25 +76,27 @@ if __name__ == '__main__':
 
    if config['input_tdate'] == None:
 
-      #calculate userstats, first import user_aliases.json as dict
+      #calculate userstats, first import aliases.json as dict
       from json import load
-      with open("user_aliases.json") as aliases:
+      with open("aliases.json") as aliases:
          aliases = load( aliases )
       print aliases
       for userID in userIDs:
 	 user = db.get_username_by_id(userID)
 	 for city in cities:
 	    for day in range(3):
-	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases )
+	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, pout=50, pmin=100, ymax=185 )
 	       db.upsert_stats( city['ID'], stats, userID, 0, day)
-       
+
+      sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND points_adj > 0 ORDER BY points_adj DESC"
+      cols = ",".join( measures[:5] )
+ 
       #generating ranking table output, write to .xls file
       with pd.ExcelWriter( "plots/eternal_list.xls" ) as writer:
-	 for city in cities:
-	    sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d ORDER BY points_adj_fit DESC LIMIT 0,80"
-	    cols = ",".join( measures[:7] )
-	    table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
-	    table.to_excel( writer, sheet_name = city["hash"] )
+         for city in cities:
+            table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
+            table.to_excel( writer, sheet_name = city["hash"] )
+            print table
 
       #now we call a plotting routine which draws some nice statistical plots
       import PlotStats

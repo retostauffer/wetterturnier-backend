@@ -63,7 +63,7 @@ def inputcheck(what):
    db        = database.database(config)
    # - Evaluating input arguments from the __main__ script.
    try:
-      opts, args = getopt.getopt(sys.argv[1:], "c:u:s:t:p:ahi", ["city=", "user=", "users=", "tdate=","param=","alldates","help","ignore"])
+      opts, args = getopt.getopt(sys.argv[1:], "c:u:s:t:p:d:ahiv", ["city=", "user=", "users=", "tdate=","param=","dates=","alldates","help","ignore","verbose"])
    except getopt.GetoptError as err:
       print str(err) # will print something like "option -a not recognized"
       usage(what)
@@ -72,12 +72,14 @@ def inputcheck(what):
    inputs = {} # result
    inputs['input_city']      = None
    inputs['input_user']      = None
+   inputs['input_users']     = None
    inputs['input_tdate']     = None
    inputs['input_alldates']  = False 
    inputs['input_param']     = None 
+   inputs['input_dates']     = None
    inputs['input_ignore']    = False
    inputs['input_force']     = False
-   inputs['input_users']     = None
+   inputs['input_verbose']   = False
 
    # - Overwrite the defaults if inputs are set
    for o, a in opts:
@@ -88,10 +90,10 @@ def inputcheck(what):
       elif o in ("-c", "--city"):
          if len(a) <= 2: a = int(a)
          cities = db.get_cities()
-         print "  * %s active cities" % len(cities)
+         #print "  * %s active cities" % len(cities)
          found  = False
          for i in list(range(len(cities))):
-            print cities[i].values()
+            #print cities[i].values()
             if a in cities[i].values():
                inputs['input_city'] = cities[i]['name']
                found = True
@@ -101,7 +103,7 @@ def inputcheck(what):
             print 'Your input on -c/--city was not recognized.'
             usage(what)
       elif o in ("-u", "--user"):
-         # - Check if is integer (uderID) or string
+         # - Check if is integer (userID) or string
          try:
             user = int(a)
          except:
@@ -126,6 +128,15 @@ def inputcheck(what):
                inputs['input_tdate'] = string2tdate( str(a) )
             except:
                print '-t/--tdate input has to be an integer or a datestring (YYYY-MM-DD)!'; usage(what)
+      elif o in ("-d", "--dates"):
+         try:
+            dates = a.split(",")
+            inputs["input_dates"] = (string2tdate( dates[0] ), string2tdate( dates[1] ))
+         except:
+            #TODO: make it possible to enter single dates rather than a range (maybe date1;date2)
+            print '-d/--dates input has to be a list of 2 dates (YYYY-MM-DD,YYYY-MM-DD)!'; usage(what)
+      elif o in ("-v", "--verbose"):
+         inputs['input_verbose'] = True
       else:
          assert False, "unhandled option"
 
@@ -177,13 +188,15 @@ def usage(what=None):
                      script accept this and compute the points
                      or whatever it is for this user only.
       -s/--users:    A list of user names, seperated by commas, no spaces!
-      -c/--city:     City can be given by its ID, nam
-e or hash
-                     IDs:                                                 %s
-                     names:                                               %s                                                   hashes:                                              %s
+      -c/--city:     City can be given by its ID, name or hash
+                     IDs:     %s
+                     names:   %s
+                     hashes:  %s
       -a/--alldates  Cannot be combined with the -t/--tdate option.
                      If set loop over all available dates. 
       -t/--tdate:    Tournament date in days since 1970-01-01
+      -p/--param:    A list of paramIDs.
+      -d/--dates:    A range of dates seperated by ","
       -a/--alldates: ignores -t input. Takes all tournament dates
                      from the database to compute the points.
       -f/--force:    Please DO NOT USE. This was for testing
@@ -614,7 +627,7 @@ def nicename( string, conversion_table = None ):
 # -------------------------------------------------------------------
 # - Customized exit handling
 # -------------------------------------------------------------------
-def exit(msg):
+def exit(msg="unknown error"):
    """Simple exit wrapper.
    Can be used to create kind of user-defined exit handling.
 
