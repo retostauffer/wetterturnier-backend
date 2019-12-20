@@ -342,8 +342,11 @@ def random(db,typ,ID,city,tdate,betdata=False):
             min_data = min(data[data > 0])
             n0 = np.count_nonzero( data == 0 )
             p0 = n0 / float(len(data))
-            if np.random.random() < p0:
+            if min_data == max_data:
+               bet[day-1][param] = min_data
+            elif np.random.random() < p0:
                bet[day-1][param] = 0
+            else: bet[day-1][param] = np.random.randint( min_data, max_data )
          else:
             bet[day-1][param] = np.random.randint( min_data, max_data )
 

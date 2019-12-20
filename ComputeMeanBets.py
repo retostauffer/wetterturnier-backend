@@ -77,6 +77,7 @@ if __name__ == '__main__':
       minute = datetime.utcnow().minute
       if i == "MOS-Random" and not (hour == 15 and minute in [0,1] and today == tdates[0]):
          continue
+         #pass
       active_groups.append( i )
  
    # - Create new user
