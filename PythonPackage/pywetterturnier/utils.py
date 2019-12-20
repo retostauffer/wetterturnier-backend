@@ -63,7 +63,7 @@ def inputcheck(what):
    db        = database.database(config)
    # - Evaluating input arguments from the __main__ script.
    try:
-      opts, args = getopt.getopt(sys.argv[1:], "c:u:s:t:p:d:ahiv", ["city=", "user=", "users=", "tdate=","param=","dates=","alldates","help","ignore","verbose"])
+      opts, args = getopt.getopt(sys.argv[1:], "c:u:s:t:p:d:n:ahiv", ["city=", "user=", "users=", "tdate=","param=","dates=","filename=","alldates","help","ignore","verbose"])
    except getopt.GetoptError as err:
       print str(err) # will print something like "option -a not recognized"
       usage(what)
@@ -77,6 +77,7 @@ def inputcheck(what):
    inputs['input_alldates']  = False 
    inputs['input_param']     = None 
    inputs['input_dates']     = None
+   inputs['input_filename']  = None
    inputs['input_ignore']    = False
    inputs['input_force']     = False
    inputs['input_verbose']   = False
@@ -135,6 +136,8 @@ def inputcheck(what):
          except:
             #TODO: make it possible to enter single dates rather than a range (maybe date1;date2)
             print '-d/--dates input has to be a list of 2 dates (YYYY-MM-DD,YYYY-MM-DD)!'; usage(what)
+      elif o in ("-n", "--filename"):
+         inputs['input_filename'] = str(a)
       elif o in ("-v", "--verbose"):
          inputs['input_verbose'] = True
       else:

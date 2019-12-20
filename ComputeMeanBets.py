@@ -18,6 +18,7 @@ if __name__ == '__main__':
 
    import sys, os
    import numpy as np
+   from datetime import datetime
    # - Wetterturnier specific modules
    from pywetterturnier import utils, database, mitteltip
 
@@ -69,10 +70,15 @@ if __name__ == '__main__':
          active_groups = [config['input_user']]
 
    #the groups do not actually exists in the database but they consist of the same participants as "Automaten"
-   MOS = ["MOS", "MOS-Max", "MOS-Min"]
+   MOS = ["MOS", "MOS-Max", "MOS-Min", "MOS-Random"]
    for i in MOS:
+      today = utils.today_tdate()
+      hour = datetime.utcnow().hour
+      minute = datetime.utcnow().minute
+      if i == "MOS-Random" and not (hour == 15 and minute in [0,1] and today == tdates[0]):
+         continue
       active_groups.append( i )
-   
+ 
    # - Create new user
    for group in active_groups:
       
@@ -148,8 +154,10 @@ if __name__ == '__main__':
                if group == "MOS-Max":
                   function = max
                elif group == "MOS-Min":
-                  function = min
+                  function = min 
                bet = mitteltip.statistics(db,'group',groupID,city,tdate,function)
+            elif group == "MOS-Random":
+               bet = mitteltip.random(db,'group',groupID,city,tdate)
             else:
                bet = mitteltip.mitteltip(db,'group',groupID,city,tdate)
    
@@ -174,3 +182,5 @@ if __name__ == '__main__':
    
    db.commit()
    db.close()
+
+print today, hour, minute

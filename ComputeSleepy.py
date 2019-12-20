@@ -112,6 +112,7 @@ if __name__ == '__main__':
          if len(data) == 0: continue
 
          points    = np.round(np.mean(data)  - np.mean(np.abs(data  - np.mean(data ))),1)
+         #maybe use MAD instead?
          #points    = np.round(np.median(data)  - np.mean(np.abs(data  - np.median(data ))),1)
  
          # - Insert Sleepy points

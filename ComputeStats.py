@@ -27,9 +27,9 @@ if __name__ == '__main__':
 
    #-p option for testing minimum participations, exponent formula
    if config['input_param'] == None:
-      par = [100,2]
+      typ = "sd_fit"
    else:
-      par = config['input_param'].split(",")
+      typ = config['input_param']
 
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=["points","points_adj","part","mean","median","Qlow","Qupp","max","min","sd"]
+   measures=["points_adj","points","part","mean","median","Qlow","Qupp","max","min","sd"]
 
    # check whether current tournament is finished to keep open tournaments out of the userstats
    today              = utils.today_tdate()
@@ -62,7 +62,7 @@ if __name__ == '__main__':
          print 'ALL DATES'
       for tdate in tdates:
          for day in range(3):
-            stats = db.get_stats( city['ID'], measures[-8:], 0, tdate, day )
+            stats = db.get_stats( city['ID'], measures[-8:]+["sd_upp"], 0, tdate, day )
             #if all stats are 0 we assume that no tournament took place on tdate
             if stats.values() == [0] * len(stats):
                continue
@@ -70,7 +70,7 @@ if __name__ == '__main__':
                db.upsert_stats( city['ID'], stats, 0, tdate, day)
       
       #Compute citystats which can be used for plotting box whiskers etc
-      #TODO: we could already calculate the fit coefficients A,B,C later used for plotting here
+      #TODO: we should already calculate the fit coefficients m,n / A,B,C later used for plotting here
       stats = db.get_stats( city['ID'], measures[-7:] + ["mean_part","max_part","min_part","tdates"], last_tdate = last_tdate )
       db.upsert_stats( city['ID'], stats )
 
@@ -85,14 +85,19 @@ if __name__ == '__main__':
 	 user = db.get_username_by_id(userID)
 	 for city in cities:
 	    for day in range(3):
-	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, pout=50, pmin=100, ymax=185 )
+	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, typ=typ, pout=25, pmin=50 )
 	       db.upsert_stats( city['ID'], stats, userID, 0, day)
 
-      sql = "SELECT wu.user_login, us.points %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND points_adj > 0 ORDER BY points_adj DESC"
-      cols = ",".join( measures[:5] )
+      sql = "SELECT wu.user_login, us.points_adj %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND part >= 25 AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
+      cols = ",".join( measures[:4] )
  
+      if config['input_filename'] == None:
+         filename = "eternal_list"
+      else:
+         filename = config['input_filename']
+
       #generating ranking table output, write to .xls file
-      with pd.ExcelWriter( "plots/eternal_list.xls" ) as writer:
+      with pd.ExcelWriter( "plots/%s.xls" % filename ) as writer:
          for city in cities:
             table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
             table.to_excel( writer, sheet_name = city["hash"] )

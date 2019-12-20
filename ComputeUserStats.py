@@ -43,7 +43,7 @@ if __name__ == '__main__':
       userIDs.append( db.get_user_id(i) )
    #print users; userIDs
 
-   measures=["points_adj","points_adj1","points_adj2"]
+   measures=["points_adj","points_adj1","points_adj2","part"]
    #measures=["part","points","mean","median","sd","max","min"]
 
    #-t option to quickly set asymptote ymax
@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
    #-p option for testing minimum participations and exponent formula
    if config['input_param'] == None:
-      par = [50,100]
+      par = [25,50]
    else:
       par = config['input_param'].split(",")
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
       for userID in userIDs:
          user = db.get_username_by_id(userID)
-         stats = db.get_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, pout=int(par[0]), pmin=int(par[1]), span=span, midyear=midyear, verbose=verbose )
+         stats = db.get_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, pout=int(par[0]), pmin=int(par[1]), span=span, referenz=True, midyear=midyear, verbose=verbose )
          #stats = db.get_stats( city['ID'], measures, userID, 0, 0, verbose=verbose )
 
          db.upsert_stats( city['ID'], stats, userID, 0, 0 )

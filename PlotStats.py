@@ -109,6 +109,7 @@ def plot(db, cities, tdate):
          median=data["median"+i].values
          mean = data["mean"  +i].values
          sd   = data["sd"    +i].values
+         sd_u = data["sd_upp"+i].values
          MAX  = data["max"   +i].values
          MIN  = data["min"   +i].values
          part = data["part"    ].values
@@ -151,8 +152,8 @@ def plot(db, cities, tdate):
          ### PLOT MEDIAN
          fig, ax = pl.subplots()
          ax.plot_date( dates, median, label="Median", linestyle="-", marker="")
-         ax.plot_date( dates, func(x, *popt), "-r", label="Poly-Fitted Curve")
-         ax.plot_date( dates, e_func(x, *eopt), "-g", label="Exp-Fitted Curve")
+         ax.plot_date( dates, func(x, *popt), "-g", label="Poly-Fitted Curve")
+         ax.plot_date( dates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
 
          # format the ticks
          ax.xaxis.set_major_locator(years)
@@ -187,8 +188,8 @@ def plot(db, cities, tdate):
          ### PLOT MEDIAN + RANGE
          fig, ax = pl.subplots()
          ax.plot_date( dates, median, label="Median", linestyle="-", marker="")
-         ax.plot_date( dates, func(x, *popt), "-r", label="Poly-Fitted Curve")
-         ax.plot_date( dates, e_func(x, *eopt), "-g", label="Exp-Fitted Curve")
+         ax.plot_date( dates, func(x, *popt), "-g", label="Poly-Fitted Curve")
+         ax.plot_date( dates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
          ax.fill_between(dates, MIN, MAX, color="grey", alpha=0.5)
 
          # format the ticks
@@ -230,8 +231,8 @@ def plot(db, cities, tdate):
 
          fig, ax = pl.subplots()
          ax.plot_date( dates, y, label="Mean", linestyle="-", marker="")
-         ax.plot_date( dates, func(x, *popt), "-r", label="Poly-Fitted Curve")
-         ax.plot_date( dates, e_func(x, *eopt), "-g", label="Exp-Fitted Curve")
+         ax.plot_date( dates, func(x, *popt), "-g", label="Poly-Fitted Curve")
+         ax.plot_date( dates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
          ax.fill_between(dates, y-sd, y+sd, color="grey", alpha=0.5)
 
          # format the ticks
@@ -260,18 +261,25 @@ def plot(db, cities, tdate):
 
 
          ### PLOT MAX, MIN, median1, median0, sd with exact same settings
-         datas = [MAX, MIN, median1, median0, sd]
-         ylabs = ["Max(points)","Min(points)","Max(points) - Median","Median - Min(points)","SD"]
-         titles = ["Maximum of points","Minimum of points","Maximum of points - Median","Median - Minimum of points","Standard deviation"]
-         filenames = ["max","min","max-median","median-min","sd"]
+         datas = [MAX, MIN, median1, median0, sd, sd_u]
+         ylabs = ["Max(points)","Min(points)","Max(points) - Median","Median - Min(points)","SD","SD(upper)"]
+         titles = ["Maximum of points","Minimum of points","Maximum of points - Median","Median - Minimum of points","Standard deviation", "Standard deviation of upper half"]
+         filenames = ["max","min","max-median","median-min","sd","sd_upp"]
 
          for dat, ylab, title, filename in zip(datas, ylabs, titles, filenames):
             fig, ax = pl.subplots()
             ax.plot_date( dates, dat, marker=".", markeredgecolor="black", label = ylab )
 
-            (m, b) = np.polyfit(x, dat, 1)
-            #print(m, b)
-            yp = np.polyval([m, b], x)
+            (m, n) = np.polyfit(x, dat, 1)
+            yp = np.polyval([m, n], x)
+
+            #insert m,b to database (citystats)
+            if filename+i == "sd_upp":
+               print "SD_upp:\nm = %f | n = %f" % (m, n)
+               print title
+               stats = {"m" : m, "n" : n}
+               db.upsert_stats( city["ID"], stats )
+
             ax.plot_date( dates, yp, "-r", label="Linear Fit")
 
             # format the ticks
@@ -324,7 +332,8 @@ def plot(db, cities, tdate):
  
    #save boxplot for all cities
    fig, ax = pl.subplots()
-   ax.boxplot( boxdata, showfliers=False )
+   ax.boxplot( boxdata, showfliers=False, whiskerprops = dict(linestyle='-',linewidth=3
+, color='black'), medianprops = dict(linestyle=':', linewidth=3, color='firebrick'), boxprops = dict(linestyle='-', linewidth=3, color='darkgoldenrod'), capprops=dict(linewidth=3) )
    ax.grid( True )
    ax.set_title("Boxplot of points for all cities")
    ax.set_xlabel("City")
@@ -343,7 +352,7 @@ def plot(db, cities, tdate):
    fig, ax = pl.subplots()
 
    x = list(range( 1, len(cities)+1 ))
-   ax.errorbar( x, meancities, yerr=sdcities, fmt='o', ecolor='blue', mec="black", marker="x", capsize=30, ms=25, lw=5 )
+   ax.errorbar( x, meancities, yerr=sdcities, fmt='o', ecolor='blue', mec="black", marker="x", capsize=30, ms=25, lw=3, capthick=3 )
    ax.grid( True )
    ax.set_title("Mean+SD of points for all cities")
    ax.set_xlabel("City")

@@ -1252,7 +1252,7 @@ class database(object):
          return data
 
    #compute statistics out of some wetterturnier tables like betstat
-   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, ymax=False, pout=50, pmin=100, ex=3, midyear=2010, span=False, dates=False, verbose=False):
+   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, typ="sd_fit", ymax=False, pout=25, pmin=50, midyear=2010, span=False, dates=False, verbose=False):
       
       res = {} #results will be saved here with measures as keys, tdate as subkeys
 
@@ -1365,7 +1365,7 @@ class database(object):
          i += day_str
          if i == "points"+day_str:
             res[i] = sum(points)
-         elif i in ["points_adj","points_adj1","points_adj2","points_adjX"]:
+         elif i in ["points_adj", "points_adj1", "points_adj2", "points_adjX"]:
             
             if verbose:
                print self.get_username_by_id( userIDs[0] )
@@ -1409,27 +1409,37 @@ class database(object):
                tdates[j[0]]["points"] = j[1]
 
             #get the actual median for each tdate
-            sql = "SELECT tdate, median from %swetterturnier_tdatestats WHERE cityID=%d AND tdate IN%s"
+            sql = "SELECT tdate, median, sd from %swetterturnier_tdatestats WHERE cityID=%d AND tdate IN%s"
             cur.execute( sql % (self.prefix, cityID, sql_tuple(tdates.keys()) ) )
             data3 = cur.fetchall()
             for j in data3:
                tdates[j[0]]["median"] = j[1]
+               tdates[j[0]]["sd_upp"] = j[2]
 
             sql = "SELECT %s FROM %swetterturnier_citystats WHERE cityID=%d"
             
             #calculate the fitted median for each tdate
-            cur.execute( sql % ( "A,B,C", self.prefix, cityID ) )
-            data2 = cur.fetchall()
-            for j in data2:
-               A = j[0]; B = j[1]; C = j[2]
-            for j in data:
-               tdates[j[0]]["median_fit"] = logfun(A, B, C, j[0])
-               #A * np.log( B * j[0] ) + C
+            if typ == "median_fit":
+               cur.execute( sql % ( "A,B,C", self.prefix, cityID ) )
+               data2 = cur.fetchall()
+               for j in data2:
+                  A = j[0]; B = j[1]; C = j[2]
+               for j in data:
+                  tdates[j[0]]["median_fit"] = logfun(A, B, C, j[0])
+                  #A * np.log( B * j[0] ) + C
+               if ymax < 100:
+                  ymax = logfun( A, B, C, last_tdate + ymax*365 )
+
+            elif typ == "sd_fit":
+               cur.execute( sql % ( "m,n", self.prefix, cityID ) )
+               data = cur.fetchall()
+               m = data[0][0]; n = data[0][1]
+
+            elif typ == "sd":
+               print "Taking tournament sd"
+            else: utils.exit("Unknown typ for get_stats() function call!")
 
             points_adj = []
-            
-            if not ymax:
-               ymax = logfun( A, B, C, last_tdate + 25550 )
 
             if verbose:
                print "ymax = "+str(ymax)
@@ -1439,9 +1449,20 @@ class database(object):
                if {"points","median","median_fit"} <= set(tdates[t]):
                   med = tdates[t]["median"]
                   med_fit = tdates[t]["median_fit"]
+                  if med_fit in [None,ymax] or tdates[t]["points"] == None: continue
+                  #med = (med + med_fit) / 2
+                  perc = (tdates[t]["points"] - med) / (ymax - med_fit)
+
+               elif {"points","median","sd_upp"} <= set(tdates[t]):
+                  med = tdates[t]["median"]
+                  if typ=="sd_fit": sd = m*t + n
+                  else: sd  = tdates[t]["sd_upp"]
+                  #if we cannot calculate sd, there were certainly too little parts (<3)
+                  if sd in [0,None] or np.isnan(sd): print "SD == 0"; continue
+                  perc = (tdates[t]["points"] - med) / sd
+   
                else: continue
-               if med_fit in [None,ymax] or tdates[t]["points"] == None: continue
-               perc = (tdates[t]["points"] - med) / (ymax - med_fit)
+
                points_adj.append( perc )
 
                if verbose:
@@ -1460,10 +1481,11 @@ class database(object):
                   K = 1.
                else:
                   K = parts / pmin
-               res[i] = K * np.mean(points_adj) * 100.
+               res[i] = round(K * np.mean(points_adj), 4)
+               if typ == "sd": res*=100
 
          elif i == "mean"+day_str:
-            res[i] = np.mean(points)
+            res[i] = round(np.mean(points), 1)
          elif i == "median"+day_str:
             res[i] = np.median(points)
          elif i == "Qlow"+day_str:
@@ -1483,6 +1505,33 @@ class database(object):
             #participants/participations, only for all days
             if len(points) == 1 and points[0] == 0: res[i] = 0
             else: res[i] = len(points)
+         elif i == "sd_upp"+day_str:
+
+            def std(x, center=None):
+               S = 0
+               n = len(x)
+               if n == 0: return S
+               elif center: x_c = center
+               else: x_c = np.median(x)
+               for x_i in x:
+                  S += (x_i - x_c)**2
+               return np.sqrt(S / n)[0]
+
+            median = res["median"+day_str]
+
+            sql = "SELECT points from %swetterturnier_betstat WHERE tdate=%d AND cityID=%d AND points > %d"
+            cur.execute( sql % (self.prefix, tdate, cityID, median) )
+            data = cur.fetchall()
+            x = []
+            for j in data:
+               x.append(j[0])
+            print x
+            Q3 = res["Qupp"+day_str]
+            sd = std(data, center=Q3)
+
+            if np.isnan(sd): res[i] = 0
+            else: res[i] = sd
+               
          else: continue
       if len(res) == 0: utils.exit("No results!")
       return res
