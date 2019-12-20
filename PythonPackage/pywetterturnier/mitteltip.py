@@ -339,12 +339,12 @@ def random(db,typ,ID,city,tdate,betdata=False):
          elif param == "ff" and bet[day-1]["dd"] == 0:
             bet[day-1][param] = 0.
          elif param == "Sd":
+            min_data = min(data[data > 0])
             n0 = np.count_nonzero( data == 0 )
             p0 = n0 / float(len(data))
             if np.random.random() < p0:
                bet[day-1][param] = 0
          else:
-            min_data = min(data[data > 0])
             bet[day-1][param] = np.random.randint( min_data, max_data )
 
       param = "fx"
