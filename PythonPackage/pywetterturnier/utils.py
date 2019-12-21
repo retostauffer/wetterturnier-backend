@@ -199,6 +199,7 @@ def usage(what=None):
                      If set loop over all available dates. 
       -t/--tdate:    Tournament date in days since 1970-01-01
       -p/--param:    A list of paramIDs.
+      -n/--filename  A filename for exporting tables/data.
       -d/--dates:    A range of dates seperated by ","
       -a/--alldates: ignores -t input. Takes all tournament dates
                      from the database to compute the points.

@@ -1442,8 +1442,11 @@ class database(object):
             points_adj = []
 
             if verbose:
-               print "ymax = "+str(ymax)
-               print "tdate      points med_fit percent median"
+               if typ == "median_fit":
+                  print "ymax = "+str(ymax)
+                  print "tdate      points med_fit percent median"
+               elif typ in ["sd","sd_fit"]:
+                  print "tdate      points median sd      points_adj"
 
             for t in sorted(tdates.keys()):
                if {"points","median","median_fit"} <= set(tdates[t]):
@@ -1452,23 +1455,22 @@ class database(object):
                   if med_fit in [None,ymax] or tdates[t]["points"] == None: continue
                   #med = (med + med_fit) / 2
                   perc = (tdates[t]["points"] - med) / (ymax - med_fit)
+                  if verbose:
+                     print utils.tdate2string(t), str(int(round(tdates[t]["points"]))).ljust(6), str(int(round(med_fit))).ljust(7), str(int(round(perc*100))).ljust(7), str(int(round(med))).ljust(6)
 
                elif {"points","median","sd_upp"} <= set(tdates[t]):
                   med = tdates[t]["median"]
-                  if typ=="sd_fit": sd = m*t + n
-                  else: sd  = tdates[t]["sd_upp"]
+                  if typ == "sd_fit": sd = m*t + n
+                  else: sd = tdates[t]["sd_upp"]
                   #if we cannot calculate sd, there were certainly too little parts (<3)
                   if sd in [0,None] or np.isnan(sd): print "SD == 0"; continue
                   perc = (tdates[t]["points"] - med) / sd
-   
+                  if verbose:
+                     print utils.tdate2string(t), str(tdates[t]["points"]).ljust(6), str(med).ljust(6), str(round(sd,2)).ljust(7), str(round(perc,2)).ljust(10)
+ 
                else: continue
 
                points_adj.append( perc )
-
-               if verbose:
-                  if "med" not in locals():
-                     med == 0
-                  print utils.tdate2string(t), str(int(round(tdates[t]["points"]))).ljust(6), str(int(round(med_fit))).ljust(7), str(int(round(perc*100))).ljust(7), str(int(round(med))).ljust(6)
 
             if len(points_adj) == 0: points_adj.append(0)
             

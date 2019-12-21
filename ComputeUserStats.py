@@ -74,14 +74,13 @@ if __name__ == '__main__':
    for city in cities:
       print "city = " + city["hash"]
       midyear = mids[city['ID']]
-      print "midyear = " + str(midyear)
+      print "midyear = " + str(midyear) + "\n"
       if ymax == -1:
          sql = "SELECT max FROM %swetterturnier_citystats WHERE cityID = %d"
          cur = db.cursor()
          cur.execute( sql % ( db.prefix, city['ID'] ) )
          data = cur.fetchone()
          ymax = data[0]
-      print "ymax = "+str(ymax)+"\n"
 
       for userID in userIDs:
          user = db.get_username_by_id(userID)
