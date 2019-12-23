@@ -19,6 +19,16 @@ years = mdates.YearLocator()   # every year
 months = mdates.MonthLocator()  # every month
 years_fmt = mdates.DateFormatter('%Y')
 
+#fit functions
+func = lambda x, p, q, r, s : p*x**3 + q*x**2 + r*x + s
+
+e_func = lambda x, a, b, c : a * np.log(b * x) + c
+
+#log_func = lambda x, T, U, V : T * np.log(U / x) + V
+
+#sigmoid = lambda x, x0, k : 1 / (1 + np.exp(-k*(x-x0)))
+
+
 def plot(db, cities, tdate):
    boxdata, hashes = [], []
    cur = db.cursor()
@@ -122,12 +132,6 @@ def plot(db, cities, tdate):
 
          x = np.array(tdates) #transform your data in a numpy array of floats
          y = np.array(median) #so the curve_fit can work
-
-         func = lambda x, p, q, r, s : p*x**3 + q*x**2 + r*x + s
-
-         e_func = lambda x, a, b, c : a * np.log(b * x) + c
-
-         #sigmoid = lambda x, x0, k : 1 / (1 + np.exp(-k*(x-x0)))
 
          #make the curve_fit
          print(city['hash'])
@@ -273,14 +277,18 @@ def plot(db, cities, tdate):
             (m, n) = np.polyfit(x, dat, 1)
             yp = np.polyval([m, n], x)
 
+            eopt, ecov = curve_fit(e_func, x, dat)
+
             #insert m,b to database (citystats)
             if filename+i == "sd_upp":
                print "SD_upp:\nm = %f | n = %f" % (m, n)
-               print title
-               stats = {"m" : m, "n" : n}
+               print("LOG FIT:")
+               print("T = %s , U = %s, V = %s" % (eopt[0], eopt[1], eopt[2]) )
+               stats = {"m" : m, "n" : n, "T" : eopt[0], "U" : eopt[1], "V" : eopt[2]}
                db.upsert_stats( city["ID"], stats )
 
-            ax.plot_date( dates, yp, "-r", label="Linear Fit")
+            ax.plot_date( dates, yp, "-r", label="Linear Fit" )
+            ax.plot_date( dates, e_func(x, *eopt), "-g", label="Log-Fit" )          
 
             # format the ticks
             ax.xaxis.set_major_locator(years)

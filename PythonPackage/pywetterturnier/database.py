@@ -1435,6 +1435,11 @@ class database(object):
                data = cur.fetchall()
                m = data[0][0]; n = data[0][1]
 
+            elif typ == "sd_logfit":
+               cur.execute( sql % ( "T,U,V", self.prefix, cityID ) )
+               data = cur.fetchall()
+               T = data[0][0]; U = data[0][1]; V = data[0][2]
+
             elif typ == "sd":
                print "Taking tournament sd"
             else: utils.exit("Unknown typ for get_stats() function call!")
@@ -1461,6 +1466,7 @@ class database(object):
                elif {"points","median","sd_upp"} <= set(tdates[t]):
                   med = tdates[t]["median"]
                   if typ == "sd_fit": sd = m*t + n
+                  elif typ == "sd_logfit": sd = logfun(T, U, V, t)
                   else: sd = tdates[t]["sd_upp"]
                   #if we cannot calculate sd, there were certainly too little parts (<3)
                   if sd in [0,None] or np.isnan(sd): print "SD == 0"; continue
@@ -1521,7 +1527,7 @@ class database(object):
 
             median = res["median"+day_str]
 
-            sql = "SELECT points from %swetterturnier_betstat WHERE tdate=%d AND cityID=%d AND points > %d"
+            sql = "SELECT points"+day_str+" from %swetterturnier_betstat WHERE tdate=%d AND cityID=%d AND points"+day_str+" > %d"
             cur.execute( sql % (self.prefix, tdate, cityID, median) )
             data = cur.fetchall()
             x = []
