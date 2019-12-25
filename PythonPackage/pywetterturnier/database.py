@@ -1252,7 +1252,7 @@ class database(object):
          return data
 
    #compute statistics out of some wetterturnier tables like betstat
-   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, typ="sd_fit", ymax=False, pout=25, pmin=50, midyear=2010, span=False, dates=False, verbose=False):
+   def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, typ="sd_logfit", ymax=False, pout=25, pmin=50, midyear=2010, span=False, dates=False, verbose=False):
       
       res = {} #results will be saved here with measures as keys, tdate as subkeys
 
@@ -1441,7 +1441,7 @@ class database(object):
                T = data[0][0]; U = data[0][1]; V = data[0][2]
 
             elif typ == "sd":
-               print "Taking tournament sd"
+               if verbose: print "Taking tournament sd"
             else: utils.exit("Unknown typ for get_stats() function call!")
 
             points_adj = []
@@ -1469,7 +1469,7 @@ class database(object):
                   elif typ == "sd_logfit": sd = logfun(T, U, V, t)
                   else: sd = tdates[t]["sd_upp"]
                   #if we cannot calculate sd, there were certainly too little parts (<3)
-                  if sd in [0,None] or np.isnan(sd): print "SD == 0"; continue
+                  if sd in [0,None] or np.isnan(sd): print "SD == 0/None"; continue
                   perc = (tdates[t]["points"] - med) / sd
                   if verbose:
                      print utils.tdate2string(t), str(tdates[t]["points"]).ljust(6), str(med).ljust(6), str(round(sd,2)).ljust(7), str(round(perc,2)).ljust(10)
@@ -1490,7 +1490,8 @@ class database(object):
                else:
                   K = parts / pmin
                res[i] = round(K * np.mean(points_adj), 4)
-               if typ == "sd": res*=100
+               if "sd_" in typ: res[i]*=1000
+               elif typ == "median_fit": res[i]*=100
 
          elif i == "mean"+day_str:
             res[i] = round(np.mean(points), 1)
@@ -1509,38 +1510,44 @@ class database(object):
             if np.isnan(sd): res[i] = 0
             else: res[i] = sd
          elif i == "part":
-            # important for participant/participation count, otherwise part would be 1 if a player/date actually has 0 part*s
-            #participants/participations, only for all days
+            """
+            important for participant/participation count, otherwise part would be 1 if a player/date actually has 0 part*s
+            participants/participations, only for all days
+            """
             if len(points) == 1 and points[0] == 0: res[i] = 0
             else: res[i] = len(points)
          elif i == "sd_upp"+day_str:
 
-            def std(x, center=None):
+            def sd_c(x, center=None, n=False):
                S = 0
-               n = len(x)
+               if not n:
+                  n = len(x)
+               else:
+                  n = n
                if n == 0: return S
                elif center: x_c = center
                else: x_c = np.median(x)
                for x_i in x:
                   S += (x_i - x_c)**2
-               return np.sqrt(S / n)[0]
+               return np.sqrt(S / n)
 
             median = res["median"+day_str]
 
-            sql = "SELECT points"+day_str+" from %swetterturnier_betstat WHERE tdate=%d AND cityID=%d AND points"+day_str+" > %d"
+            sql = "SELECT points"+day_str+" from %swetterturnier_betstat WHERE tdate=%d AND cityID=%d AND points"+day_str+" > %f"
+            #print sql % (self.prefix, tdate, cityID, median)
             cur.execute( sql % (self.prefix, tdate, cityID, median) )
             data = cur.fetchall()
-            x = []
-            for j in data:
-               x.append(j[0])
-            print x
-            Q3 = res["Qupp"+day_str]
-            sd = std(data, center=Q3)
+            x = [j[0] for j in data]
+            #print x
+            #Q3 = res["Qupp"+day_str]
+            #sd = sd_c(x, center=Q3)
+            sd = sd_c(x)
 
             if np.isnan(sd): res[i] = 0
             else: res[i] = sd
-               
+ 
          else: continue
+
       if len(res) == 0: utils.exit("No results!")
       return res
 

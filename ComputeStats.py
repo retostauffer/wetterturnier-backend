@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
    #-p option for testing minimum participations, exponent formula
    if config['input_param'] == None:
-      typ = "sd_fit"
+      typ = "sd_logfit"
    else:
       typ = config['input_param']
 
