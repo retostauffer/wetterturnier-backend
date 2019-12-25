@@ -79,7 +79,7 @@ if __name__ == '__main__':
             print "Today is a tournament day!"  
       else:
          scripts = ['ComputePetrus.py',
-                    'ComputePersistenzen.py',
+#                    'ComputePersistenzen.py',
                     'ComputeMeanBets.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py']

@@ -1,22 +1,32 @@
 # -------------------------------------------------------------------
-# - NAME:        archive.sh
-# - AUTHOR:      Reto Stauffer
-# - DATE:        2016-07-25
+# - NAME:        runChain.sh
+# - AUTHOR:      Reto Stauffer/sferics
+# - DATE:        2019-12-25
 # -------------------------------------------------------------------
-# - DESCRIPTION:
+# - DESCRIPTION:  helper tool to start Chain.py for multiple tdates
 # -------------------------------------------------------------------
 # - EDITORIAL:   2016-07-25, RS: Created file on thinkreto.
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2017-06-09 15:37 on prognose2.met.fu-berlin.de
+# - L@ST MODIFIED: 2019-12-25 15:37 on prognose2.met.fu-berlin.de
 # -------------------------------------------------------------------
 
-
+#Enter to input arguments from, till. If only one input is given till=today
 source activate
 
-date=17011
-while [ $date -le 17319 ] ; do
-   let date=$date+7
-   echo $date
-   python Chain.py -t $date
+from=$1
+till=$2
 
+if ! [ -n "$till" ]; then
+   timestamp=$(date +"%s")
+   till=$((timestamp/86400))
+fi
+
+if [ $(($from + 7)) -gt $till ]; then
+   exit
+fi
+
+while [ $from -le $till ] ; do
+   let $from=$from+7
+   echo $from
+   python Chain.py -t $from
 done

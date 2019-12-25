@@ -46,5 +46,7 @@ setup(name='pywetterturnier',     # This is the package name
           'importlib',    # Used to load the judgingclasses dynamically
           'pytz',         # Required by astral
           'astral',       # Used to compute astronomic sunshine duration
+          'pandas',       # needed for stats computation, table export etc
+          'xlwt'          # xls table generation
       ],
       czip_safe=False)

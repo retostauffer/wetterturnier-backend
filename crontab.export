@@ -20,10 +20,13 @@
 # For more information see the manual pages of crontab(5) and cron(8)
 # 
 # m h  dom mon dow   command
-MAILTO=""
+MAILTO="prognose@met.fu-berlin.de"
+
+# - This is only for development
+#####*/15 * * * * cd /home/wetterturnier/PointDev && /bin/bash run.sh
 
 # - Backup purposes. Copy werte files from old server to new server
-* */12 * * * cd /home/retos/WTbackend && /bin/bash copy_archive_from_prognose1.sh 2> /home/retos/WTbackend/copy_archive_from_prognose1.log
+#* */12 * * * cd /home/wetterturnier/wetterturnier-backend && /bin/bash copy_archive_from_prognose1.sh 2> /home/wetterturnier/wetterturnier-backend/copy_archive_from_prognose1.log
 
 
 # - Operational wetterturnier steps.
@@ -32,21 +35,43 @@ MAILTO=""
 #   from database obs.bufr/obs.stations and stores them into
 #   the wetterturnier plugin wpwt.wp_wetterturnier_obs
 #   !!! Note that the script is running in a local virtual environment.
-*/2 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Observations.py &> /home/retos/cronlog/Observations.log
+*/15 * * * *  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 900 ionice -c 2 -n 0 python Observations.py > /home/wetterturnier/cronlog/Observations.log 
 
 # - Chain: does everything necessary:
 #   1) ComputeMeanBets (group bets)
 #   2) ComputePetrus
 #   3) ComputePoints     (computes the points for the players)
-#   4) ComputeSumPoints  (computes sum of points - necessary for the ranking)
-#   5) ComputeSleepy     (Sleepy is based on the points of the players)
+#   4) ComputeSleepy    (sleepy is based on the points of the players)
+#   5) ComputeSumPoints  (computes sum of points - necessary for the ranking)
 #   PLEASE NOTE: the source/activae is very important here as the Chain.py
 #   starts ComputePoints, ComputeSumpoints and other scrpits. They are started
 #   using "python" which has to be the python executable from the virtual
 #   environment! Do not remove source venv/bin/activate unless you install
 #   the pywetterturnier package into the system wide python library.
-*/5 * * * *  cd /home/retos/WTbackend && source venv/bin/activate && timeout 900 python Chain.py &> /home/retos/cronlog/Chain.log
+*/30 * * * *  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 900 ionice -c 2 -n 0 python Chain.py > /home/wetterturnier/cronlog/Chain.log
 
+#   Rerun: does the same as the Chain tool but for older tournaments.
+#   If observations or bets are modified by hand in the admin interface
+#   a log will be written into the database (wt_wetterturnier_replayrequest).
+#   Rerun checks if there are old tournaments where the points have to be
+#   recoputed and does this once in an hour (if required). Only requested
+#   cities and tournament dates are started (more efficient than doing
+#   all cities of a certain weekend if not required).
+*/60 * * * * cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 900 ionice -c 2 -n 0 python Rerun.py >> /home/wetterturnier/cronlog/Rerun.log
 
-# - Development. Import altes wetterturnier
-####PFAD UND SO FALSCH#####0 */2 * * *  timeout 1800 /usr/bin/python /var/www/wetterturnier/current.py > /home/retos/cronlog/current.log 2>&1
+#   Processing MeteoService MOS forecasts. They are located in
+#   /home/knuepffer/abgabe named all.*. This script reads the latest 3 and
+#   creates a JSON data file which is used for the frontend.
+#15,45 * * * * cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 120 ionice -c 2 -n 0 python PrepareMOS.py > /home/wetterturnier/cronlog/PrepareMOS.log
+
+#   Create MOS forecast JSON file
+#*/1 0-14 * * 5 cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 120 ionice -c 2 -n 0 python MOS.py > /home/wetterturnier/cronlog/MOS.log
+
+#   Compute Stats every Monday at 7:01 am (tdatestats and userstats)
+5 7 * * 1 cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 3600 ionice -c 2 -n 0 python ComputeStats.py > /home/wetterturnier/cronlog/ComputeStats.log
+
+#   Delete incomplete bets on Friday night 23 UTC
+0 23 * * 5 cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 900 ionice -c 2 -n 0 python CleanUpBets.py > /home/wetterturnier/cronlog/CleanUpBets.log
+
+#   Recalculate AstralTable once a year at 1st January 00:00
+0 0 1 1 *  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 900 ionice -c 2 -n 0 python AstralTable.py > /home/wetterturnier/cronlog/AstralTable.log
