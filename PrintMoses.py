@@ -1,4 +1,5 @@
 # coding=utf8
+
 # -------------------------------------------------------------------
 # - NAME:        ComputeMoses.py
 # - AUTHOR:      Reto Stauffer
@@ -17,6 +18,10 @@
 from __future__ import print_function
 from pywetterturnier import utils
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 # -------------------------------------------------------------------
 # - Embedded function. Can be used on its own (called from
 #   ComputeMoses.py)
@@ -26,17 +31,24 @@ from pywetterturnier import utils
 def print_moses( db, config, cities, tdates ):
 
    path="moses/input/"
+   #fixed strings and headers:
    file_head  = "Berliner Wetterprognoseturnier %s\n\nEingetroffene Werte und abgegebene Prognosen:\n"
    table_head = "Name                      N  Sd  dd ff fx Wv Wn    PPP    TTm   TTn   TTd   RR"
    day_heads = ["Samstag:","Sonntag:"]
    ranking_str = "Wertung der Prognose vom %s:\n"
    ranking_head = "Pl. Name                      Punkte  Tag1  Tag2\n_________________________________________________"
    info_str = "\nDie durchschnittliche Punktzahl beträgt:    %5.1f Punkte.\nWertung für nicht teilnehmende Mitspieler:  %5.1f Punkte."
+   season_str = "Die aktuelle Jahreszeitenwertung (%s):\n(basierend auf den Prognosen vom %s bis zum %s)"
+   season_head = "Platz     Name                      Punkte\n___________________________________________________"
+   weeks_str = "Das aktuelle Gesamtranking:\n(basierend auf den Prognosen vom %s bis zum %s)"
+   weeks_head = "Platz     Name                      Punkte             Durchschnitt    Teiln.\n_____________________________________________________________________________"
+   footer = "_____________________________________\nBerliner Wetterprognoseturnier\nhttp://www.wetterturnier.de/\nprognose@bibo.met.fu-berlin.de"
+
 
    params = db.get_parameter_names( sort=True )
 
    def print_rows( args, file ):
-      row_format = "{name:<21.21s} {n:>5} {sd:>3} {dd:>3} {ff:>2} {fx:>2} {wv:>2} {wn:>2} {ppp:>6.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
+      row_format = "{name:<25.25s} {n:>1} {sd:>3} {dd:>3} {ff:>2} {fx:>2} {wv:>2} {wn:>2} {ppp:>6.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
 
       for i in range(1,8):
          if type( args[i] ) != str: args[i] = int( args[i] )
@@ -79,14 +91,16 @@ def print_moses( db, config, cities, tdates ):
          #print output to file, first get prober filename
          filename = path + utils.tdate2string( tdate, moses=True )+"."+city['name'].lower()[0]+"pw"
          f = open(filename,'w')
+         printf = lambda *args : print( *args, file=f)
+
          tdate_str = utils.tdate2string( tdate )
-         print(file_head % tdate_str, file=f)
-         users = db.get_participants_in_city( cityID, tdate, sort=True )
+         printf(file_head % tdate_str )
+         users = db.get_participants_in_city( cityID, tdate, sort=True, what="user_login" )
          
          for day in range(1,3):
-            print(day_heads[day-1], file=f)
-            print(table_head, file=f)
-            print(78*"_", file=f)
+            printf(day_heads[day-1] )
+            printf(table_head )
+            printf(78*"_")
             for station in stations:
                obs = [station.name]
                for param in params:
@@ -96,10 +110,10 @@ def print_moses( db, config, cities, tdates ):
                   else:
                      obs.append( float( value ) / 10 )
                print_rows( obs, f )
-            #print(78*"_", file=f)
-            print("", file=f)
+            #printf(78*"_")
+            printf("")
             for userID in users:
-               bet = [db.get_username_by_id(userID, which="display_name")]
+               bet = [db.get_username_by_id(userID, which="user_login").replace("GRP_","")]
                for param in params:
                   paramID = db.get_parameter_id( param )
                   value = db.get_bet_data( "user", userID, cityID, paramID, tdate, day )
@@ -107,26 +121,34 @@ def print_moses( db, config, cities, tdates ):
                   else:
                      bet.append( float( value ) / 10 )
                print_rows( bet, f )
-            if day == 1: print("\f", file=f)
-            else: print("\n", file=f)
-         print( ranking_str % tdate_str, file=f)
-         print( ranking_head, file=f )
-         #TODO: ranking
+            if day == 1: printf("\f")
+            else: printf("\n")
+         
+         #weekend ranking
+         printf( ranking_str % tdate_str )
+         printf( ranking_head )
          sleepyID = db.get_user_id( "Sleepy" )
-         sql = "SELECT bs.rank, wu.display_name, bs.points, bs.points_d1, bs.points_d2 FROM wp_wetterturnier_betstat bs JOIN wp_users wu ON userID = wu.ID WHERE tdate=%d AND cityID=%d AND userID != %d ORDER BY bs.rank"
+         sql ="SELECT bs.rank, wu.user_login, bs.points, bs.points_d1, bs.points_d2, REPLACE(wu.user_login, 'GRP_', '') "
+         sql+="FROM wp_wetterturnier_betstat bs JOIN wp_users wu ON userID = wu.ID WHERE tdate=%d AND cityID=%d AND userID != %d ORDER BY bs.rank"
          cur = db.cursor()
          cur.execute( sql % (tdate, cityID, sleepyID) )
          data = cur.fetchall()
          for i in data:
-            print( "{:2d}. {:26s}{:5.1f} ({:5.1f}/{:5.1f})".format(i[0],i[1],i[2],i[3],i[4]), file=f )
+            printf( "{:2d}. {:<25.25s} {:5.1f} ({:5.1f}/{:5.1f})".format(i[0],i[1].replace("GRP_",""),i[2],i[3],i[4]) )
          sql = "SELECT mean FROM wp_wetterturnier_tdatestats WHERE tdate = %d AND cityID = %d"
          cur.execute( sql % (tdate, cityID) )
          mean = cur.fetchone()[0]
          do,fr = db.get_user_id( "Donnerstag" ), db.get_user_id( "Freitag" )
          sleepy = db.get_sleepy_points(cityID, tdate, [do,fr])
-         print(sleepy)
+         printf( info_str % (mean, sleepy) )
+         printf( "\n" ) 
 
-         print( info_str % (mean, sleepy), file=f )
+         #TODO: season ranking (fake?)
+
+
+         #TODO: 15 weeks ranking (only parts?)
+ 
+         printf( footer )
 
 # -------------------------------------------------------------------
 # - Start as main script (not as module)

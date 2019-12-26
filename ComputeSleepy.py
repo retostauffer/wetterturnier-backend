@@ -102,7 +102,7 @@ if __name__ == '__main__':
          #   where all the bets are in.
          points = db.get_sleepy_points(city['ID'],tdate,ignore)
          if points == False: continue
- 
+         print points 
          # - Insert Sleepy points
          print '    Inserting Sleepy points for %d' % tdate
          print "    UPSERT: user %d, city %d, tdate %d, points %f " % (userID,city['ID'],tdate,points)

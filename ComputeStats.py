@@ -88,7 +88,7 @@ if __name__ == '__main__':
 	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, typ=typ, pout=25, pmin=50 )
 	       db.upsert_stats( city['ID'], stats, userID, 0, day)
 
-      sql = "SELECT wu.user_login, us.points_adj %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND part >= 25 AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
+      sql = "SELECT wu.user_login, us.points_adj, %s, REPLACE(wu.user_login, 'GRP_', '') FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND part >= 25 AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
       cols = ",".join( measures[:4] )
  
       if config['input_filename'] == None:

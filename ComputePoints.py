@@ -83,20 +83,11 @@ if __name__ == '__main__':
          #   mean bets on this date
          # ----------------------------------------------------------------
          check = utils.datelock(config,tdate)
-         if check:
+         if not config['input_force'] and check:
             print '    Date is \'locked\' (datelock). Dont execute, skip.'
             continue
 
          print '  * Current tournament is %s' % utils.tdate2string( tdate )
-
-         # ----------------------------------------------------------
-         # - Avoid to change old points!
-         # ----------------------------------------------------------
-         if not config['input_force'] and tdate <= 17532:
-            print "\n       SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP"
-            print "       |  do NOT change points before 2018   |"
-            print "       SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP\n"
-            continue
 
          # ----------------------------------------------------------
          # - Which judgingclass do we have to take?
