@@ -160,7 +160,7 @@ if __name__ == '__main__':
          moses_file_info = get_moses_file(tdate,city, offset = False )
          moses_file = moses_file_info[0]
          moses_date = str( moses_file_info[1] )
-         print moses_date
+         #print moses_date
          if not moses_file: continue
    
          print '  * Found newest moses file %s' % moses_file
@@ -180,20 +180,20 @@ if __name__ == '__main__':
          moses_tdate = utils.string2tdate( moses_date )
          db.upsert_moses_coefs(city['ID'], moses_tdate, moses)
          #moses = db.get_moses_coefs(city['ID'], tdate)
-         print moses
+         #print moses
          # -------------------------------------------------------------
          # - Looping over all parameters, search for Moses coefficients
          #   and try to find the bets of the users.
          for param in params:
-            print param
+            #print param
             paramID = db.get_parameter_id( param )  
             for day in range(2):
-               print "day %d" % int(day+1)
+               #print "day %d" % int(day+1)
                bet[day][param] = np.array([])
                users           = moses[param]
                for user in users:
                   if user == "Persistenz": user = "Donnerstag" 
-                  print user
+                  #print user
                   userID  = db.get_user_id( user )
                   groupID = db.get_user_id( "GRP_%s" % user )
 
@@ -217,7 +217,7 @@ if __name__ == '__main__':
                if bet_count < 100000:
                   bet[day][param] = np.append( bet[day][param], np.repeat( db.get_bet_data('user',petrus_userID,city['ID'],paramID,tdate,day+1), (100000 - bet_count ) ) )
          bet = mitteltip.mitteltip(db,'moses',False,city,tdate,bet)
-         print bet
+         #print bet
       # - If bet is False, continue
          if bet == False: continue
 
