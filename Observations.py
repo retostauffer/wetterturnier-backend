@@ -73,6 +73,11 @@ if __name__ == '__main__':
    #today = dt.datetime.fromtimestamp( today * 86400 )
    for tdate in tdates:
 
+      check = utils.datelock(config,tdate)
+      if not config['input_force'] and check:
+         print '    Date is \'locked\' (datelock). Dont execute, skip.'
+         continue
+
       tdate_int = tdate
       tdate = dt.datetime.fromtimestamp( tdate * 86400 )
       print "    Processing data for tournament: %s (tdate=%d)" % (tdate,tdate_int)

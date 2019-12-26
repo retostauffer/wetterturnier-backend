@@ -144,6 +144,12 @@ if __name__ == '__main__':
       #  - Looping over tdates
       # -------------------------------------------------------------
       for tdate in tdates:
+
+         check = utils.datelock(config,tdate)
+         if not config['input_force'] and check:
+            print '    Date is \'locked\' (datelock). Dont execute, skip.'
+            continue
+
          bet = [{},{}]
          print '\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID']) 
       

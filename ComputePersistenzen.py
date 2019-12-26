@@ -78,6 +78,12 @@ if __name__ == '__main__':
       # - Loopig over all tournament dates
       # ----------------------------------------------------------------
       for tdate in tdates:
+
+         check = utils.datelock(config,tdate)
+         if not config['input_force'] and check:
+            print '    Date is \'locked\' (datelock). Dont execute, skip.'
+            continue
+
          # - Using obervations of the tournament day for our Persistenz player
          tdate_str = utils.tdate2string( tdate - j )
          print "    Searching for Observations:     %s (%d)" % (tdate_str,tdate-j)

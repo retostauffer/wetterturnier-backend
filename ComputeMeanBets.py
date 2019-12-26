@@ -112,6 +112,11 @@ if __name__ == '__main__':
          # ----------------------------------------------------------------
          for tdate in tdates:
 
+            check = utils.datelock(config,tdate)
+            if not config['input_force'] and check:
+               print '    Date is \'locked\' (datelock). Dont execute, skip.'
+               continue
+
             # Check number of participants for this city, weekend, and group
             participants = db.get_participants_in_group(groupID,city['ID'],tdate)
             print("    Found user ID's: {:s}".format(", ".join(
