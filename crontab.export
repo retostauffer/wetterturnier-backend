@@ -59,14 +59,6 @@ MAILTO="prognose@met.fu-berlin.de"
 #   all cities of a certain weekend if not required).
 */60 * * * * cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 900 ionice -c 2 -n 0 python Rerun.py >> /home/wetterturnier/cronlog/Rerun.log
 
-#   Processing MeteoService MOS forecasts. They are located in
-#   /home/knuepffer/abgabe named all.*. This script reads the latest 3 and
-#   creates a JSON data file which is used for the frontend.
-#15,45 * * * * cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 120 ionice -c 2 -n 0 python PrepareMOS.py > /home/wetterturnier/cronlog/PrepareMOS.log
-
-#   Create MOS forecast JSON file
-#*/1 0-14 * * 5 cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 120 ionice -c 2 -n 0 python MOS.py > /home/wetterturnier/cronlog/MOS.log
-
 #   Compute Stats every Monday at 7:01 am (tdatestats and userstats)
 5 7 * * 1 cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 3600 ionice -c 2 -n 0 python ComputeStats.py > /home/wetterturnier/cronlog/ComputeStats.log
 

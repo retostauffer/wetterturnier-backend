@@ -27,15 +27,16 @@ class getobs( object ):
  
    Args:
       config (:obj:`list`): Contains all necessary configs for the
-             pywetterturnier package. Please have a look into 
-             See :py:meth:`utils.readconfig` for more details. 
+         pywetterturnier package. Please have a look into 
+         See :py:meth:`utils.readconfig` for more details. 
       db (:py:class:`database.database`): A pywetterturnier 
-             (:py:class:`database.database` object handling the database I/O.
+         (:py:class:`database.database` object handling the database I/O.
       city (:obj:`int`): Numeric city ID.
       date (:obj:`datetime.datetime.date` object with the date for which
-             the request should be made.
+         the request should be made.
       wmoww (:obj:`utils.wmowwConversion`): Or None. If None, no conversion will
-             be performed. If set the :meth:`utils.wmowwConversion.convert` method is used to convert observed weather codes into the required ones.
+         be performed. If set the :meth:`utils.wmowwConversion.convert`
+         method is used to convert observed weather codes into the required ones.
    """
 
 
