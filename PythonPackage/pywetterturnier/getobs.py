@@ -1183,18 +1183,14 @@ class getobs( object ):
                   cur = self.db.cursor()
                   cur.execute( sql )
                   tmp = cur.fetchall()
-                  print "tmp"
-                  print tmp
                   # - No data? Return None 
                   if len(tmp) == 0 or tmp == None:
-                     print "None"
                      return None
                   else:
                      # - Else sum up
                      value = 0
                      for rec in tmp:
                         value += int(rec[0])
-                        print value
                      value = int( np.round(np.float(value)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
 	       # Else we report None 
                else: value = None
