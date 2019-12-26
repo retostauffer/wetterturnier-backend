@@ -100,20 +100,8 @@ if __name__ == '__main__':
 
          # - Returns list object containing two dicts 
          #   where all the bets are in.
-         tmp = db.get_sleepy_points(city['ID'],tdate,ignore)
-         if tmp == False: continue
-
-         # - Else prepare the data to compute the Sleepy poins
-         data = []
-         for elem in tmp:
-            if elem[0] == None: continue
-            data.append(float(elem[0]))   # store total points to a list
-
-         if len(data) == 0: continue
-
-         points    = np.round(np.mean(data)  - np.mean(np.abs(data  - np.mean(data ))),1)
-         #maybe use MAD instead?
-         #points    = np.round(np.median(data)  - np.mean(np.abs(data  - np.median(data ))),1)
+         points = db.get_sleepy_points(city['ID'],tdate,ignore)
+         if points == False: continue
  
          # - Insert Sleepy points
          print '    Inserting Sleepy points for %d' % tdate

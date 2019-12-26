@@ -1245,11 +1245,20 @@ class database(object):
       cur.execute( sql % ( self.prefix, self.prefix,cityID,tdate,sql_tuple(ignore)) )
       data = cur.fetchall()
 
-      #print data
       if not data:
          return False
       else:
-         return data
+         # - Else prepare the data to compute the Sleepy poins
+         data = []
+         for i in data:
+            if i[0] == None: continue
+            data.append(float(i[0]))   # store total points to a list
+
+         if len(data) == 0: return False
+         else:
+            import numpy as np
+            return np.round(np.mean(data)  - np.mean(np.abs(data  - np.mean(data ))),1)
+
 
    #compute statistics out of some wetterturnier tables like betstat
    def get_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, typ="sd_logfit", ymax=False, pout=25, pmin=50, midyear=2010, span=False, dates=False, verbose=False):
