@@ -98,11 +98,16 @@ if __name__ == '__main__':
       # ----------------------------------------------------------------
       for tdate in tdates:
 
+         check = utils.datelock(config,tdate)
+         if not config['input_force'] and check:
+            print '    Date is \'locked\' (datelock). Dont execute, skip.'
+            continue
+
          # - Returns list object containing two dicts 
          #   where all the bets are in.
          points = db.get_sleepy_points(city['ID'],tdate,ignore)
          if points == False: continue
-         print points 
+         print "    Sleepy = " + str(points)
          # - Insert Sleepy points
          print '    Inserting Sleepy points for %d' % tdate
          print "    UPSERT: user %d, city %d, tdate %d, points %f " % (userID,city['ID'],tdate,points)
