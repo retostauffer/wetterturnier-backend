@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
    #-p option for testing minimum participations and exponent formula
    if config['input_param'] == None:
-      par = [25,50]
+      par = [1,1]
    else:
       par = config['input_param'].split(",")
 
@@ -84,8 +84,7 @@ if __name__ == '__main__':
 
       for userID in userIDs:
          user = db.get_username_by_id(userID)
-         stats = db.get_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, pout=int(par[0]), pmin=int(par[1]), span=span, referenz=True, midyear=midyear, verbose=verbose )
-         #stats = db.get_stats( city['ID'], measures, userID, 0, 0, verbose=verbose )
+         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, pout=int(par[0]), pmin=int(par[1]), span=span, referenz=True, midyear=midyear, verbose=verbose )
 
          db.upsert_stats( city['ID'], stats, userID, 0, 0 )
    

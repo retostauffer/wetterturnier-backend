@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
    #-p option for testing minimum participations, exponent formula
    if config['input_param'] == None:
-      typ = "sd_logfit"
+      typ = "sd_ind"
    else:
       typ = config['input_param']
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=["points_adj","points","part","mean","median","Qlow","Qupp","max","min","sd"]
+   measures=["points_adj","sd_ind","points","part","mean","median","Qlow","Qupp","max","min","sd"]
 
    # check whether current tournament is finished to keep open tournaments out of the userstats
    today              = utils.today_tdate()
@@ -62,7 +62,7 @@ if __name__ == '__main__':
          print 'ALL DATES'
       for tdate in tdates:
          for day in range(3):
-            stats = db.get_stats( city['ID'], measures[-8:]+["sd_upp"], 0, tdate, day )
+            stats = db.compute_stats( city['ID'], measures[-8:]+["sd_upp"], 0, tdate, day )
             #if all stats are 0 we assume that no tournament took place on tdate
             if stats.values() == [0] * len(stats):
                continue
@@ -71,7 +71,7 @@ if __name__ == '__main__':
       
       #Compute citystats which can be used for plotting box whiskers etc
       #TODO: we should already calculate the fit coefficients m,n / A,B,C later used for plotting here
-      stats = db.get_stats( city['ID'], measures[-7:] + ["mean_part","max_part","min_part","tdates"], last_tdate = last_tdate )
+      stats = db.compute_stats( city['ID'], measures[-7:] + ["mean_part","max_part","min_part","tdates"], last_tdate = last_tdate )
       db.upsert_stats( city['ID'], stats )
 
    if config['input_tdate'] == None:
@@ -85,10 +85,11 @@ if __name__ == '__main__':
 	 user = db.get_username_by_id(userID)
 	 for city in cities:
 	    for day in range(3):
-	       stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, typ=typ, pout=25, pmin=50 )
+	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=False, typ=typ, pout=1, pmin=1 )
+               print stats
 	       db.upsert_stats( city['ID'], stats, userID, 0, day)
 
-      sql = "SELECT wu.user_login, us.points_adj, %s, REPLACE(wu.user_login, 'GRP_', '') FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND part >= 25 AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
+      sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND part >= 1 AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
       cols = ",".join( measures[:4] )
  
       if config['input_filename'] == None:

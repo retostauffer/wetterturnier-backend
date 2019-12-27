@@ -1,6 +1,7 @@
 {
+"Fraktus":              ["Wettermann"],
 "wetteregon":     	["rana_2002"],
-"don_baecker":		["ambot_lang"],
+"don_baecker":		["ambot_lang","Dummschwaetzer"],
 "DWD-MOS-MIX-test":	["MOS-T"],
 "DWD-EZ-MOS":           ["EZ-MOS"],
 "MSwr-GFS-MOS": 	["MeteoService-GFS-MOS"],
