@@ -8,10 +8,8 @@ if __name__ == '__main__':
 
    # - Evaluating input arguments
    inputs = utils.inputcheck('ComputeStats')
-   print inputs
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
-   print config
    # - Initializing class and open database connection
    db        = database.database(config)
 
@@ -25,11 +23,16 @@ if __name__ == '__main__':
    else:
       tdates     = [config['input_tdate']]
 
+   #verbose switch for debugging
+   if config["input_verbose"]:
+      verbose = True
+   else: verbose = False
+
    #-p option for testing minimum participations, exponent formula
    if config['input_param'] == None:
-      typ = "sd_ind"
+      pmin = 1
    else:
-      typ = config['input_param']
+      pmin = int(config['input_param'])
 
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
@@ -42,7 +45,7 @@ if __name__ == '__main__':
 
    userIDs = db.get_all_users()
 
-   measures=["points_adj","sd_ind","points","part","mean","median","Qlow","Qupp","max","min","sd"]
+   measures=["sd_ind","points_adj","points","part","mean","median","Qlow","Qupp","max","min","sd"]
 
    # check whether current tournament is finished to keep open tournaments out of the userstats
    today              = utils.today_tdate()
@@ -80,17 +83,15 @@ if __name__ == '__main__':
       from json import load
       with open("aliases.json") as aliases:
          aliases = load( aliases )
-      print aliases
       for userID in userIDs:
 	 user = db.get_username_by_id(userID)
 	 for city in cities:
 	    for day in range(3):
-	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=False, typ=typ, pout=1, pmin=1 )
-               print stats
+	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=False, typ="sd_ind", pout=pmin, pmin=pmin )
 	       db.upsert_stats( city['ID'], stats, userID, 0, day)
 
-      sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND part >= 1 AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
-      cols = ",".join( measures[:4] )
+      sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND part>=%d AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
+      cols = ",".join( ["points_adj","ROUND(sd_ind, 1) AS sd_ind","part"] )
  
       if config['input_filename'] == None:
          filename = "eternal_list"
@@ -100,14 +101,15 @@ if __name__ == '__main__':
       #generating ranking table output, write to .xls file
       with pd.ExcelWriter( "plots/%s.xls" % filename ) as writer:
          for city in cities:
-            table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
+            table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'], pmin ), db )
             table.to_excel( writer, sheet_name = city["hash"] )
+            print city["hash"]
             print table
 
       #now we call a plotting routine which draws some nice statistical plots
       import PlotStats
       tdate = max(tdates) - 7
-      PlotStats.plot(db, cities, tdate)
+      PlotStats.plot(db, cities, tdate, verbose=False)
 
    db.commit()
    db.close()

@@ -29,7 +29,7 @@ e_func = lambda x, a, b, c : a * np.log(b * x) + c
 #sigmoid = lambda x, x0, k : 1 / (1 + np.exp(-k*(x-x0)))
 
 
-def plot(db, cities, tdate):
+def plot(db, cities, tdate, verbose=False):
    boxdata, hashes = [], []
    cur = db.cursor()
 
@@ -134,16 +134,18 @@ def plot(db, cities, tdate):
          y = np.array(median) #so the curve_fit can work
 
          #make the curve_fit
-         print(city['hash'])
          popt, pcov = curve_fit(func, x, y)
-         print("POLY FIT:")
-         print("a = %s , b = %s, c = %s, d = %s" % (popt[0], popt[1], popt[2], popt[3]) )
+         if verbose:
+            print(city['hash'])
+            print("POLY FIT:")
+            print("a = %s , b = %s, c = %s, d = %s" % (popt[0], popt[1], popt[2], popt[3]) )
          stats = {"p" : popt[0], "q" : popt[1], "r" : popt[2], "s" : popt[3]}
          if i == "":
             db.upsert_stats( city["ID"], stats ) 
          eopt, ecov = curve_fit(e_func, x, y)
-         print("EXP FIT:")
-         print("a = %s , b = %s, c = %s" % (eopt[0], eopt[1], eopt[2]) )
+         if verbose:
+            print("EXP FIT:")
+            print("a = %s , b = %s, c = %s" % (eopt[0], eopt[1], eopt[2]) )
          stats = {"A" : eopt[0], "B" : eopt[1], "C" : eopt[2]}
          if i == "":
             db.upsert_stats( city["ID"], stats )
@@ -224,13 +226,15 @@ def plot(db, cities, tdate):
          ### PLOT MEAN + SD
          y = np.array(mean) #so the curve_fit can work
 
-         print(city['hash'])
          popt, pcov = curve_fit(func, x, y)
-         print("POLY FIT:")
-         print("a = %s , b = %s, c = %s, d = %s" % (popt[0], popt[1], popt[2], popt[3]) )
+         if verbose:
+            print(city['hash'])
+            print("POLY FIT:")
+            print("a = %s , b = %s, c = %s, d = %s" % (popt[0], popt[1], popt[2], popt[3]) )
          eopt, ecov = curve_fit(e_func, x, y, p0=[0.5,2,4])
-         print("EXP FIT:")
-         print("a = %s , b = %s, c = %s" % (eopt[0], eopt[1], eopt[2]) )
+         if verbose:
+            print("EXP FIT:")
+            print("a = %s , b = %s, c = %s" % (eopt[0], eopt[1], eopt[2]) )
          #sopt, scov = curve_fit(sigmoid, x, y, p0=[10000, 0.005], method='dogbox' )
 
          fig, ax = pl.subplots()
@@ -281,9 +285,10 @@ def plot(db, cities, tdate):
 
             #insert m,b to database (citystats)
             if filename+i == "sd_upp":
-               print "SD_upp:\nm = %f | n = %f" % (m, n)
-               print("LOG FIT:")
-               print("T = %s , U = %s, V = %s" % (eopt[0], eopt[1], eopt[2]) )
+               if verbose:
+                  print "SD_upp:\nm = %f | n = %f" % (m, n)
+                  print("LOG FIT:")
+                  print("T = %s , U = %s, V = %s" % (eopt[0], eopt[1], eopt[2]) )
                stats = {"m" : m, "n" : n, "T" : eopt[0], "U" : eopt[1], "V" : eopt[2]}
                db.upsert_stats( city["ID"], stats )
 
@@ -313,6 +318,7 @@ def plot(db, cities, tdate):
             ax.legend()
             fig.autofmt_xdate()
             fig.savefig("plots/"+city['hash']+"/"+filename+i, dpi=96)
+            pl.close("all")
 
    #save participation plot for all cities
    # format the ticks
@@ -337,11 +343,11 @@ def plot(db, cities, tdate):
    figx.set_size_inches(16,9)
    figx.autofmt_xdate()
    figx.savefig("plots/parts", dpi=96)
- 
+   pl.close("all") 
+
    #save boxplot for all cities
    fig, ax = pl.subplots()
-   ax.boxplot( boxdata, showfliers=False, whiskerprops = dict(linestyle='-',linewidth=3
-, color='black'), medianprops = dict(linestyle=':', linewidth=3, color='firebrick'), boxprops = dict(linestyle='-', linewidth=3, color='darkgoldenrod'), capprops=dict(linewidth=3) )
+   ax.boxplot( boxdata, showfliers=False, whiskerprops = dict(linestyle='-',linewidth=3, color='black'), medianprops = dict(linestyle=':', linewidth=3, color='firebrick'), boxprops = dict(linestyle='-', linewidth=3, color='darkgoldenrod'), capprops=dict(linewidth=3) )
    ax.grid( True )
    ax.set_title("Boxplot of points for all cities")
    ax.set_xlabel("City")
@@ -351,6 +357,7 @@ def plot(db, cities, tdate):
 
    fig.set_size_inches( 16,9 )
    fig.savefig("plots/boxplot", dpi=96)
+   pl.close("all")
 
    #plot of mean+sd to compare difficulty of all cities
    meancities, sdcities = [], []
@@ -370,7 +377,7 @@ def plot(db, cities, tdate):
 
    fig.set_size_inches( 16,9 )
    fig.savefig("plots/mean_sd", dpi=96)
-
+   pl.close("all")
 
 # - Start as main script (not as module)
 # -------------------------------------------------------------------
@@ -399,6 +406,10 @@ if __name__ == '__main__':
          if elem['name'] == config['input_city']: tmp.append( elem )
       cities = tmp
 
+   if config['input_verbose'] == None:
+      verbose = False
+   else: verbose = config['input_verbose']
+
    if config['input_tdate'] == None:
       tdate     = db.current_tournament()
       print '  * Current tournament is %s' % utils.tdate2string( tdate )
@@ -406,7 +417,7 @@ if __name__ == '__main__':
       tdate = config['input_tdate']
 
    # - Calling the function now
-   plot(db, cities, tdate)
+   plot(db, cities, tdate, verbose=verbose)
 
    db.commit()
    db.close()

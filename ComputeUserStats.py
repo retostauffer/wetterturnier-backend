@@ -43,7 +43,8 @@ if __name__ == '__main__':
       userIDs.append( db.get_user_id(i) )
    #print users; userIDs
 
-   measures=["points_adj","points_adj1","points_adj2","part"]
+   #measures=["points_adj","points_adj1","points_adj2","part"]
+   measures = ["points_adj","part"]
    #measures=["part","points","mean","median","sd","max","min"]
 
    #-t option to quickly set asymptote ymax
@@ -74,7 +75,6 @@ if __name__ == '__main__':
    for city in cities:
       print "city = " + city["hash"]
       midyear = mids[city['ID']]
-      print "midyear = " + str(midyear) + "\n"
       if ymax == -1:
          sql = "SELECT max FROM %swetterturnier_citystats WHERE cityID = %d"
          cur = db.cursor()
@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
       for userID in userIDs:
          user = db.get_username_by_id(userID)
-         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, pout=int(par[0]), pmin=int(par[1]), span=span, referenz=True, midyear=midyear, verbose=verbose )
+         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, typ="sd_ind", span=span, pout=int(par[0]), pmin=int(par[1]), referenz=True, verbose=verbose )
 
          db.upsert_stats( city['ID'], stats, userID, 0, 0 )
    
