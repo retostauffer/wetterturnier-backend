@@ -355,6 +355,8 @@ class database(object):
          res.append( {'ID':int(elem[0]),'name':str(elem[1]),'hash':str(elem[2])} )
       
       return res
+      #return [{'ID':int(i[0]),'name':str(i[1]),'hash':str(i[2])} for i in data]
+
 
    def get_city_names(self):
       """Loading city information from the database.
@@ -380,6 +382,8 @@ class database(object):
          res.append( elem[0] )
       
       return res
+      #return [i[0] for i in data]
+
 
    # -------------------------------------------------------------------
    # - Loading stations from database for a given city
@@ -482,6 +486,7 @@ class database(object):
       data = cur.fetchall()
       tdates = []
       for elem in data: tdates.append( elem[0] )
+      #tdates = [i[0] for i in data]
       tdates.sort()
       print '    Found %d different dates' % len(tdates)
 
@@ -591,13 +596,13 @@ class database(object):
          betdate = []
          # Values to update the database
          values = []
-         for elem in data:
-            userID.append(  int(elem[0]) )  
-            cityID.append(  int(elem[1]) )  
-            paramID.append( int(elem[2]) )  
-            tdate.append(   int(elem[3]) )  
-            betdate.append( int(elem[4]) )
-            values.append(  int(elem[5]) )
+         for i in data:
+            userID.append(  int( i[0]) )  
+            cityID.append(  int( i[1]) )  
+            paramID.append( int( i[2]) )  
+            tdate.append(   int( i[3]) )  
+            betdate.append( int( i[4]) )
+            values.append(  int( i[5]) )
          return userID, cityID, paramID, tdate, betdate, values
 
    # -------------------------------------------------------------------
@@ -943,6 +948,7 @@ class database(object):
          res = []
          for elem in data: res.append( elem[0] )
          return res
+         #return [i[0] for i in data]
       else:
          return data[0][0]
 
@@ -1620,8 +1626,7 @@ class database(object):
          cur.execute( sql % ( self.prefix, cityID, tdate, paramID ) )
          data = cur.fetchall()
          for i in data:
-            user = self.get_username_by_id( i[0] )
-            moses[param][user] = i[1]
+            moses[param][int(i[0])] = i[1]
       return moses
 
 
@@ -1629,10 +1634,9 @@ class database(object):
       cur = self.db.cursor()
       for param in moses.keys():
          paramID = self.get_parameter_id( param )
-         for user in moses[param].keys():
-            #print user
-            userID = self.get_user_id( user )
-            coef = moses[param][user]; #print coef
+         for userID in moses[param].keys():
+            #print userID
+            coef = moses[param][userID]
             sql = "INSERT INTO %swetterturnier_coefs (cityID, userID, paramID, tdate, coef) VALUES %s ON DUPLICATE KEY UPDATE coef=VALUES(coef)"
             #print sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) )
             cur.execute( sql % ( self.prefix, str(tuple( [cityID, userID, paramID, tdate, coef] ) ) ) )

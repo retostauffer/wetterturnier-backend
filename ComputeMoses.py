@@ -174,13 +174,15 @@ if __name__ == '__main__':
             elif len(line.split()) == 2:
                user = line.split()[1]
                if user == "Persistenz": user = "Donnerstag"
-               moses[param][user] = line.split()[0]
+               userID = db.get_user_id( user )
+               if not userID: print "NO userID!"; continue
+               moses[param][userID] = line.split()[0]
             else: continue
 
          moses_tdate = utils.string2tdate( moses_date )
          db.upsert_moses_coefs(city['ID'], moses_tdate, moses)
-         #moses = db.get_moses_coefs(city['ID'], tdate)
-         #print moses
+         moses = db.get_moses_coefs(city['ID'], moses_tdate)
+
          # -------------------------------------------------------------
          # - Looping over all parameters, search for Moses coefficients
          #   and try to find the bets of the users.
@@ -191,22 +193,9 @@ if __name__ == '__main__':
                #print "day %d" % int(day+1)
                bet[day][param] = np.array([])
                users           = moses[param]
-               for user in users:
-                  if user == "Persistenz": user = "Donnerstag" 
-                  #print user
-                  userID  = db.get_user_id( user )
-                  groupID = db.get_user_id( "GRP_%s" % user )
-
-                  if not userID: userID = groupID 
-
-                  if not userID:
-                     print '    - Problems getting userID for user %s' % (user)
-                     utils.exit('Reto, should not happen. What doing now?')
-                  
-                     #   and parameter 'paramID' for day 'day'.
-                     #   If there are no data, continue!
+               for userID in users:
                   value = db.get_bet_data('user',userID,city['ID'],paramID,tdate,day+1)
-                  coef  = moses[param][user]
+                  coef  = moses[param][userID]
                   # - If value is False the player did not submit his/her bet!
                   
                   if value == False: continue
