@@ -95,7 +95,8 @@ class database(object):
       for i in data: res.append( int(i[0]) )
       
       return res
-
+      #return [int(i[0]) for i in data]
+ 
    # ----------------------------------------------------------------
    # ----------------------------------------------------------------
    def __connect__(self):
@@ -218,7 +219,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Create a user
    # -------------------------------------------------------------------
-   def create_user(self, name, password = None ):
+   def create_user(self, name, password = None, email = None ):
       """Check and/or create new Wetterturnier user.
       Creates a new user. If user already exists, the job of this method is
       done. Return. If not, create new user.
@@ -241,6 +242,7 @@ class database(object):
          password (:obj:`str`, optional): If set to None the user wont get a password (actually
          I *have to set* a password, in this case the user password is just its user name
          backwards. E.g., Reto gets paswort oteR.
+         email (:obj:`str`): Email address. If set to None we create pseudo-email (user@nomail.com)
       """
 
       import os
@@ -287,18 +289,20 @@ class database(object):
       #   to create propper users.
       if password == None:
          password = name[::-1]
-      str = []
-      str.append('<?php')
-      str.append('require_once(\'%s\');' % self.config['migrate_wpconfig'])
-      str.append('$a = wp_create_user(\'%s\',\'%s\');' % (name, password))
-      str.append('print_r( $a );')
-      str.append('?>')
+      if email == None:
+         email = name + "@nomail.com"
+      pstr = []
+      pstr.append('<?php')
+      pstr.append('require_once(\'%s\');' % self.config['migrate_wpconfig'])
+      pstr.append('$a = wp_create_user(\'%s\',\'%s\',\'%s\');' % (name, password, email))
+      pstr.append('print_r( $a );')
+      pstr.append('?>')
 
       # - Crate php file
       print '    Create php file to create the user'
       phpfile = '%s/create_user.php' % self.config['rawdir']
       fid = open( phpfile,'w+');
-      fid.write( '\n'.join( str ) )
+      fid.write( '\n'.join( pstr ) )
       fid.close()
 
       print '    Calling php file now ...'
@@ -1097,7 +1101,7 @@ class database(object):
          for i in data:
             res.append(int(i[0]))
          return res
-
+         #return [int(i[0]) for i in data]
 
    def get_groups(self, active=False):
       """Returns all active group names from database.
@@ -1116,6 +1120,7 @@ class database(object):
       for elem in data: res.append(elem[0])
 
       return res
+      #return [i[0] for i in data]
 
    # -------------------------------------------------------------------
    # - Returning only active groups 
@@ -1172,6 +1177,7 @@ class database(object):
          for elem in data: res.append(elem[0])
 
          return res
+         #return [i[0] for i in data]
 
    # -------------------------------------------------------------------
    # - Create a groupuser (add user to group as a member)
@@ -1601,6 +1607,7 @@ class database(object):
          sql = "INSERT INTO %swetterturnier_citystats (cityID, %s) VALUES %s" + update + sql_vals
          cur.execute( sql % (self.prefix, mstr, str(sql_tuple(sum( [[cityID],values], []) ) ) ))
       else: utils.exit("Wrong usage of upsert_stats in database.py!")
+
 
    def get_moses_coefs(self, cityID, tdate):
       cur = self.db.cursor()
