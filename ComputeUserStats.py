@@ -47,12 +47,6 @@ if __name__ == '__main__':
    measures = ["points_adj","part"]
    #measures=["part","points","mean","median","sd","max","min"]
 
-   #-t option to quickly set asymptote ymax
-   if config['input_tdate'] == None:
-      ymax = 185
-   else:
-      ymax = config['input_tdate']
-
    #-p option for testing minimum participations and exponent formula
    if config['input_param'] == None:
       par = [1,1]
@@ -75,16 +69,10 @@ if __name__ == '__main__':
    for city in cities:
       print "city = " + city["hash"]
       midyear = mids[city['ID']]
-      if ymax == -1:
-         sql = "SELECT max FROM %swetterturnier_citystats WHERE cityID = %d"
-         cur = db.cursor()
-         cur.execute( sql % ( db.prefix, city['ID'] ) )
-         data = cur.fetchone()
-         ymax = data[0]
 
       for userID in userIDs:
          user = db.get_username_by_id(userID)
-         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, ymax=ymax, typ="sd_ind", span=span, pout=int(par[0]), pmin=int(par[1]), referenz=True, verbose=verbose )
+         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, span=span, pout=int(par[0]), pmin=int(par[1]), referenz=True, verbose=verbose )
 
          db.upsert_stats( city['ID'], stats, userID, 0, 0 )
    

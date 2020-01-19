@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
    #-p option for testing minimum participations, exponent formula
    if config['input_param'] == None:
-      pmin = 1
+      pmin = 50
    else:
       pmin = int(config['input_param'])
 
@@ -87,7 +87,7 @@ if __name__ == '__main__':
 	 user = db.get_username_by_id(userID)
 	 for city in cities:
 	    for day in range(3):
-	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=False, typ="sd_ind", pout=pmin, pmin=pmin )
+	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, pout=pmin, pmin=pmin )
 	       db.upsert_stats( city['ID'], stats, userID, 0, day)
 
       sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND part>=%d AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"

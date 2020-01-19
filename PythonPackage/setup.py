@@ -41,12 +41,17 @@ setup(name='pywetterturnier',     # This is the package name
       license='GPL-3',
       packages=['pywetterturnier'],
       install_requires=[
-          'numpy',
+          'numpy',        # everyone needs it!
+          'matplotlib',   # plotting nice graphs
+          'scipy',        # curve fitting
           'MySQL-python', # MySQL connection
+          #MySQL-python not supported anymore in python3!
+          #'mysqlclient',  # new client version 1.4.4 since 1.4.5 didn't work
           'importlib',    # Used to load the judgingclasses dynamically
+          'python-dateutil',
           'pytz',         # Required by astral
           'astral',       # Used to compute astronomic sunshine duration
-          'pandas',       # needed for stats computation, table export etc
-          'xlwt'          # xls table generation
+          'pandas',       # exporting data frames
+          'xlwt',         # to excel (.xls)
       ],
       czip_safe=False)
