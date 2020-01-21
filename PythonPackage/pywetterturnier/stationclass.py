@@ -134,6 +134,3 @@ class stationclass( object ):
       print "    - Station name:         %s" % self.name
       print "    - City ID:              %d" % self.cityID
       print "    - Last changed:         %s" % self.changed.strftime('%Y-%m-%d %H:%M')
-      
-
-

@@ -1409,25 +1409,3 @@ class getobs( object ):
             
          # Convert the new proper date/time into a datetime object
          return dt.datetime.strptime(date,"%Y-%m-%d %H:%M") 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

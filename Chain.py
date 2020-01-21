@@ -108,8 +108,3 @@ if __name__ == '__main__':
       if not p1.returncode == 0:
          for line in err: print '%s\n' % line
          utils.exit('ERROR WHILE RUNNING %s AS SUBPROCESS FOR DATE %d' % (script,config['input_tdate']))
-
-
-
-
-

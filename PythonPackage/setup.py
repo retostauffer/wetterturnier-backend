@@ -26,21 +26,22 @@
 from setuptools import setup
 
 setup(name='pywetterturnier',     # This is the package name
-      version='0.1-0',            # Current package version, what else
+      version='0.2-0',            # Current package version, what else
       description='The Wetterturnier Python Backend Package',
       long_description='This is only the backend code.',
       classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'GNU Lesser General Public License v3 or later (LGPLv3+)',
         'Programming Language :: Python :: 2.7',
       ],
       keywords='wetterturnier wetter tippspiel',
-      url='https://bitbucket.org/retos/prognose2-www-repository',
-      author='Reto Stauffer',
-      author_email='reto.stauffer@uibk.ac.at',
+      url='https://github.com/retostauffer/wetterturnier-backend',
+      author='Reto Stauffer / Juri Hubrig',
+      author_email='juri.hubrig@fu-berlin.de',
       license='GPL-3',
       packages=['pywetterturnier'],
       install_requires=[
+          'six',          # backwards compatibility
           'numpy',        # everyone needs it!
           'matplotlib',   # plotting nice graphs
           'scipy',        # curve fitting
