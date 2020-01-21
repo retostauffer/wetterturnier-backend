@@ -15,7 +15,6 @@
 import sys, os
 sys.path.append('PyModules')
 
-
 # - Start as main script (not as module)
 if __name__ == '__main__':
 

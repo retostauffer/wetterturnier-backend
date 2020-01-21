@@ -15,7 +15,6 @@
 import sys, os
 sys.path.append('PyModules')
 
-
 # - Start as main script (not as module)
 if __name__ == '__main__':
 
@@ -174,13 +173,4 @@ if __name__ == '__main__':
    import ComputeSumPoints
    ComputeSumPoints.CSP(db,config,cities,tdates)
 
-
    db.commit()
-   db.close()
-
-
-
-
-
-
-

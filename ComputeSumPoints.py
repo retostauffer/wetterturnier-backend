@@ -186,7 +186,3 @@ if __name__ == '__main__':
    CSP(db,config,cities,tdates)
 
    db.commit()
-   db.close()
-
-
-

@@ -14,14 +14,9 @@
 if __name__ == "__main__":
 
    import datetime as dt
-
-
-
    import sys, os
    # - Wetterturnier specific modules
-   from pywetterturnier import utils
-   from pywetterturnier import database
-   from pywetterturnier import getobs
+   from pywetterturnier import utils, database, getobs
    # - Astral package
    import astral
    # - Numpy for the computation
@@ -142,11 +137,3 @@ if __name__ == "__main__":
       for c in range(0,len(stations)):
           ofile.write( "{0:10.2f}".format( res[i,c] ) )
       ofile.write( "\n" )
-
-
-
-
-
-
-
-

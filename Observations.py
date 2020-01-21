@@ -127,10 +127,3 @@ if __name__ == '__main__':
             obs.write_to_db()
 
    db.close()
-
-
-
-
-
-
-
