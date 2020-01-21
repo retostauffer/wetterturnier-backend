@@ -10,6 +10,7 @@
 # - L@ST MODIFIED: 2018-12-16 11:49 on marvin
 # -------------------------------------------------------------------
 
+#python3-like division
 from __future__ import division
 import MySQLdb
 import utils
@@ -130,6 +131,7 @@ class database(object):
           MySQLdb.curser: Object, database cursor.
       """
       return self.db.cursor()
+
    def execute(self,sql):
       """Simple wrapper to `MySQL.execute`
       
@@ -139,6 +141,7 @@ class database(object):
            tuple: Return from `MySQLdb.execute`.
       """
       return self.db.execute(sql)
+
    def executemany(self,sql,data):
       """Simple wrapper to `MySQL.executemany`.
 
@@ -150,6 +153,7 @@ class database(object):
          Return from :meth:`MySQLdb.executemany`.
       """
       return self.db.executemany(sql,data)
+
    def commit(self):
       """Simple wrapper to :meth:`MySQL.commit`."""
       self.db.commit()
@@ -314,8 +318,6 @@ class database(object):
       userID = self.get_user_id( name )
       if not userID:
          utils.exit('OH DEAR, CREATED USER BUT GOT NO userID IN RETURN')
-
-
 
 
    # -------------------------------------------------------------------
@@ -716,6 +718,7 @@ class database(object):
                      'WHERE gu.groupID = %d ' + \
                      'AND v.cityID = %d AND v.paramID = %d ' + \
                      'AND v.tdate = %d AND v.betdate = %d '
+         #TODO when was this added? whats above?
          sql = []
          sql.append("SELECT bet.value AS value FROM %swetterturnier_bets AS bet" % self.prefix)
          sql.append("LEFT OUTER JOIN %swetterturnier_groupusers AS gu" % self.prefix)
@@ -1274,19 +1277,17 @@ class database(object):
          if not points: return False
          else:
             import numpy as np
-            return np.round(np.mean(points)  - np.mean(np.abs(points  - np.mean(points))),1)
+            return round(np.mean(points)  - np.mean(np.abs(points  - np.mean(points))),1)
 
 
    #compute statistics out of some wetterturnier database tables like *betstat
-   def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=False, referenz=True, mitteltips=True, aliases=False, pout=25, pmin=50, midyear=2010, span=False, dates=False, verbose=False):
-      
+   def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=1, pmid=100, midyear=2010, span=None, dates=None, verbose=False):
+      """
+      TODO: docstring
+      """ 
       res = {} #results will be saved here with measures as keys, tdate as subkeys
 
       import numpy as np
-
-      Qlow = lambda points : np.percentile(points, 25, interpolation="midpoint")
-      Qupp = lambda points : np.percentile(points, 75, interpolation="midpoint")
-      logfun = lambda A, B, C, x : A * np.log( B * x ) + C
 
       cur = self.db.cursor()
       day_strs = ["", "_d1", "_d2"]
@@ -1337,7 +1338,7 @@ class database(object):
 
       elif userID:
          userIDs = [userID]
-         #if we are using an alias dict we replace all aliases of a user with his/her original/main username (dict keys)
+         #if we are using an alias dict we merge all aliases of a user with his/her other identities
          if aliases:
             username = self.get_username_by_id( userID )
             if username in aliases.keys() or username in sum(aliases.values(), []):
@@ -1391,16 +1392,14 @@ class database(object):
                   sql+=" AND tdate BETWEEN "+str(span[0])+" AND "+str(span[1])
 
             cur.execute( sql % (self.prefix, sql_tuple(userIDs), cityID) )
-            data = cur.fetchall()
-            tdates = [j[0] for j in data]
+            tdates = [j[0] for j in cur.fetchall()]
 
             sql = "SELECT sd_upp from %swetterturnier_tdatestats WHERE cityID=%d AND tdate IN%s"
             cur.execute( sql % (self.prefix, cityID, sql_tuple(tdates) ) )
-            data = cur.fetchall()
 
-            sd_ind = [j[0] for j in data]
+            sd_ind = [j[0] for j in cur.fetchall()]
             res[i] = np.mean( sd_ind )
-            if res[i] in [0, None] or np.isnan(res[i]): res[i] = 0
+            if res[i] == None or np.isnan(res[i]): res[i] = 0
 
          elif "points_adj" in i and "_d" not in i:
             
@@ -1410,9 +1409,8 @@ class database(object):
 
             #skip Sleepy
             if self.get_user_id("Sleepy") in userIDs: continue
-            #inflation adjusted points, only for all days
-            #if a user has less than 25 participations, he will not get a rank in the eternal list!
-            parts = float(len(points))
+
+            parts = len(points)
             """
             find all dates where the user actually played
             for each date calculate:
@@ -1472,26 +1470,15 @@ class database(object):
                points_adj.append( perc )
 
             if not points_adj: points_adj.append(0)
-            
-            #remove lowest 5% of values
-            """
-            points_adj = np.array(points_adj)
-            p5 = np.percentile(points_adj, 5)
-            points_adj = points_adj[points_adj > p5]
-            """
-
             if verbose:
                print ""
 
+            #if someone has less than pout parts, just kick him out!
             if parts < pout: res[i] = 0
             else:
-               if parts >= pmin:
-                  K = 1.
-               else:
-                  #TODO: use sqrt() or exp() function
-                  #K = (parts / pmin)**(2/3)
-                  K = np.sqrt(parts / pmin)
-               res[i] = np.round(K * (np.mean(points_adj) / sd_ind), 4)
+               #logistic function to scale final score with parts
+               K = 1 / ( 1 + np.exp( -0.05 * (parts - pmid) ) )
+               res[i] = round(K * (np.mean(points_adj) / sd_ind), 4)
                res[i] *= 1000
 
          elif i == "mean"+day_str:
@@ -1499,9 +1486,9 @@ class database(object):
          elif i == "median"+day_str:
             res[i] = np.median(points)
          elif i == "Qlow"+day_str:
-            res[i] = Qlow(points)
+            res[i] = np.percentile(points, 25, interpolation="midpoint")
          elif i == "Qupp"+day_str:
-            res[i] = Qupp(points)
+            res[i] = np.percentile(points, 75, interpolation="midpoint")
          elif i == "max"+day_str:
             res[i] = max(points)
          elif i == "min"+day_str:
@@ -1511,14 +1498,12 @@ class database(object):
             if np.isnan(sd): res[i] = 0
             else: res[i] = sd
          elif i == "part":
-            """
-            important for participant/participation count, otherwise part would be 1 if a player/date actually has 0 part*s
-            participants/participations, only for all days
-            """
+            #important for part count, otherwise could be 1 if a player/date actually has 0 part
             if len(points) == 1 and points[0] == 0: res[i] = 0
             else: res[i] = len(points)
          elif i == "sd_upp"+day_str:
             median = self.get_stats( tdates=[tdate], cityID=cityID, measures=["median"+day_str] )
+            if not median: continue
             sql = "SELECT points"+day_str+" from %swetterturnier_betstat WHERE tdate=%d AND cityID=%d AND points"+day_str+" > %f"
             #print sql % (self.prefix, tdate, cityID, median)
             cur.execute( sql % (self.prefix, tdate, cityID, median) )
@@ -1539,8 +1524,8 @@ class database(object):
 
          if day:
             days_str = "_"+str(day)
-            for i in range(measures):
-               measures[i] += day_str
+            for m in range(measures):
+               measures[m] += day_str
 
          if tdates:
             sql = "SELECT %s FROM %swetterturnier_tdatestats WHERE cityID=%d AND tdate IN%s"
@@ -1554,9 +1539,9 @@ class database(object):
          sql = "SELECT %s FROM %swetterturnier_userstats WHERE cityID=%d AND userID=%d"
          cur.execute( sql % ( sql_tuple(measures, 1), self.prefix, cityID, userID ) )
       
-      data = cur.fetchall()
-      res = [i[0] for i in data]
+      res = [elem[0] for elem in cur.fetchall()]
       if len(res) == 1: return res[0]
+      elif not res: return None
       else: return res
 
 
@@ -1586,6 +1571,9 @@ class database(object):
 
 
    def get_moses_coefs(self, cityID, tdate):
+      """
+      TODO: docstring
+      """
       cur = self.db.cursor()
       moses = {}
       params = self.get_parameter_names()
@@ -1601,6 +1589,9 @@ class database(object):
 
 
    def upsert_moses_coefs(self, cityID, tdate, moses):
+      """
+      TODO: docstring
+      """
       cur = self.db.cursor()
       for param in moses.keys():
          paramID = self.get_parameter_id( param )
@@ -1717,9 +1708,10 @@ class database(object):
          return missing
 
 
-   # delete bet and the corresponding betdata for a user in a city/tdate
    def delete_bet(self, userID, cityID, tdate):
-
+      """delete bet and the corresponding betdata for a user in a city/tdate
+      TODO: proper docstring
+      """
       user = self.get_username_by_id( userID )
       city = self.get_city_name_by_ID( cityID )
       date = utils.tdate2string( tdate )

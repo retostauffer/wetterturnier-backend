@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
       for userID in userIDs:
          user = db.get_username_by_id(userID)
-         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, span=span, pout=int(par[0]), pmin=int(par[1]), referenz=True, verbose=verbose )
+         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, span=span, pout=int(par[0]), pmid=int(par[1]), referenz=True, verbose=verbose )
 
          db.upsert_stats( city['ID'], stats, userID, 0, 0 )
    

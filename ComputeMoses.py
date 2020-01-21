@@ -200,10 +200,12 @@ if __name__ == '__main__':
                   
                   if value == False: continue
                   else:
+                     #TODO dont work wiht append, create array first, then fill it!
                      bet[day][param] = np.append( bet[day][param], np.repeat( value, int(float(coef)*100000) ) )
                #   Use Petrus fallback.
                bet_count = len(bet[day][param])
                if bet_count < 100000:
+                  #TODO same here...
                   bet[day][param] = np.append( bet[day][param], np.repeat( db.get_bet_data('user',petrus_userID,city['ID'],paramID,tdate,day+1), (100000 - bet_count ) ) )
          bet = mitteltip.mitteltip(db,'moses',False,city,tdate,bet)
          #print bet
