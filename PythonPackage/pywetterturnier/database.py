@@ -1281,7 +1281,7 @@ class database(object):
 
 
    #compute statistics out of some wetterturnier database tables like *betstat
-   def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=1, pmid=100, midyear=2010, span=None, dates=None, verbose=False):
+   def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=1, pmid=100, x0=0.05, midyear=2010, span=None, dates=None, verbose=False):
       """
       TODO: docstring
       """ 
@@ -1477,9 +1477,8 @@ class database(object):
             if parts < pout: res[i] = 0
             else:
                #logistic function to scale final score with parts
-               K = 1 / ( 1 + np.exp( -0.05 * (parts - pmid) ) )
-               res[i] = round(K * (np.mean(points_adj) / sd_ind), 4)
-               res[i] *= 1000
+               f = 1 / ( 1 + np.exp( -x0 * (parts - pmid) ) )
+               res[i] = round(f * (np.mean(points_adj) / sd_ind), 4) * 1000
 
          elif i == "mean"+day_str:
             res[i] = round(np.mean(points), 1)

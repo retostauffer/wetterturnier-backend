@@ -188,6 +188,3 @@ if __name__ == '__main__':
       print 'points'
       for i in range(len(inputs.values)):
          print '%5.2f' % (points[i]) 
-
-
-

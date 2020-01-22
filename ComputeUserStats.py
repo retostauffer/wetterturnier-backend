@@ -9,12 +9,10 @@ if __name__ == '__main__':
    # - Evaluating input arguments
    inputs = utils.inputcheck('ComputeUserStats')
 
-
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
    # - Initializing class and open database connection
    db        = database.database(config)
-
 
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
@@ -41,7 +39,6 @@ if __name__ == '__main__':
    #-s => compare multiple users
    for i in users:
       userIDs.append( db.get_user_id(i) )
-   #print users; userIDs
 
    #measures=["points_adj","points_adj1","points_adj2","part"]
    measures = ["points_adj","part"]
@@ -49,7 +46,7 @@ if __name__ == '__main__':
 
    #-p option for testing minimum participations and exponent formula
    if config['input_param'] == None:
-      par = [1,1]
+      par = [100, 0.05] #pmid, k
    else:
       par = config['input_param'].split(",")
 
@@ -72,11 +69,17 @@ if __name__ == '__main__':
 
       for userID in userIDs:
          user = db.get_username_by_id(userID)
-         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, span=span, pout=int(par[0]), pmid=int(par[1]), referenz=True, verbose=verbose )
+         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, span=span, pmid=int(par[0]), x0=float(par[1]), referenz=True, verbose=verbose )
 
          db.upsert_stats( city['ID'], stats, userID, 0, 0 )
    
-   sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND userID IN%s ORDER BY points_adj DESC LIMIT 0,50"
+   sql = """
+      SELECT wu.user_login, %s
+      FROM %swetterturnier_userstats us
+      JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND userID IN%s
+      ORDER BY points_adj DESC LIMIT 0,50
+   """
+
    cols = ",".join( measures )
  
    #generating ranking table output, write to .xls file

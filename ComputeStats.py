@@ -28,11 +28,11 @@ if __name__ == '__main__':
       verbose = True
    else: verbose = False
 
-   #-p option for testing minimum participations, exponent formula
+   #-p option for testing sigmoid function, setting midpoint where y=0.5
    if config['input_param'] == None:
-      pmid = 100
+      par = [100, 0.05] #pmid, k
    else:
-      pmid = int(config['input_param'])
+      par = config['input_param'].split(",")
 
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
@@ -87,11 +87,18 @@ if __name__ == '__main__':
 	 user = db.get_username_by_id(userID)
 	 for city in cities:
 	    for day in range(3):
-	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, pout=1, pmid=pmid )
-               db.upsert_stats( city['ID'], stats, userID, 0, day)
+	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, pout=1, pmid=int(par[0]), x0=float(par[1]) )
+               db.upsert_stats( city['ID'], stats, userID, 0, day )
 
-      sql = "SELECT wu.user_login, %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
-      cols = ",".join( ["points_adj", "ROUND(sd_ind, 1) AS sd_ind", "part"] )
+      sql = """
+         SELECT wu.user_login, %s
+         FROM %swetterturnier_userstats us
+         JOIN wp_users wu ON userID = wu.ID
+         WHERE cityID=%d AND user_login NOT LIKE 'Sleepy'
+         ORDER BY points_adj DESC
+      """
+
+      cols = ",".join( ("points_adj", "ROUND(sd_ind, 1) AS sd_ind", "part") )
  
       if config['input_filename'] == None:
          filename = "eternal_list"
