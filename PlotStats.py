@@ -133,6 +133,22 @@ def plot(db, cities, tdate, verbose=False):
          x = np.array(tdates) #transform your data in a numpy array of floats
          y = np.array(median) #so the curve_fit can work
 
+         #find missing median values (d1,d2 error in ZUR)
+         which = []
+         for ii, yi in enumerate(y):
+            if np.isnan(yi):
+               which.append(ii)
+
+         #for var in [x, y, dates, Qlow, Qupp, MIN, MAX, median1, median0, sd, sd_u]:
+         #   exec("var = np.delete(var, which)")
+
+         x = np.delete(x, which)
+         y = np.delete(y, which)
+         pdates = np.delete(dates, which)
+         Qlow, Qupp = np.delete(Qlow, which), np.delete(Qupp, which)
+         MIN, MAX   = np.delete(MIN,  which), np.delete(MAX, which)
+         median1, median0, sd, sd_u = np.delete(median1, which), np.delete(median0, which), np.delete(sd, which), np.delete(sd_u, which)
+
          #make the curve_fit
          popt, pcov = curve_fit(func, x, y)
          if verbose:
@@ -153,13 +169,12 @@ def plot(db, cities, tdate, verbose=False):
          #sopt, scov = curve_fit(sigmoid, x, y, p0=[10000, 0.005], method='dogbox' )
          #print("SIGMOID FIT:")
          #print("x0 = %s , k = %s" % (sopt[0], sopt[1]) )
-         
 
          ### PLOT MEDIAN
          fig, ax = pl.subplots()
-         ax.plot_date( dates, median, label="Median", linestyle="-", marker="")
-         ax.plot_date( dates, func(x, *popt), "-g", label="Poly-Fitted Curve")
-         ax.plot_date( dates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
+         ax.plot_date( pdates, x, label="Median", linestyle="-", marker="")
+         ax.plot_date( pdates, func(x, *popt), "-g", label="Poly-Fitted Curve")
+         ax.plot_date( pdates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
 
          # format the ticks
          ax.xaxis.set_major_locator(years)
@@ -167,8 +182,8 @@ def plot(db, cities, tdate, verbose=False):
          ax.xaxis.set_minor_locator(months)
 
          # round to nearest years.
-         datemin = np.datetime64(dates[0], 'Y')
-         datemax = np.datetime64(dates[-1], 'Y') + np.timedelta64(1, 'Y')
+         datemin = np.datetime64(pdates[0], 'Y')
+         datemax = np.datetime64(pdates[-1], 'Y') + np.timedelta64(1, 'Y')
          ax.set_xlim(datemin, datemax)
 
          # format the coords message box
@@ -186,17 +201,17 @@ def plot(db, cities, tdate, verbose=False):
          fig.savefig("plots/"+city['hash']+"/median"+i, dpi=96)
 
          ### MEDIAN + IQR
-         ax.fill_between(dates, Qlow, Qupp, color="grey")
+         ax.fill_between(pdates, Qlow, Qupp, color="grey")
          ax.set_title("Median Points + IQR in "+city['name']+day)
          fig.savefig("plots/"+city['hash']+"/median_IQR"+i, dpi=96)
 
 
          ### PLOT MEDIAN + RANGE
          fig, ax = pl.subplots()
-         ax.plot_date( dates, median, label="Median", linestyle="-", marker="")
-         ax.plot_date( dates, func(x, *popt), "-g", label="Poly-Fitted Curve")
-         ax.plot_date( dates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
-         ax.fill_between(dates, MIN, MAX, color="grey", alpha=0.5)
+         ax.plot_date( pdates, x, label="Median", linestyle="-", marker="")
+         ax.plot_date( pdates, func(x, *popt), "-g", label="Poly-Fitted Curve")
+         ax.plot_date( pdates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
+         ax.fill_between( pdates, MIN, MAX, color="grey", alpha=0.5)
 
          # format the ticks
          ax.xaxis.set_major_locator(years)
@@ -204,8 +219,8 @@ def plot(db, cities, tdate, verbose=False):
          ax.xaxis.set_minor_locator(months)
 
          # round to nearest years.
-         datemin = np.datetime64(dates[0], 'Y')
-         datemax = np.datetime64(dates[-1], 'Y') + np.timedelta64(1, 'Y')
+         datemin = np.datetime64(pdates[0], 'Y')
+         datemax = np.datetime64(pdates[-1], 'Y') + np.timedelta64(1, 'Y')
          ax.set_xlim(datemin, datemax)
 
          # format the coords message box
@@ -225,6 +240,8 @@ def plot(db, cities, tdate, verbose=False):
 
          ### PLOT MEAN + SD
          y = np.array(mean) #so the curve_fit can work
+         if which:
+            y = np.delete(y, which)
 
          popt, pcov = curve_fit(func, x, y)
          if verbose:
@@ -238,10 +255,10 @@ def plot(db, cities, tdate, verbose=False):
          #sopt, scov = curve_fit(sigmoid, x, y, p0=[10000, 0.005], method='dogbox' )
 
          fig, ax = pl.subplots()
-         ax.plot_date( dates, y, label="Mean", linestyle="-", marker="")
-         ax.plot_date( dates, func(x, *popt), "-g", label="Poly-Fitted Curve")
-         ax.plot_date( dates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
-         ax.fill_between(dates, y-sd, y+sd, color="grey", alpha=0.5)
+         ax.plot_date( pdates, y, label="Mean", linestyle="-", marker="")
+         ax.plot_date( pdates, func(x, *popt), "-g", label="Poly-Fitted Curve")
+         ax.plot_date( pdates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
+         ax.fill_between( pdates, y-sd, y+sd, color="grey", alpha=0.5)
 
          # format the ticks
          ax.xaxis.set_major_locator(years)
@@ -249,8 +266,8 @@ def plot(db, cities, tdate, verbose=False):
          ax.xaxis.set_minor_locator(months)
 
          # round to nearest years.
-         datemin = np.datetime64(dates[0], 'Y')
-         datemax = np.datetime64(dates[-1], 'Y') + np.timedelta64(1, 'Y')
+         datemin = np.datetime64(pdates[0], 'Y')
+         datemax = np.datetime64(pdates[-1], 'Y') + np.timedelta64(1, 'Y')
          ax.set_xlim(datemin, datemax)
 
          # format the coords message box
@@ -276,7 +293,7 @@ def plot(db, cities, tdate, verbose=False):
 
          for dat, ylab, title, filename in zip(datas, ylabs, titles, filenames):
             fig, ax = pl.subplots()
-            ax.plot_date( dates, dat, marker=".", markeredgecolor="black", label = ylab )
+            ax.plot_date( pdates, dat, marker=".", markeredgecolor="black", label = ylab )
 
             (m, n) = np.polyfit(x, dat, 1)
             yp = np.polyval([m, n], x)
@@ -292,8 +309,8 @@ def plot(db, cities, tdate, verbose=False):
                stats = {"m" : m, "n" : n, "T" : eopt[0], "U" : eopt[1], "V" : eopt[2]}
                db.upsert_stats( city["ID"], stats )
 
-            ax.plot_date( dates, yp, "-r", label="Linear Fit" )
-            ax.plot_date( dates, e_func(x, *eopt), "-g", label="Log-Fit" )          
+            ax.plot_date( pdates, yp, "-r", label="Linear Fit" )
+            ax.plot_date( pdates, e_func(x, *eopt), "-g", label="Log-Fit" )          
 
             # format the ticks
             ax.xaxis.set_major_locator(years)
@@ -301,8 +318,8 @@ def plot(db, cities, tdate, verbose=False):
             ax.xaxis.set_minor_locator(months)
 
             # round to nearest years.
-            datemin = np.datetime64(dates[0], 'Y')
-            datemax = np.datetime64(dates[-1], 'Y') + np.timedelta64(1, 'Y')
+            datemin = np.datetime64(pdates[0], 'Y')
+            datemax = np.datetime64(pdates[-1], 'Y') + np.timedelta64(1, 'Y')
             ax.set_xlim(datemin, datemax)
 
             # format the coords message box

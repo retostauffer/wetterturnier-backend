@@ -308,6 +308,8 @@ def random(db,typ,ID,city,tdate,betdata=False):
    
    import numpy as np
    import time as t
+   time = lambda : int(t.time()*1e6)
+
    # - Day one, day two
    
    for day in range(1,3):
@@ -322,17 +324,17 @@ def random(db,typ,ID,city,tdate,betdata=False):
       max_dd, min_dd = max(dd), min(dd)
       if max_dd == min_dd: bet[day-1][param] = min_dd
       elif max_dd - min_dd < 1800:
-         np.random.seed( int(t.time()*1e6) // np.sum(dd) + seed )
+         np.random.seed( time() // np.sum(dd) + seed )
          bet[day-1][param] = np.random.choice( np.arange(min_dd, max_dd+1, 100) )
       elif max_dd - min_dd > 1800:
          dd_list = []
-         for i in range(int(max_dd), int(min_dd+3601), 100):
+         for i in range(int(max_dd), int(min_dd + 3601), 100):
             if i > 3600: i -= 3600
             dd_list.append( i )
-         np.random.seed( int(t.time()*1e6) // np.sum(dd) + seed )
+         np.random.seed( time() // np.sum(dd) + seed )
          bet[day-1][param] = np.random.choice( dd_list )
       else:
-         np.random.seed( int(t.time()*1e6) // np.sum(dd) + seed )
+         np.random.seed( time() // np.sum(dd) + seed )
          bet[day-1][param] = np.random.choice( np.arange(100, 3601, 100) )
 
       for param in ["N","Sd","ff"]:
@@ -352,13 +354,13 @@ def random(db,typ,ID,city,tdate,betdata=False):
             if min_data == max_data:
                bet[day-1][param] = min_data
             elif np.random.random() < p0:
-               np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+               np.random.seed( time() // np.sum(data) + seed )
                bet[day-1][param] = 0
             else:
-               np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+               np.random.seed( time() // np.sum(data) + seed )
                bet[day-1][param] = np.random.randint( min_data, max_data )
          else:
-            np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+            np.random.seed( time() // np.sum(data) + seed )
             bet[day-1][param] = np.random.randint( min_data, max_data )
 
       param = "fx"
@@ -368,7 +370,7 @@ def random(db,typ,ID,city,tdate,betdata=False):
       if type(data) == bool: return False
       n0 = np.count_nonzero( data == 0 )
       p = n0 / float(len(data))
-      np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+      np.random.seed( time() // np.sum(data) + seed )
       if np.random.random() < p:
          bet[day-1][param] = 0.
       else:
@@ -378,7 +380,7 @@ def random(db,typ,ID,city,tdate,betdata=False):
          if min_data == max_data:
             bet[day-1][param] = min_data
          else:
-            np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+            np.random.seed( time() // np.sum(data) + seed )
             bet[day-1][param] = np.random.randint( min_data, max_data )
  
       for param in ["Wv","Wn"]:
@@ -393,7 +395,7 @@ def random(db,typ,ID,city,tdate,betdata=False):
          if len(W) == 1:
             bet[day-1][param] = W[0]
          else:
-            np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+            np.random.seed( time() // np.sum(data) + seed )
             bet[day-1][param] = np.random.choice( W )
 
       param = 'RR'
@@ -402,7 +404,7 @@ def random(db,typ,ID,city,tdate,betdata=False):
       RR = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
       if type(RR) == bool: return False
       max_RR = max(RR)
-      RR_0 = RR[RR>=0]
+      RR_0 = RR[RR >= 0]
       if len(RR_0) == 0:
          min_RR = -30
       else:
@@ -410,10 +412,10 @@ def random(db,typ,ID,city,tdate,betdata=False):
       if min_RR == max_RR:
          bet[day-1][param] = min_RR
       elif bet[day-1]["Wv"] > 40 or bet[day-1]["Wn"] > 40:
-         np.random.seed( int(t.time()*1e6) // np.sum(RR) + seed )
+         np.random.seed( time() // np.sum(RR) + seed )
          bet[day-1][param] = np.random.choice( np.arange(min_RR, max_RR+1, 1) )
       else:
-         np.random.seed( int(t.time()*1e6) // np.sum(RR) + seed )
+         np.random.seed( time() // np.sum(RR) + seed )
          n_3 = np.count_nonzero( RR == -30 )
          n0 = np.count_nonzero( RR == 0 )
          p_3 = n_3 / float(len(RR))
@@ -435,7 +437,7 @@ def random(db,typ,ID,city,tdate,betdata=False):
          if min_data == max_data:
             bet[day-1][param] = min_data
          else:
-            np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+            np.random.seed( time() // np.sum(data) + seed )
             bet[day-1][param] = np.random.choice( np.arange(min_data, max_data+1, 1) )
 
       for param in ["TTn","TTd"]:
@@ -449,10 +451,10 @@ def random(db,typ,ID,city,tdate,betdata=False):
          if min_data == max_data:
             bet[day-1][param] = min_data
          elif max_data > max_TTm:
-            np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+            np.random.seed( time() // np.sum(data) + seed )
             bet[day-1][param] = np.random.choice( np.arange(min_data, max_TTm+1, 1) )
          else:
-            np.random.seed( int(t.time()*1e6) // np.sum(data) + seed )
+            np.random.seed( time() // np.sum(data) + seed )
             bet[day-1][param] = np.random.choice( np.arange(min_data, max_data+1, 1) )
 
    return bet

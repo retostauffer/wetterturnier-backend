@@ -102,7 +102,7 @@ if __name__ == '__main__':
          ORDER BY points_adj DESC
       """
 
-      cols = ",".join( ("ROUND(points_adj) AS points_adj", "ROUND(sd_ind, 1) AS sd_ind", "part") )
+      cols = ",".join( ("ROUND(points_adj, 1) AS points_adj", "ROUND(sd_ind, 1) AS sd_ind", "part") )
  
       if config['input_filename'] == None:
          filename = "eternal_list"
@@ -121,7 +121,7 @@ if __name__ == '__main__':
       import PlotStats
       tdate = max(tdates) - 7
       print "Calling plot routine now..."
-      PlotStats.plot(db, cities, tdate, verbose=False)
+      PlotStats.plot(db, cities[:-1], tdate, verbose=False)
 
    db.commit()
    db.close()
