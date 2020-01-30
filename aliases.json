@@ -5,8 +5,8 @@
 "DWD-MOS-MIX-test":	["MOS-T"],
 "DWD-EZ-MOS":           ["EZ-MOS"],
 "MSwr-GFS-MOS": 	["MeteoService-GFS-MOS"],
+"GRP_MM-MOS":           ["EmJay"],
 "MM-UKMO-MOS": 		["Eugenia"],
-"GRP_MM-MOS":		["EmJay"],
 "MM-MOS-Mix":		["Enova"],
 "MM-EZ-MOS":		["Echinacin"],
 "MM-GFS-MOS":		["Egeria"]

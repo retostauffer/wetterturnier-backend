@@ -1281,7 +1281,7 @@ class database(object):
 
 
    #compute statistics out of some wetterturnier database tables like *betstat
-   def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=1, pmid=100, x0=0.05, midyear=2010, span=None, dates=None, verbose=False):
+   def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=50, pmid=200, x0=0.05, midyear=2010, span=None, dates=None, verbose=False):
       """
       TODO: docstring
       """ 
@@ -1314,13 +1314,13 @@ class database(object):
             for j in data2:
                exclude.append( int(j[0]) )
 
-         if tdate:
+         if tdate: #tdatestats
             #only include users who really played on tdate (no sleepy points!)
             played = sql_tuple( self.get_participants_in_city( cityID, tdate ) )
             sql += "cityID=%d AND tdate=%d AND userID NOT IN%s AND userID IN%s" + last_tdate_str
             cur.execute( sql % ( self.prefix, cityID, tdate, sql_tuple(exclude), played ) )
 
-         elif cityID:
+         elif cityID: #citystats
             sql2 = "SELECT part FROM %swetterturnier_tdatestats WHERE cityID=%d" + last_tdate_str
             cur.execute( sql2 % ( self.prefix, cityID ) )
             data = cur.fetchall()
@@ -1336,7 +1336,7 @@ class database(object):
             sql += "cityID=%d AND userID NOT IN%s" + last_tdate_str
             cur.execute( sql % ( self.prefix, cityID, sql_tuple(exclude) ) )
 
-      elif userID:
+      elif userID: #userstats
          userIDs = [userID]
          #if we are using an alias dict we merge all aliases of a user with his/her other identities
          if aliases:
@@ -1402,7 +1402,6 @@ class database(object):
             if res[i] == None or np.isnan(res[i]): res[i] = 0
 
          elif "points_adj" in i and "_d" not in i:
-            
             if verbose:
                print self.get_username_by_id( userIDs[0] )
                print i,"\n"
@@ -1411,6 +1410,7 @@ class database(object):
             if self.get_user_id("Sleepy") in userIDs: continue
 
             parts = len(points)
+            if not parts: continue
             """
             find all dates where the user actually played
             for each date calculate:
@@ -1475,10 +1475,14 @@ class database(object):
 
             #if someone has less than pout parts, just kick him out!
             if parts < pout: res[i] = 0
-            else:
+            elif parts < pmid:
                #logistic function to scale final score with parts
-               f = 1 / ( 1 + np.exp( -x0 * (parts - pmid) ) )
-               res[i] = round(f * (np.mean(points_adj) / sd_ind), 4) * 1000
+               #f = 1 / ( 1 + np.exp( -x0 * (parts - pmid) ) )
+               #much easier: sqrt function
+               f = np.sqrt( parts / pmid )
+            else: f = 1
+
+            res[i] = f * (np.mean(points_adj) / sd_ind) * 1000
 
          elif i == "mean"+day_str:
             res[i] = round(np.mean(points), 1)

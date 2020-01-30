@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
    #-p option for testing sigmoid function, setting midpoint where y=0.5
    if config['input_param'] == None:
-      par = [100, 0.05] #pmid, k
+      par = [200, 0.05] #pmid, k
    else:
       par = config['input_param'].split(",")
 
@@ -79,6 +79,9 @@ if __name__ == '__main__':
 
    if config['input_tdate'] == None:
 
+      #append pseudo-city for all cities ranking
+      cities.append( {"name":"all_cities", "hash":"ALL", "ID":0} )
+
       #calculate userstats, first import aliases.json as dict
       from json import load
       with open("aliases.json") as aliases:
@@ -95,10 +98,11 @@ if __name__ == '__main__':
          FROM %swetterturnier_userstats us
          JOIN wp_users wu ON userID = wu.ID
          WHERE cityID=%d AND user_login NOT LIKE 'Sleepy'
+         AND part >= 50
          ORDER BY points_adj DESC
       """
 
-      cols = ",".join( ("points_adj", "ROUND(sd_ind, 1) AS sd_ind", "part") )
+      cols = ",".join( ("ROUND(points_adj) AS points_adj", "ROUND(sd_ind, 1) AS sd_ind", "part") )
  
       if config['input_filename'] == None:
          filename = "eternal_list"
