@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
    #-p option for testing sigmoid function, setting midpoint where y=0.5
    if config['input_param'] == None:
-      par = [200, 0.05] #pmid, k
+      par = [50, 0.05] #pmid, k
    else:
       par = config['input_param'].split(",")
 
@@ -81,6 +81,7 @@ if __name__ == '__main__':
 
       #append pseudo-city for all cities ranking
       cities.append( {"name":"all_cities", "hash":"ALL", "ID":0} )
+      cities.append( {"name":"all_cities_weighted","hash":"ALW","ID":6} )
 
       #calculate userstats, first import aliases.json as dict
       from json import load
@@ -90,7 +91,7 @@ if __name__ == '__main__':
 	 user = db.get_username_by_id(userID)
 	 for city in cities:
 	    for day in range(3):
-	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, pout=1, pmid=int(par[0]), x0=float(par[1]) )
+	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, pout=50, pmid=int(par[0]), x0=float(par[1]) )
                db.upsert_stats( city['ID'], stats, userID, 0, day )
 
       sql = """
@@ -121,7 +122,7 @@ if __name__ == '__main__':
       import PlotStats
       tdate = max(tdates) - 7
       print "Calling plot routine now..."
-      PlotStats.plot(db, cities[:-1], tdate, verbose=False)
+      PlotStats.plot(db, cities[:-2], tdate, verbose=False)
 
    db.commit()
    db.close()

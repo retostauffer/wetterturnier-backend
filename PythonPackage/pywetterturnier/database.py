@@ -21,7 +21,7 @@ def sql_tuple(IDs, strings=False):
       if not IDs: IDs.append(0)
       sql_str = str(tuple(IDs))[0:-2]+")"
    else: sql_str = str(tuple(IDs))
-   if strings:
+   if type(IDs[0]) == str or strings:
       sql_str = sql_str.replace("'","")
       sql_str = sql_str.replace("(","")
       sql_str = sql_str.replace(")","")
@@ -1281,7 +1281,7 @@ class database(object):
 
 
    #compute statistics out of some wetterturnier database tables like *betstat
-   def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=50, pmid=200, x0=0.05, midyear=2010, span=None, dates=None, verbose=False):
+   def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=50, pmid=50, x0=0.05, midyear=2010, span=None, dates=None, verbose=False):
       """
       TODO: docstring
       """ 
@@ -1395,7 +1395,7 @@ class database(object):
          sd_upp = []
          for cityID in points.keys():
             for tdate in points[cityID].keys():
-               sd_upp.append( self.get_stats( cityID, measures=["sd_upp"], tdates=[tdate] ) )
+               sd_upp.append( self.get_stats( cityID, measure="sd_upp", tdate=tdate ) )
 
          if not sd_upp: return {"points_adj":0}
          #remove None values
@@ -1406,20 +1406,16 @@ class database(object):
          #now we get the individual points for each tournament played
          points_adj = []
          parts = {}
-         print points.keys()
          for cityID in points.keys():
             parts[cityID] = 0
-         print parts
 
          for cityID in points.keys():
             for tdate in points[cityID].keys():
-               median = self.get_stats( cityID, measures=["median"], tdates=[tdate] )
-               print tdate, cityID
+               median = self.get_stats( cityID, measure="median", tdate=tdate )
                points_adj.append( points[cityID][tdate] - median )
                parts[cityID] += 1
          
          #get mean participations for every city a user ever played
-         print parts.values()
          parts = np.mean( parts.values() )
          res["part"] = parts
 
@@ -1431,9 +1427,44 @@ class database(object):
          else:
             f = np.sqrt( parts / pmid )
          res["points_adj"] = f * (np.mean(points_adj) / sd_ind) * 1000
-         if np.isnan( res["points_adj"] ): res["points_adj"] = 0
+         if np.isnan( res["points_adj"] ):
+            res["points_adj"] = 0
+         
          return res
-         #TODO weighted variant, compare both
+
+      elif cityID == 6:   
+         #weighted variant sum(p_adj_i * part_i) / sum(part_i)
+         
+         #which cities did the user play? would be better to call userstat but then we need to get rid of zero/null rows...
+         sql = "SELECT cityID FROM wp_wetterturnier_betstat WHERE userID IN%s"
+         cur.execute( sql % sql_tuple(userIDs) )
+         cityIDs=[]
+         for i in cur.fetchall():
+            if i[0] not in cityIDs: cityIDs.append(i[0])
+ 
+         #get points_adj from userstats
+         points_adj, parts, sd_ind = ([] for _ in range(3))
+         for cityID in cityIDs:
+            measures = self.get_stats( cityID=cityID, userID=userIDs[0], measures=["points_adj","part","sd_ind"] )
+            if measures:
+               print(measures)
+               points_adj.append(measures[0])
+               parts.append(     measures[1])
+               sd_ind.append(    measures[2])
+
+         if not points_adj or not parts or not sd_ind or None in points_adj:
+            res["points_adj"] = 0
+            res["part"]       = 0
+            res["sd_ind"]     = 0
+            return res
+
+         else:
+            print(points, parts)
+            res["part"]       = np.mean(parts)
+            parts_all         = np.sum(parts)
+            res["points_adj"] = np.dot(points_adj, parts) / parts_all
+            res["sd_ind"]     = np.dot(sd_ind, parts) / parts_all
+            return res
 
       for i in measures:
          i += day_str
@@ -1515,7 +1546,7 @@ class database(object):
             elif "2" in i: timestr="2"
             elif "X" in i: timestr="X"
             else: timestr = "" 
-            sd_ind = self.get_stats( cityID, measures=["sd_ind"+timestr], userID=userIDs[0] )
+            sd_ind = self.get_stats( cityID, measure="sd_ind"+timestr, userID=userIDs[0] )
             if sd_ind in [0, None] or np.isnan(sd_ind): continue
 
             if verbose:
@@ -1537,13 +1568,14 @@ class database(object):
                print ""
 
             #if someone has less than pout parts, just kick him out!
-            if parts < pout: res[i] = 0
+            if parts < pout: f = 0
             elif parts < pmid:
                #logistic function to scale final score with parts
                #f = 1 / ( 1 + np.exp( -x0 * (parts - pmid) ) )
                #much easier: sqrt function
                f = np.sqrt( parts / pmid )
-            else: f = 1
+            else:
+               f = 1
 
             res[i] = f * (np.mean(points_adj) / sd_ind) * 1000
 
@@ -1551,7 +1583,6 @@ class database(object):
             res[i] = round(np.mean(points), 1)
          elif i == "median"+day_str:
             res[i] = np.median(points)
-            print res[i]
          elif i == "Qlow"+day_str:
             res[i] = np.percentile(points, 25, interpolation="midpoint")
          elif i == "Qupp"+day_str:
@@ -1569,7 +1600,7 @@ class database(object):
             if len(points) == 1 and points[0] == 0: res[i] = 0
             else: res[i] = len(points)
          elif i == "sd_upp"+day_str:
-            median = self.get_stats( tdates=[tdate], cityID=cityID, measures=["median"+day_str] )
+            median = self.get_stats( tdate=tdate, cityID=cityID, measure="median"+day_str )
             if not median: median = res["median"+day_str]
             if not median: continue
             sql = "SELECT points"+day_str+" from %swetterturnier_betstat WHERE tdate=%d AND cityID=%d AND points"+day_str+" > %f"
@@ -1585,12 +1616,12 @@ class database(object):
       return res
 
 
-   def get_stats(self, cityID, measures, userID=False, tdates=False, day=False):
+   def get_stats(self, cityID, measure=None, measures=None, userID=None, tdate=None, tdates=None, day=None):
       """Get statistics from tables citystats, userstats, tdatestats"""
-      #TODO len==1 exceptions:
-      #if type(measures == str):
-      #if type(userID == int):
-      #if type(tdates == int):
+
+      if measure: measures = [measure]
+      if tdate:   tdates   = [tdate]
+
       cur = self.cursor()
       if tdates or (not tdates and not userID and cityID):
 
@@ -1609,9 +1640,13 @@ class database(object):
 
       elif userID:
          sql = "SELECT %s FROM %swetterturnier_userstats WHERE cityID=%d AND userID=%d"
+         print sql % ( sql_tuple(measures, 1), self.prefix, cityID, userID )
          cur.execute( sql % ( sql_tuple(measures, 1), self.prefix, cityID, userID ) )
       
-      res = [elem[0] for elem in cur.fetchall()]
+      data = cur.fetchall()
+      print data 
+      res = [ elem for elem in data[0] ]
+      print res
       if len(res) == 1: return res[0]
       elif not res: return None
       else: return res
