@@ -209,12 +209,12 @@ if __name__ == '__main__':
                   bet[day][param] = np.append( bet[day][param], np.repeat( db.get_bet_data('user',petrus_userID,city['ID'],paramID,tdate,day+1), (100000 - bet_count ) ) )
          bet = mitteltip.mitteltip(db,'moses',False,city,tdate,bet)
          #print bet
-      # - If bet is False, continue
+         # - If bet is False, continue
          if bet == False: continue
 
-      # -------------------------------------------------------------
-      # - Inserting into database now
-      # -------------------------------------------------------------
+         # -------------------------------------------------------------
+	 # - Inserting into database now
+	 # -------------------------------------------------------------
          print '    Inserting data into database now'
          for day in range(1,3):
             for k in bet[day-1].keys():

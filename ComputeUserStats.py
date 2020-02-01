@@ -85,7 +85,7 @@ if __name__ == '__main__':
    #generating ranking table output, write to .xls file
    with pd.ExcelWriter( "plots/test_list.xls" ) as writer:
       for city in cities:
-         table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'], database.sql_tuple(userIDs) ), db )
+         table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'], db.sql_tuple(userIDs) ), db )
          print table
          table.to_excel( writer, sheet_name=city["hash"] )
 
