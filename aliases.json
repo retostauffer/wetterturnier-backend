@@ -1,6 +1,7 @@
 {
 "Fraktus":              ["Wettermann"],
 "wetteregon":     	["rana_2002"],
+"GRP_Meteogroup":       ["MC-Wetter"],
 "don_baecker":		["ambot_lang","Dummschwaetzer"],
 "DWD-MOS-MIX-test":	["MOS-T"],
 "DWD-EZ-MOS":           ["EZ-MOS"],
