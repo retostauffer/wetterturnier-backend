@@ -40,8 +40,8 @@ if __name__ == '__main__':
    for i in users:
       userIDs.append( db.get_user_id(i) )
 
-   #measures=["points_adj","points_adj1","points_adj2","part"]
-   measures = ["points_adj","part"]
+   measures=["points_adj","sd_ind1","sd_ind2","points_adj1","points_adj2","part"]
+   #measures = ["points_adj","part"]
    #measures=["part","points","mean","median","sd","max","min"]
 
    #-p option for testing minimum participations and exponent formula
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
       for userID in userIDs:
          user = db.get_username_by_id(userID)
-         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, span=span, pmid=int(par[0]), x0=float(par[1]), referenz=True, verbose=verbose )
+         stats = db.compute_stats( city['ID'], measures, userID, 0, 0, span=span, pmid=int(par[0]), x0=float(par[1]), referenz=True, verbose=verbose, midyear=midyear )
 
          db.upsert_stats( city['ID'], stats, userID, 0, 0 )
    
