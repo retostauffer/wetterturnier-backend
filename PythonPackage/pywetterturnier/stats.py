@@ -3,7 +3,7 @@ from pywetterturnier import utils
 #compute statistics out of some wetterturnier database tables like *betstat
 def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=50, pmid=50, x0=0.05, midyear=2010, span=None, dates=None, verbose=False):
    """
-   TODO: docstring
+   Computes all kinds of statistics e.g. the points for the eternal list plus min/max/median/mean of points for each user, city, tdate and so on.
    """ 
    res = {} #results will be saved here with measures as keys, tdate as subkeys
 
