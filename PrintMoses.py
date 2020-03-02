@@ -47,6 +47,8 @@ def print_moses( db, config, cities, tdates ):
 
    params = db.get_parameter_names( sort=True )
 
+   printf = lambda *args : print( *args, file=f)
+
    def print_rows( args, file ):
       row_format = "{name:<25.25s} {n:>1} {sd:>3} {dd:>3} {ff:>2} {fx:>2} {wv:>2} {wn:>2} {ppp:>6.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
 
@@ -91,7 +93,6 @@ def print_moses( db, config, cities, tdates ):
          #print output to file, first get prober filename
          filename = path + utils.tdate2string( tdate, moses=True )+"."+city['name'].lower()[0]+"pw"
          f = open(filename,'w')
-         printf = lambda *args : print( *args, file=f)
 
          tdate_str = utils.tdate2string( tdate )
          printf(file_head % tdate_str )

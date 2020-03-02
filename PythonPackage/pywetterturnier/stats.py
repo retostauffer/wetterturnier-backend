@@ -97,6 +97,7 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
 
    if not points: points.append(0)
 
+
    if cityID == 0:
       """
       first calculate sd_ind for all tournaments played. Pretend as cities were one
@@ -138,6 +139,14 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
       #get mean participations for every city a user ever played
       parts = np.mean( parts.values() )
       res["part"] = parts
+      
+      sql = "SELECT points FROM wp_wetterturnier_betstat WHERE userID IN%s"
+      cur.execute( sql % self.sql_tuple(userIDs) )
+      points_all = [ j[0] for j in cur.fetchall() ]
+
+      if points_all:
+         res["max"]  = np.max(points_all)
+         res["mean"] = np.mean(points_all)
 
       #norm by sd_ind, scale by mean participations in all cities
       if parts >= pmid:
@@ -178,10 +187,17 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
          return res
 
       else:
+         sql = "SELECT points FROM wp_wetterturnier_betstat WHERE userID IN%s"
+         cur.execute( sql % self.sql_tuple(userIDs) )
+         points_all = [ j[0] for j in cur.fetchall() ]
+
+         if points_all:
+            res["max"]  = np.max(points_all)
+            res["mean"] = np.mean(points_all)
          res["part"]       = np.mean(parts)
-         parts_all         = np.sum(parts)
-         res["points_adj"] = np.dot(points_adj, parts) / parts_all
-         res["sd_ind"]     = np.dot(sd_ind, parts) / parts_all
+         parts_all         = np.sum( parts)
+         res["points_adj"] = np.dot( points_adj, parts ) / parts_all
+         res["sd_ind"]     = np.dot( sd_ind, parts ) / parts_all
          return res
 
    for i in measures:
@@ -189,7 +205,6 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
       if i == "points"+day_str:
          res[i] = sum(points)
       elif "sd_ind" in i and "_d" not in i:
-         print i
          #get tdates where the user participated
          sql = "SELECT tdate FROM %swetterturnier_betstat WHERE userID IN%s AND cityID=%d"
          if "1" in i or "2" in i or "X" in i:
@@ -211,10 +226,10 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
 
          sql = "SELECT sd_upp from %swetterturnier_tdatestats WHERE cityID=%d AND tdate IN%s"
          cur.execute( sql % (self.prefix, cityID, self.sql_tuple(tdates) ) )
-         print sql % (self.prefix, cityID, self.sql_tuple(tdates) )
+         #print sql % (self.prefix, cityID, self.sql_tuple(tdates) )
          sd_upp = [j[0] for j in cur.fetchall()]
          res[i] = np.mean( sd_upp )
-         print(res[i])
+         #print(res[i])
          if res[i] == None or np.isnan(res[i]): res[i] = 0
 
       elif "points_adj" in i and "_d" not in i:
