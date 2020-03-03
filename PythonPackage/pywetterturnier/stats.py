@@ -318,24 +318,32 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
 
       elif i == "mean"+day_str:
          res[i] = round(np.mean(points), 1)
+      
       elif i == "median"+day_str:
          res[i] = np.median(points)
+      
       elif i == "Qlow"+day_str:
          res[i] = np.percentile(points, 25, interpolation="midpoint")
+      
       elif i == "Qupp"+day_str:
          res[i] = np.percentile(points, 75, interpolation="midpoint")
+      
       elif i == "max"+day_str:
          res[i] = max(points)
+      
       elif i == "min"+day_str:
          res[i] = min(points)
+      
       elif i == "sd"+day_str: #standard deviation
          sd = np.std(points)
          if np.isnan(sd): res[i] = 0
          else: res[i] = sd
+
       elif i == "part":
          #important for part count, otherwise could be 1 if a player/date actually has 0 part
          if len(points) == 1 and points[0] == 0: res[i] = 0
          else: res[i] = len(points)
+      
       elif i == "sd_upp"+day_str:
          median = self.get_stats( tdate=tdate, cityID=cityID, measure="median"+day_str )
          if not median: median = res["median"+day_str]
@@ -347,6 +355,24 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
 
          if np.isnan(sd): res[i] = 0
          else: res[i] = sd
+
+      elif i == "ranks_weekend":
+         sql = """
+         SELECT rank, count(rank) AS count FROM %swetterturnier_betstat
+         WHERE cityID = %d AND userID IN%s AND rank <= 3 %s
+         GROUP BY rank ORDER BY rank
+         """
+         cur.execute( sql % (self.prefix, cityID, self.sql_tuple(userIDs), last_tdate_str) )
+         ranks = {1:"0", 2:"0", 3:"0"}
+         for j in cur.fetchall():
+            ranks[j[0]] = str(j[1])
+         
+         res[i] = ",".join(ranks.values())
+         print res[i]
+         
+      elif i == "ranks_season":
+         pass
+
       else: continue
 
    if not res: utils.exit("No results!")

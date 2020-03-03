@@ -87,13 +87,13 @@ if __name__ == '__main__':
       from json import load
       with open("aliases.json") as aliases:
          aliases = load( aliases )
-      for userID in userIDs:
-	 user = db.get_username_by_id(userID)
-	 for city in cities:
-	    for day in range(3):
-	       stats = db.compute_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, pout=50, pmid=int(par[0]), x0=float(par[1]) )
-               db.upsert_stats( city['ID'], stats, userID, 0, day )
-
+         for userID in userIDs:
+            user = db.get_username_by_id(userID)
+            for city in cities:
+               for day in range(3):
+                  stats = db.compute_stats( city['ID'], measures+["ranks_weekend"], userID, 0, day, last_tdate, aliases=aliases, pout=50, pmid=int(par[0]), x0=float(par[1]) )
+                  db.upsert_stats( city['ID'], stats, userID, 0, day )
+      
       sql = """
          SELECT wu.user_login, %s
          FROM %swetterturnier_userstats us
