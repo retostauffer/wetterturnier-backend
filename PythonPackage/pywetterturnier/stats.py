@@ -137,8 +137,10 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
             parts[cityID] += 1
       
       #get mean participations for every city a user ever played
-      parts = np.mean( parts.values() )
-      res["part"] = parts
+      parts_all = np.sum( parts.values() )
+      #actually parts_mean, we will use this variable in calculation
+      parts = parts_all / len(parts.values())
+      res["part"] = parts_all
       
       sql = "SELECT points FROM wp_wetterturnier_betstat WHERE userID IN%s"
       cur.execute( sql % self.sql_tuple(userIDs) )
@@ -159,6 +161,18 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
       if np.isnan( res["points_adj"] ):
          res["points_adj"] = 0
       
+      sql = """
+      SELECT rank, count(rank) AS count FROM %swetterturnier_betstat
+      WHERE userID IN%s AND rank <= 3 %s
+      GROUP BY rank ORDER BY rank
+      """
+      cur.execute( sql % (self.prefix, self.sql_tuple(userIDs), last_tdate_str) )
+      ranks = {1:"0", 2:"0", 3:"0"}
+      for j in cur.fetchall():
+         ranks[j[0]] = str(j[1])
+
+      res["ranks_weekend"] = ",".join(ranks.values())
+
       return res
 
    elif cityID == 6:   
@@ -194,8 +208,21 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
          if points_all:
             res["max"]  = np.max(points_all)
             res["mean"] = np.mean(points_all)
-         res["part"]       = np.mean(parts)
+         
+         sql = """
+         SELECT rank, count(rank) AS count FROM %swetterturnier_betstat
+         WHERE userID IN%s AND rank <= 3 %s
+         GROUP BY rank ORDER BY rank
+         """
+         cur.execute( sql % (self.prefix, self.sql_tuple(userIDs), last_tdate_str) )
+         ranks = {1:"0", 2:"0", 3:"0"}
+         for j in cur.fetchall():
+            ranks[j[0]] = str(j[1])
+
+         res["ranks_weekend"] = ",".join(ranks.values())
+
          parts_all         = np.sum( parts)
+         res["part"]       = parts_all
          res["points_adj"] = np.dot( points_adj, parts ) / parts_all
          res["sd_ind"]     = np.dot( sd_ind, parts ) / parts_all
          return res
@@ -368,7 +395,6 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
             ranks[j[0]] = str(j[1])
          
          res[i] = ",".join(ranks.values())
-         print res[i]
          
       elif i == "ranks_season":
          pass
