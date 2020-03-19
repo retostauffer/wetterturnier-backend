@@ -751,8 +751,14 @@ class getobs( object ):
       if not N == None:
          import numpy as np
          # - Note: BUFR report is in percent
-         value = (np.floor(np.float(N)/100.*8.)) * 10
-         if value > 80: value = 80
+         if N == 0:
+            value = 0
+         #if 0% < N <= 12% we round up to 1/8
+         elif N <= 12:
+            value = 10
+         else:
+            value = (np.floor(np.float(N)/100.*8.)) * 10
+            if value > 80: value = 80
       # - Else if record exists but there is no observed
       #   cloud cover we have to assume that the value
       #   should be 0 but is not reported at all. 

@@ -99,6 +99,8 @@ if __name__ == '__main__':
                print rec
                print rank
                sys.exit('cannot apply rank')
+
+            #print rank+1, db.get_username_by_id( rec[0] )
             rec[2] = rank[0] + 1
 
             sql = "UPDATE wp_wetterturnier_betstat SET rank = %d" % rec[2] + \
