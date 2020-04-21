@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
    #-p option for testing sigmoid function, setting midpoint where y=0.5
    if config['input_param'] == None:
-      par = [50, 0.05] #pmid, k
+      par = [100, 25] #pmid, pout/k
    else:
       par = config['input_param'].split(",")
 
@@ -91,7 +91,7 @@ if __name__ == '__main__':
             user = db.get_username_by_id(userID)
             for city in cities:
                for day in range(3):
-                  stats = db.compute_stats( city['ID'], measures+["ranks_weekend"], userID, 0, day, last_tdate, aliases=aliases, pout=50, pmid=int(par[0]), x0=float(par[1]) )
+                  stats = db.compute_stats( city['ID'], measures+["ranks_weekend"], userID, 0, day, last_tdate, aliases=aliases, pout=int(par[1]), pmid=int(par[0]), x0=float(par[1]) )
                   db.upsert_stats( city['ID'], stats, userID, 0, day )
       
       sql = """

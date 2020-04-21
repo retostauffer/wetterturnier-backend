@@ -18,7 +18,9 @@ import utils
 #move to class?
 def sql_tuple(IDs, strings=False):
    """Format a list of integers (IDs) or strings to a tuple fitting the SQL IN(...) statement"""
-   if len(IDs) in [0,1]:
+   if not hasattr(IDs, '__len__') and type(IDs) == int:
+      return "("+str(IDs)+")"
+   elif len(IDs) in [0,1]:
       if not IDs: IDs.append(0)
       sql_str = str(tuple(IDs))[0:-2]+")"
    else: sql_str = str(tuple(IDs))
@@ -61,14 +63,16 @@ class database(object):
 
    def sql_tuple(self, IDs, strings=False):
       """Format a list of integers (IDs) or strings to a tuple fitting the SQL IN(...) statement"""
-      if len(IDs) in [0,1]:
-	 if not IDs: IDs.append(0)
-	 sql_str = str(tuple(IDs))[0:-2]+")"
+      if not hasattr(IDs, '__len__') and type(IDs) == int:
+         return "("+str(IDs)+")"
+      elif len(IDs) in [0,1]:
+	      if not IDs: IDs.append(0)
+	      sql_str = str(tuple(IDs))[0:-2]+")"
       else: sql_str = str(tuple(IDs))
       if type(IDs[0]) == str or strings:
-	 sql_str = sql_str.replace("'","")
-	 sql_str = sql_str.replace("(","")
-	 sql_str = sql_str.replace(")","")
+	      sql_str = sql_str.replace("'","")
+	      sql_str = sql_str.replace("(","")
+	      sql_str = sql_str.replace(")","")
       return sql_str
 
 
