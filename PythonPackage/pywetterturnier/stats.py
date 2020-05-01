@@ -1,7 +1,8 @@
+from __future__ import division
 from pywetterturnier import utils
 
 #compute statistics out of some wetterturnier database tables like *betstat
-def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=25, pmid=100, x0=0.05, midyear=2010, span=None, dates=None, verbose=False):
+def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last_tdate=None, referenz=True, mitteltips=True, aliases=None, pout=25, pmid=100, midyear=2010, span=None, dates=None, verbose=False):
    """
    Computes all kinds of statistics e.g. the points for the eternal list plus min/max/median/mean of points for each user, city, tdate and so on.
    """ 
@@ -20,7 +21,8 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
    sql = "SELECT points"+day_str+" FROM %swetterturnier_betstat WHERE "
    if tdate or (not tdate and not userID and cityID):
       # We don't want Sleepy in our tdatestats!
-      exclude = [self.get_user_id("Sleepy")]
+      #exclude = [self.get_user_id("Sleepy")]
+      exclude = []
       if not referenz:
          groupID = self.get_group_id( "Referenztipps" )
          for j in self.get_participants_in_group( groupID, cityID, tdate, playing=False ):
@@ -144,19 +146,19 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
       
       sql = "SELECT points FROM wp_wetterturnier_betstat WHERE userID IN%s"
       cur.execute( sql % self.sql_tuple(userIDs) )
-      points_all = [ j[0] for j in cur.fetchall() ]
+      points_all = [ j[0] for j in cur.fetchall() if j[0] ]
 
       if points_all:
          res["max"]  = np.max(points_all)
          res["mean"] = np.mean(points_all)
 
       #norm by sd_ind, scale by mean participations in all cities
-      if parts >= pmid:
-         f = 1
-      elif parts < pout:
+      if parts < pout:
          f = 0
+      elif parts < pmid:
+         f = np.sqrt( float(parts) / pmid )
       else:
-         f = np.sqrt( parts / pmid )
+         f = 1
       res["points_adj"] = f * (np.mean(points_adj) / sd_ind) * 1000
       if np.isnan( res["points_adj"] ):
          res["points_adj"] = 0
@@ -203,7 +205,7 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
       else:
          sql = "SELECT points FROM wp_wetterturnier_betstat WHERE userID IN%s"
          cur.execute( sql % self.sql_tuple(userIDs) )
-         points_all = [ j[0] for j in cur.fetchall() ]
+         points_all = [ j[0] for j in cur.fetchall() if j[0] ]
 
          if points_all:
             res["max"]  = np.max(points_all)
@@ -265,7 +267,7 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
             print i,"\n"
 
          #skip Sleepy
-         if self.get_user_id("Sleepy") in userIDs: continue
+         #if self.get_user_id("Sleepy") in userIDs: continue
 
          parts = len(points)
          if not parts: continue
@@ -331,14 +333,13 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
          if verbose:
             print ""
 
-         #if someone has less than pout parts, just kick him out!
-         if parts < pout: f = 0
+         #if someone has less than "pout" parts, just kick him out!
+         if parts < pout:
+            f = 0
+         #in between pout and pmid the points get adjusted by the sqrt() function
          elif parts < pmid:
-            #logistic function to scale final score with parts
-            #f = 1 / ( 1 + np.exp( -x0 * (parts - pmid) ) )
-            #much easier: sqrt function
-            f = np.sqrt( parts / pmid )
-         else:
+            f = np.sqrt( float(parts) / pmid )
+         else: #if parts >= pmid
             f = 1
 
          res[i] = f * (np.mean(points_adj) / sd_ind) * 1000

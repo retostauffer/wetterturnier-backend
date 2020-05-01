@@ -13,7 +13,9 @@ cities = db.get_cities()
 
 #sql="SELECT wu.user_login, bs.points, %s, REPLACE(wu.user_login, 'GRP_', '') FROM %swetterturnier_betstat bs JOIN %susers wu ON userID = wu.ID WHERE cityID=%d AND wu.user_login NOT LIKE 'Sleepy' ORDER BY tdate"
 
-sql="SELECT wu.user_login, bs.points, %s FROM %swetterturnier_betstat bs JOIN %susers wu ON userID = wu.ID WHERE cityID=%d AND wu.user_login NOT LIKE 'Sleepy' ORDER BY tdate"
+#sql="SELECT wu.user_login, bs.points, %s FROM %swetterturnier_betstat bs JOIN %susers wu ON userID = wu.ID WHERE cityID=%d AND wu.user_login NOT LIKE 'Sleepy' ORDER BY tdate"
+
+sql="SELECT wu.user_login, bs.points, %s FROM %swetterturnier_betstat bs JOIN %susers wu ON userID = wu.ID WHERE cityID=%d ORDER BY tdate"
 
 measures = ["tdate","rank"]
 #measures = ["mean","median","Qlow","Qupp","max","min","sd","part"]
