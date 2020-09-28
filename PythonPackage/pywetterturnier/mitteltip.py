@@ -345,6 +345,7 @@ def random(db,typ,ID,city,tdate,betdata=False):
          data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
          if type(data) == bool: return False
          min_data, max_data = min(data), max(data)
+         i_min_data = int(min_data/10); i_max_data = int(max_data/10)
          if min_data == max_data:
             bet[day-1][param] = min_data
          elif param == "ff" and bet[day-1]["dd"] == 0:
@@ -360,10 +361,10 @@ def random(db,typ,ID,city,tdate,betdata=False):
                bet[day-1][param] = 0
             else:
                np.random.seed( int( time() + seed ) )
-               bet[day-1][param] = np.random.randint( min_data, max_data )
+               bet[day-1][param] = np.random.randint( i_min_data, i_max_data+1 ) * 10
          else:
             np.random.seed( int( time() + seed ) )
-            bet[day-1][param] = np.random.randint( min_data, max_data )
+            bet[day-1][param] = np.random.randint( i_min_data, i_max_data+1 ) * 10
 
       param = "fx"
       paramID = db.get_parameter_id(param)
@@ -379,11 +380,12 @@ def random(db,typ,ID,city,tdate,betdata=False):
          min_val = 250
          min_data = min(data[data>=min_val])
          max_data = max(data)
+         i_min_data = int(min_data/10); i_max_data = int(max_data/10)
          if min_data == max_data:
             bet[day-1][param] = min_data
          else:
             np.random.seed( int( time() + seed ) )
-            bet[day-1][param] = np.random.randint( min_data, max_data )
+            bet[day-1][param] = np.random.randint( i_min_data, i_max_data+1 ) * 10
  
       for param in ["Wv","Wn"]:
          paramID = db.get_parameter_id(param)

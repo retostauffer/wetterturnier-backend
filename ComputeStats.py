@@ -102,7 +102,9 @@ if __name__ == '__main__':
          ORDER BY points_adj DESC
       """
 
-      cols = ",".join( ("ROUND(points_adj, 1) AS points_adj", "ROUND(sd_ind, 1) AS sd_ind", "part") )
+      cols = ",".join(("ROUND(points_adj, 1) AS points_adj",
+                       "ROUND(points_med, 1) AS points_med",
+                       "ROUND(sd_ind, 1) AS sd_ind", "part") )
  
       if config['input_filename'] == None:
          filename = "eternal_list"

@@ -96,8 +96,8 @@ if __name__ == '__main__':
       file_dates = []
       for file in moses_files:
          mtch = re.match( ".*moses([0-9]{6})\.\wpw$", file )
-	 if not mtch is None:
-	    file_dates.append( dt.datetime.strptime( mtch.group(1), "%y%m%d").date() )
+         if not mtch is None:
+	         file_dates.append( dt.datetime.strptime( mtch.group(1), "%y%m%d").date() )
 
       # Newest moses file
       newest      = max( file_dates )

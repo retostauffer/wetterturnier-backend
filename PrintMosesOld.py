@@ -30,7 +30,7 @@ def print_moses( db, config, cities, tdates ):
    params = db.get_parameter_names( sort=True )
 
    def print_rows( args, file ):
-      row_format = "{name:<25.25s} {n:>5} {sd:>3} {dd:>3} {ff:>2} {fx:>2} {wv:>2} {wn:>2} {ppp:>6.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
+      row_format = "{name:<21.21s} {n:>5} {sd:>3} {dd:>4} {ff:>2} {fx:>2} {wv:>2} {wn:>1} {ppp:>7.7} {tn:>6.6} {tx:>5.5} {td:>5.5} {rr:>5.5}"
 
       for i in range(1,8):
          if type( args[i] ) != str: args[i] = int( args[i] )
@@ -81,7 +81,7 @@ def print_moses( db, config, cities, tdates ):
             for i in range(4):
                print("", file=f)
             print(table_head, file=f)
-            print(78*"-", file=f)
+            print(80*"-", file=f)
             for station in stations:
                obs = [station.name]
                for param in params:
@@ -91,7 +91,7 @@ def print_moses( db, config, cities, tdates ):
                   else:
                      obs.append( float( value ) / 10 )
                print_rows( obs, f )
-            print(78*"-", file=f)
+            print(80*"-", file=f)
             for userID in users:
                bet = [db.get_username_by_id(userID,which="display_name").replace("GRP_","")]
                for param in params:

@@ -159,7 +159,12 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
          f = np.sqrt( float(parts) / pmid )
       else:
          f = 1
-      res["points_adj"] = f * (np.mean(points_adj) / sd_ind) * 1000
+
+      #average points above median
+      res["points_med"] = np.mean(points_adj)
+      
+      #final adjusted points
+      res["points_adj"] = f * (res["points_med"] / sd_ind) * 1000
       if np.isnan( res["points_adj"] ):
          res["points_adj"] = 0
       
@@ -341,8 +346,13 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
             f = np.sqrt( float(parts) / pmid )
          else: #if parts >= pmid
             f = 1
+         #average points above median
+         res["points_med"] = np.mean(points_adj)
 
-         res[i] = f * (np.mean(points_adj) / sd_ind) * 1000
+         #final adjusted points
+         res["points_adj"] = f * (res["points_med"] / sd_ind) * 1000
+         if np.isnan( res["points_adj"] ):
+            res["points_adj"] = 0
 
       elif i == "mean"+day_str:
          res[i] = round(np.mean(points), 1)
