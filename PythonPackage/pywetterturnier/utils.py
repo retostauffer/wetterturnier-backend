@@ -514,7 +514,7 @@ def tdate2datetime( tdate ):
 # -------------------------------------------------------------------
 # - Convert date since 1970-01-01 into a readable string 
 # -------------------------------------------------------------------
-def tdate2string( tdate, moses=False ):
+def tdate2string( tdate, short=False ):
    """ Converts tdate into string of form YYYY-MM-DD.
    Note: a so called tdate is nothing else than an integer value
    indicating the days since 1970-01-01 which is used extensively
@@ -526,7 +526,7 @@ def tdate2string( tdate, moses=False ):
    Returns:
       string: Formatted string, format ``%Y-%m-%d``.
    """
-   if moses: fmt = "dat%y%m%d"
+   if short: fmt = "%y%m%d"
    else: fmt = "%Y-%m-%d"
    return tdate2datetime( tdate ).strftime( fmt )
 

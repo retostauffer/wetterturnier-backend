@@ -24,7 +24,9 @@ from pywetterturnier import utils
 # -------------------------------------------------------------------
 def print_moses( db, config, cities, tdates ):
 
-   path="moses/input/"
+   #path="moses/input/"
+   #path="/var/www/html/archiv"
+   path="archiv"
    table_head = "Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR"
    day_heads = ["                                      Samstag","                                      Sonntag"]
    params = db.get_parameter_names( sort=True )
@@ -72,7 +74,10 @@ def print_moses( db, config, cities, tdates ):
          
          stations = db.get_stations_for_city( cityID, active=False, tdate=tdate )
          #print output to file, first get prober filename
-         filename = path + utils.tdate2string( tdate, moses=True )+"."+city['name'].lower()[0]+"pw"
+         #filename = path + utils.tdate2string( tdate, short=True ) + "." + city['name'][0].lower() + "pw"
+         filename = path + "/wert_" + city['name'][0].lower() + "/wert" + utils.tdate2string( tdate, short=True ) + ".txt"
+         print(filename)
+
          f = open(filename,'w')
          users = db.get_participants_in_city( cityID, tdate, sort=True, what="user_login" )
          for day in range(1,3):

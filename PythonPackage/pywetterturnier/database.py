@@ -1341,19 +1341,14 @@ class database(object):
       if sort:
          if what not in ["display_name", "user_login", "nicename"]:
             utils.exit("Wrong input on database.get_participants_in city!")
-         sql = "SELECT userID FROM %swetterturnier_bets wb JOIN wp_users wu ON wb.userID=wu.ID WHERE cityID=%d AND tdate=%d AND userID NOT IN%s ORDER BY "+what
+         sql = "SELECT DISTINCT userID FROM %swetterturnier_bets wb JOIN wp_users wu ON wb.userID=wu.ID WHERE cityID=%d AND tdate=%d AND userID NOT IN%s ORDER BY "+what
 
       else:
-         sql = "SELECT userID FROM %swetterturnier_bets WHERE cityID=%d AND tdate=%d AND userID NOT IN%s"
+         sql = "SELECT DISTINCT userID FROM %swetterturnier_bets WHERE cityID=%d AND tdate=%d AND userID NOT IN%s"
       
       cur.execute( sql % ( self.prefix, cityID, tdate, exclude ) )
-      data = cur.fetchall()
 
-      res = []
-      for i in data:
-         if i[0] not in res:
-            res.append( int(i[0]) )
-      return res
+      return [int( i[0] ) for i in cur.fetchall()]
 
 
    def find_missing_obs(self, cityID, tdate=False ):
