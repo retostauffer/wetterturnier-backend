@@ -44,14 +44,14 @@ if __name__ == '__main__':
       tdates     = [db.current_tournament()]
       today      = utils.today_tdate()
       #if db.get_moses_coefs( 1, tdates[0] ) == False:
-      if today == tdates[0] + 4 and db.get_moses_coefs( 1, tdates[0] ) == False:
+      #if today == tdates[0] + 4 and db.get_moses_coefs( 1, tdates[0] ) == False:
          #it's gotta be Tuesday then. And we only look if coefs for Berlin exists cause we're hackers
-         import numpy
-         import moses as m
-         #execute moses.f90 programm for each cities to keep coefs up to date once a week
-         print_moses( db, config, cities, tdates ) 
-         for i in cities:
-            m.moses.processmoses( i['hash'] )
+      import numpy
+      import moses as m
+      #execute moses.f90 programm for each cities to keep coefs up to date once a week
+      print_moses( db, config, cities, tdates ) 
+      for i in cities:
+         m.moses.processmoses( i['hash'] )
 
    else:
       tdates     = [config['input_tdate']]

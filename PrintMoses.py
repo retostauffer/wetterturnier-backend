@@ -86,7 +86,7 @@ def print_moses( db, config, cities, tdates ):
          for day in range(1,3):
             print(day_heads[day-1], file=f)
             print(table_head, file=f)
-            print(78*"_", file=f)
+            print(80*"_", file=f)
             for station in stations:
                obs = [station.name]
                for param in params:

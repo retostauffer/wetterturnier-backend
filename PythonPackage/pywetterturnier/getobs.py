@@ -575,7 +575,7 @@ class getobs( object ):
       Args:
          station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
-      
+
       Returns:
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
@@ -587,19 +587,23 @@ class getobs( object ):
       # - If dd is valid: take this one
       if dd == None:
          value = None
-      # - if wind direction is 0 (variable) 
+      # - if wind direction is 0 (variable)
       elif dd == 0:
-         # - No wind: return variable wind!
-         if ff == 0:    value = 0 
-         # - Else skip the dd observation!
-         else:          value = None
+         # - No wind
+         if ff == 0:
+            value = 0
+         #else wind direction is not defined
+         else:
+            value = None
       # - Else take dd as it is
-      else: 
+      else:
          value = np.round(float(dd)/10) * 100.
          # - North wind will be 360, not 0. Change if 0 occurs
-         if value == 0.: value = 3600.
+         if value == 0.:
+            value = 3600.
       # - Return value
       return value
+
 
    # ----------------------------------------------------------------
    # - Prepare ff
@@ -612,19 +616,34 @@ class getobs( object ):
       Args:
          station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
-      
+
       Returns:
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
       """
+      #from pywetterturnier import database, utils
+      #inputs = utils.inputcheck('GetObs')
+      # - Read configuration file
+      #config = utils.readconfig('config.conf',inputs)
 
-      # - Loading td valid at 12 UTC 
-      value = self.load_obs( station.wmo, 12, 'ff' )
-      if not value == None:
-         import numpy as np
-         value = np.round( np.float( value ) * 1.94384449 / 10 ) * 10
+      # - Initializing class and open database connection
+      #db     = database.database(config)
+
+      #dd = db.get_obs_data(self, cityID, db.get_parameter_id("ff"), tdate, bdate, wmo=station.wmo)
+      dd = self.load_obs( station.wmo, 12, 'dd' )
+
+      #if no wind direction is determined there can be no wind
+      if dd == 0:
+         value = 0
+      else:
+         value = self.load_obs( station.wmo, 12, 'ff' )
+         if not value == None:
+            import numpy as np
+            value = np.round( np.float( value ) * 1.94384449 / 10 ) * 10
+
       # - Return value  
       return value
+
 
    # ----------------------------------------------------------------
    # - Loading fx (maximum wind gust over last 1h, 6 to 6 UTC)
@@ -650,7 +669,7 @@ class getobs( object ):
       Args:
          station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
-      
+
       Returns:
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.

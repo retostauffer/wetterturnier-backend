@@ -449,9 +449,15 @@ class judging(object):
       calm = False; variable = False; normal = False
       #falsch#if len( np.where(obs ==    0.)[0] ) > 0:                           calm     = True
       #falsch#if len( np.where(obs == 9900.)[0] ) > 0:                           variable = True
-      if len( np.where(obs ==    0.)[0] ) == len(obs):                    calm     = True
-      if len( np.where(obs == 9900.)[0] ) == len(obs):                    variable = True
-      if len( np.where( np.logical_and(obs > 0., obs <= 3600.) )[0] ) > 0: normal = True
+
+      #if at least one wind direction is zero, it's calm
+      if len( np.where(obs ==    0.)[0] ) > 0:
+         calm     = True
+      #if at least one direction is variable...
+      if len( np.where(obs == 9900.)[0] ) > 0:
+         variable = True
+      if len( np.where( np.logical_and(obs > 0., obs <= 3600.) )[0] ) > 0:
+         normal = True
 
       # -------------------------------------------------------------
       # - Compute the normal residuals for dd if and only if
@@ -467,7 +473,7 @@ class judging(object):
          dd_min  = np.min( obs[np.where(np.logical_and(obs > 0.,obs<=3600.))] )
          dd_max  = np.max( obs[np.where(np.logical_and(obs > 0.,obs<=3600.))] )
          dd_diff = np.abs( dd_min-dd_max )
-         
+
          if len(idx[0]) > 0:
             # - Normal penalty
             #   If minimum wind was less than 6kt: 1.0 points per 10 deg

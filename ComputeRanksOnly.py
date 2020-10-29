@@ -74,7 +74,6 @@ if __name__ == '__main__':
          tdates = db.all_tournament_dates( city['ID'] )
 
       for tdate in tdates:
-
          cur = db.cursor()
 
          sql = "SELECT userID, points FROM wp_wetterturnier_betstat " + \

@@ -12,7 +12,7 @@
 
 
 import MySQLdb
-#import mysqlclient
+#import mysqlclient (python2)
 from . import utils
 
 def sql_tuple(IDs):
@@ -451,7 +451,7 @@ class database(object):
    # - Get all tournament dates 
    # -------------------------------------------------------------------
    def all_tournament_dates(self,cityID=None):
-      """Returns all defined tournament dates ever payed in a city.
+      """Returns all defined tournament dates ever played in a city.
       Searches for all unique tournament dates in the bets table and
       returns them as a list.
 
@@ -482,10 +482,11 @@ class database(object):
 
       cur = self.cursor()
       cur.execute( sql )
-      tdates = [i[0] for i in cur.fetchall()]
+      tdates = [int(i[0]) for i in cur.fetchall() if i[0]]
       print('    Found %d different dates' % len(tdates))
 
-      return tdates.sort()
+      tdates.sort()
+      return tdates
 
    # -------------------------------------------------------------------
    # - Given an ID this method returns the city name.
@@ -1617,10 +1618,10 @@ class database(object):
       if sort:
          if what not in ["display_name", "user_login", "nicename"]:
             utils.exit("Wrong input on database.get_participants_in city!")
-         sql = "SELECT userID FROM %swetterturnier_bets wb JOIN wp_users wu ON wb.userID=wu.ID WHERE cityID=%d AND tdate=%d AND userID NOT IN%s ORDER BY "+what
+         sql = "SELECT DISTINCT userID FROM %swetterturnier_bets wb JOIN wp_users wu ON wb.userID=wu.ID WHERE cityID=%d AND tdate=%d AND userID NOT IN%s ORDER BY "+what
 
       else:
-         sql = "SELECT userID FROM %swetterturnier_bets WHERE cityID=%d AND tdate=%d AND userID NOT IN%s"
+         sql = "SELECT DISTINCT userID FROM %swetterturnier_bets WHERE cityID=%d AND tdate=%d AND userID NOT IN%s"
       
       cur.execute( sql % ( self.prefix, cityID, tdate, exclude ) )
 
