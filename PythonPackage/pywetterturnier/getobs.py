@@ -621,25 +621,36 @@ class getobs( object ):
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
       """
-      #from pywetterturnier import database, utils
-      #inputs = utils.inputcheck('GetObs')
+
+      #first we check if a converted obs for dd is available (maybe it has been set zero by admin)
+      from pywetterturnier import database, utils
+      import numpy as np
+
+      inputs = utils.inputcheck('GetObs')
       # - Read configuration file
-      #config = utils.readconfig('config.conf',inputs)
+      config = utils.readconfig('config.conf', inputs)
 
       # - Initializing class and open database connection
-      #db     = database.database(config)
+      db     = database.database(config)
 
-      #dd = db.get_obs_data(self, cityID, db.get_parameter_id("ff"), tdate, bdate, wmo=station.wmo)
-      dd = self.load_obs( station.wmo, 12, 'dd' )
+      bdate = utils.datetime2tdate( self._date_ )
+      #calculate tdate from date of observation (Saturday = bdate -1; Sunday = bdate - 2)
+      tdate = bdate - np.round( 7 * ( ( bdate/7 - np.floor( bdate/7 ) ) - 1/7 ) )
+
+      dd = db.get_obs_data( station.cityID, db.get_parameter_id("dd"), tdate, bdate, wmo=station.wmo )
+
+      #no converted obs yet? get obs from obstable
+      if dd is False:
+         dd = self.load_obs( station.wmo, 12, 'dd' )
 
       #if no wind direction is determined there can be no wind
       if dd == 0:
          value = 0
       else:
+         # - Loading ff valid at 12 UTC 
          value = self.load_obs( station.wmo, 12, 'ff' )
-         if not value == None:
-            import numpy as np
-            value = np.round( np.float( value ) * 1.94384449 / 10 ) * 10
+         if value:
+            value = np.round( np.float( value ) * (900/463) / 10 ) * 10
 
       # - Return value  
       return value
@@ -744,11 +755,17 @@ class getobs( object ):
       else:
          value = 0
          import numpy as np
-         for i in data: value = np.maximum(value, i) 
+         for i in data:
+            value = np.maximum(value, i)
          # - Convert from meters per second to knots.
-         #   Moreover, if knots are below 25, ignore.
-         value = np.round( np.float( value ) * 1.94384449 / 10. ) * 10
-         if value < 250.: value = 0
+         #   Moreover, if knots are below 25 (or 12.5 m/s) set value to zero.
+         if value == 125:
+            value = 250
+         else:
+            value = np.round( np.float( value ) * (900/463) / 10. ) * 10
+            if value < 250.:
+               value = 0
+
       # - Return value  
       return value
 
