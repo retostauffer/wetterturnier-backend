@@ -7,7 +7,6 @@
 ! portiert nach linux /absoft 27.6.2001 Erik Zimmermann
 !
 
-
       module moses
       use general
       implicit none
@@ -124,7 +123,6 @@
       gPdX=cDimPd
       gDagN=1
       sElementNames='N  Sd dd ff fx Wv Wn PPPTTmTTnTTdRR '
-
 !
 !.......INPUT DATA ..........................
 !
@@ -425,6 +423,7 @@
          rRMSE_Old,rRMSI_Old,rRMSI,KORR,DRUCK,rX,gPrX,gNX,DTGR, &
          Stop,RES,PotPrNr,QU,CO,RMSE,StpFrwI,rrkrit)
 
+
 !     ....................................................................
 !           This Subroutine executes the multiple regression             :
 !     ...................................................................:
@@ -684,8 +683,15 @@
           RVUL(StpFrwI+NPrOblX)=(1.-rRMSI**2./rRMSI_Old**2.)*100.
           if (RVUL(StpFrwI+NPrOblX) .LT. 0) Stop = .True.
         END IF
-        Q=NINT((1.-RMSE/SD(gPrX))*100.)
+        Q=NINT( (1. - RMSE / SD(gPrX) ) * 100. )
+        
+        PRINT *,'RMSE  = ', RMSE
+        PRINT *,'SD(g) = ', SD(gPrX)
+
         Q2=NINT((1.-RMSE**2./SD(gPrX)**2.)*100.)
+
+        PRINT *,'Q2   = ', Q2
+
         RVU=NINT((1.-rRMSI**2./SD(gPrX)**2.)*100.)
       end if
 !
@@ -768,13 +774,16 @@
                PRINT '(15x,A)', &
                'RMSE E(RMSI)   RV(HC)  E(RVI)  Const N_Pr N_Obs'
              END IF
-             Print'(F6.1,F7.2,F6.2,F8.2,2I8,F8.2,I4,I5)', E(gPrX), &
+             
+
+             Print'(F6.1,F7.2,F6.2,F8.2,I8,I8,F8.2,I4,I5)', E(gPrX), &
                SD(gPrX),RMSE,rRMSI,Q2,RVU,Co(0),gPrX-1,gNX
-             Write(101,'(F6.1,F7.2,F6.2,F8.2,2I8,F8.2,I4,I5)') E(gPrX), &
+             Write(101,'(F6.1,F7.2,F6.2,F8.2,I8,I8,F8.2,I4,I5)') E(gPrX), &
                SD(gPrX),RMSE,rRMSI,Q2,RVU,Co(0),gPrX-1,gNX
            IF (DRUCK .GT. 1) THEN
              WRITE (101,*)
           END IF
+
 !
 !.........Ausreisser ausgeben...............
 !
@@ -840,6 +849,7 @@
 
       WRITE(FILENAME,'(A,A,I6.6,A,A)') 'moses/result/','moses',gDtgE,'.',contest
       OPEN(  UNIT=21,FILE=FILENAME,FORM='FORMATTED',STATUS='UNKNOWN')
+
       END subroutine
 
 
@@ -1094,9 +1104,6 @@
       integer       LastDay, DagN
       integer      DTGR(cDimDag)
 
-      integer i
-      logical SkipLine
-
       data rPdConst /0.,0.,-10.,0.,0. ,5., 5.,-1000.,  0.,  0.,  0.,10./
       data rPdFactor/2.,.3, 0.1,1.,.25,1., 1.,    1., 1.5, 1.5, 1.5, 1./
 
@@ -1120,20 +1127,20 @@
       DagI=1
       Dtg(DagI)=gDtgB
       do while (Dtg(DagI).le.gDtgE)          ! DagI
-!         print*,"DTG: ",Dtg(DagI)
+!        print*,Dtg(DagI)
 
-         write(Filename,'(A,A,i6.6,2A)') 'moses/input/','dat', &
+        write(Filename,'(A,A,i6.6,2A)') 'moses/input/','dat', &
             (MOD(Dtg(DagI),100000000)/100),'.',contest
 
-         open(13,FILE=Filename,FORM='FORMATTED',Status='OLD',ERR=1001)
-         LastDay = MOD(Dtg(DagI),100000000)/100
+        open(13,FILE=Filename,FORM='FORMATTED',Status='OLD',ERR=1001)
+        LastDay = MOD(Dtg(DagI),100000000)/100
 
 !.... In allen Dateien kommt Sa vor So, deswegen machen wir den Code
 !.... mit FpI in do-Schleife ein bisschen uebersichtlicher.
 !.... Header muss eigentlich nicht ausgewertet, sondern nur korrekt
 !.... uebersprungen werden
 
-         do FpI=1,2
+        do FpI=1,2
 !....Petrus initialisieren....................................
           PetrusI=0
           do PdI=1,gPdX
@@ -1144,24 +1151,14 @@
             rPd2=-9999.0
           end do
 
-          print *, Filename
 !          print *, "Index:", FpI
 1011      Read(13,'(A)') HeadLine
-          print*,Headline
 !          print*,Headline(9:11)
 !          print*,Dtg(DagI)
-!          if (Dtg(DagI)<17121400 .and. HeadLine(2:4).NE.'ame') goto 1011
-!          if (Dtg(DagI)>17121400 .and. HeadLine(9:11).NE.'ame')goto 1011
-!          if (Dtg(DagI)<17121400 .and. HeadLine(2:4).NE.'ame') then
-!            print*,"GOTO_1\n"
-!            goto 1011
-!          endif
-          if (HeadLine(9:11).NE.'ame') then
-            print*,"GOTO_2" !#FIXME
-            print*,HeadLine(9:11)
-            goto 1011
-          endif
+          if (Dtg(DagI)<17121400 .and. HeadLine(2:4).NE.'ame') goto 1011
+          if (Dtg(DagI)>17121400 .and. HeadLine(9:11).NE.'ame')goto 1011
  
+         print *, Filename
 !         print *, Headline(1:20)
 
 !.... Prediktor/Referenz pro Sa/so einlesen
@@ -1169,7 +1166,7 @@
           read(13,'(A)') HeadLine
             read(13,'(A)') Line1
             read(13,'(A)') Line2
-            if(Dtg(DagI)>17121400.and.contest=='ipw')Read(13,'(A)')HeadLine
+          if(Dtg(DagI)>17121400.and.contest=='ipw')Read(13,'(A)')HeadLine
             
             call GetValues(Line1(23:27),Line2(23:27),Pd1(1),Pd2(1), &
                  "(i5)")                                              !N
@@ -1177,35 +1174,35 @@
             call GetValues(Line1(28:31),Line2(28:31),Pd1(2),Pd2(2), &
                  "(i4)")                                              !Sd
 !            print *, 'Sd'
-            call GetValues(Line1(32:35),Line2(32:35),Pd1(3),Pd2(3), &
-                 "(i4)")                                              !DD
+            call GetValues(Line1(32:36),Line2(32:36),Pd1(3),Pd2(3), &
+                 "(i5)")                                              !DD
 !            print *, 'DD'            
-            call GetValues(Line1(36:38),Line2(36:38),Pd1(4),Pd2(4), &
+            call GetValues(Line1(37:39),Line2(37:39),Pd1(4),Pd2(4), &
                  "(i3)")                                              !FF
 !            print *, 'FF'
-            call GetValues(Line1(39:41),Line2(39:41),Pd1(5),Pd2(5), &
+            call GetValues(Line1(40:42),Line2(40:42),Pd1(5),Pd2(5), &
                  "(i3)")                                              !FX
 !            print *, 'FX'
-            call GetValues(Line1(42:44),Line2(42:44),Pd1(6),Pd2(6), &
+            call GetValues(Line1(43:45),Line2(43:45),Pd1(6),Pd2(6), &
                  "(i3)")                                              !Wv
 !            print *, 'Wv' 
-            call GetValues(Line1(45:47),Line2(45:47),Pd1(7),Pd2(7), &
-                 "(i3)")                                              !Wn
+            call GetValues(Line1(46:47),Line2(46:47),Pd1(7),Pd2(7), &
+                 "(i2)")                                              !Wn
 !            print *, 'Wn'
             
-            call rGetValues(Line1(48:54),Line2(48:54),rPd1(8),rPd2(8), &
-                 "(f7.1)")                                            !PPP
+            call rGetValues(Line1(48:55),Line2(48:55),rPd1(8),rPd2(8), &
+                 "(f8.1)")                                            !PPP
 !            print *, 'PPP'
-            call rGetValues(Line1(55:60),Line2(55:60),rPd1(9),rPd2(9), &
-                 "(f6.1)")                                            !TTm
+            call rGetValues(Line1(56:62),Line2(56:62),rPd1(9),rPd2(9), &
+                 "(f7.1)")                                            !TTm
 !            print *, 'TTm' 
-            call rGetValues(Line1(61:66),Line2(61:66),rPd1(10),rPd2(10), &
+            call rGetValues(Line1(63:68),Line2(63:68),rPd1(10),rPd2(10), &
                  "(f6.1)")                                            !TTn
 !            print *, 'TTn'
-            call rGetValues(Line1(67:72),Line2(67:72),rPd1(11),rPd2(11), &
+            call rGetValues(Line1(69:74),Line2(69:74),rPd1(11),rPd2(11), &
                  "(f6.1)")                                            !TTd
 !            print *, 'TTd' 
-            call rGetValues(Line1(73:78),Line2(73:78),rPd1(12),rPd2(12), &
+            call rGetValues(Line1(75:80),Line2(75:80),rPd1(12),rPd2(12), &
                  "(f6.1)")                                            !RR
 !            print *, 'RR' 
 !    Mittelt im Moment auch dd und WW; kein Problem,
@@ -1258,7 +1255,7 @@
             if (rPd1(PdI).le.-9999..OR. rPd2(PdI).le.-9999.) then
 
                write(*,*) rPd1(PdI),rPd2(PdI) !B
-               STOP "Value is missing!"
+               STOP "Value is missing!"            
 
             end if
             grPdVal(DagI,FpI,PdI)=(rPd1(PdI)+rPd2(PdI))/2.
@@ -1272,89 +1269,57 @@
           do while (.true.)     ! PotPrI
 
              read(13,'(A)') Line
-             print*,Line !#FIXME
+             if (line(1:10).eq.'          ') exit !Teilnehmerfeld zu
 
-!            Abbruch, wenn Zeile leer/ Teilnehmer fertig gelesen
-             if (line(1:10).eq.'          ') exit
-!            Abbruch, wenn eine Zeile mit zu vielen Leerzeichen vorkommt
-!            -> speziell fuer den Fall, falls eine Datei keine richtige End-Leerzeile hat (in Leipzig ist das Dateiformat leicht anders)
-             if (line(21:40).eq.'                    ') then
-                print*,"EXIT"
-                exit
-             end if
+               read(Line, '(A22,i5,i4,i5,3i3,i2,f8.1,f7.1,3f6.1)') &
+                    cname,Pr1(1),Pr1(2),Pr1(3),Pr1(4),Pr1(5),Pr1(6), &
+                    Pr1(7),rPr1(8),rPr1(9),rPr1(10),rPr1(11),rPr1(12)
+!     TeilnehmerIndex ermitteln
+         do PotPrI=1, gPotPrX
+            c1=gsPotPrName(PotPrI)
+               if (c1(1:15).eq.cname(1:15)) exit
+            end do
+            if (PotPrI.gt.gPotPrX) then
+!             print *,'Teilnehmer ', cname,'steht nicht in der pr.cfg'
+              cycle              ! nichts wegschreiben, nexte Zeile
+            end if                ! einlesen...
 
-!            check for 'n' (NaN) and skip it if there are any 'n'-values
-             !#TODO
-             SkipLine = .false.
-             do i=23, LEN(line)
-                if (line(i:i) .eq. 'n') then
-                   print*,"SKIPPED: ",Line
-                   SkipLine = .true.
-                end if
-             end do
+!     Teilnehmerwerte wegschreiben
+!     (erstmal aufbereiten)
+!     (grPotPrVal(DagI,PotPrI,FpI,PdI),PotPrI=1,gPotPrX)
 
-!            Zeile ueberspringen (ein 'n' ist in den Werten aufgetaucht)
-             if (SkipLine) then
-                exit
-             endif
+            if (Pr1(2) .EQ. 0) Pr1(2)=-15
+            if (Pr1(5) .EQ. 0) Pr1(5)= 12
 
-!            Werte aus Teilnehmerzeile auslesen
-! Beispiel:
-! Matzel                    7   0 320  7  0  7  7 1021.2   1.4 -15.0  -1.4   0.3
-! ____x____x____x____A22___i5__i4__i4_i3_i3_i3_i3___f7.1__f6.1__f6.1__f6.1__f6.1
-             read(Line, '(A22,i5,2i4,4i3,f7.1,4f6.1)') & !#FIXME
-                  cname,Pr1(1),Pr1(2),Pr1(3),Pr1(4),Pr1(5),Pr1(6), &
-                  Pr1(7),rPr1(8),rPr1(9),rPr1(10),rPr1(11),rPr1(12)
+            if (rPr1(12) .ge. 0.) rPr1(12)=3.5*SQRT(rPr1(12))
+            if (rPr1(12) .lt. -3.0) rPr1(12)=-3.0
+            if (Pr1(6) .GT. 3) Pr1(6)=9
+            if (Pr1(7) .GT. 3) Pr1(7)=9
+            do PdI=1,7
+               grPotPrVal(DagI,PotPrI,FpI,PdI)=REAL(Pr1(PdI))
+            end do
 
-!            TeilnehmerIndex ermitteln
-             do PotPrI=1, gPotPrX
-                c1=gsPotPrName(PotPrI)
-                   if (c1(1:15).eq.cname(1:15)) exit
-             end do
-             if (PotPrI.gt.gPotPrX) then
-!                print *,'Teilnehmer ', cname,'steht nicht in der pr.cfg'
-                cycle               ! nichts wegschreiben, nexte Zeile
-             end if                 ! einlesen...
+            do PdI=8, cDimPd
+               grPotPrVal(DagI,PotPrI,FpI,PdI)=rPr1(PdI)
+            end do
+! Kontrolle
+!            print '(I2,x,A25,12f7.1)',PotPrI, gsPotPrName(PotPrI), &
+!                 (grPotPrVal(DagI,PotPrI,FpI,PdI), PdI=1,12)
 
-!            Teilnehmerwerte wegschreiben
-!            (erstmal aufbereiten)
-!            (grPotPrVal(DagI,PotPrI,FpI,PdI),PotPrI=1,gPotPrX)
-
-             if (Pr1(2) .EQ. 0) Pr1(2)=-15
-             if (Pr1(5) .EQ. 0) Pr1(5)= 12
-
-             if (rPr1(12) .ge. 0.) rPr1(12)=3.5*SQRT(rPr1(12))
-             if (rPr1(12) .lt. -3.0) rPr1(12)=-3.0
-             if (Pr1(6) .GT. 3) Pr1(6)=9
-             if (Pr1(7) .GT. 3) Pr1(7)=9
-             do PdI=1,7
-                grPotPrVal(DagI,PotPrI,FpI,PdI)=REAL(Pr1(PdI))
-             end do
-
-             do PdI=8, cDimPd
-                grPotPrVal(DagI,PotPrI,FpI,PdI)=rPr1(PdI)
-             end do
-
-!            Kontrolle
-!             print '(I2,x,A25,12f7.1)',PotPrI, gsPotPrName(PotPrI), &
-!                  (grPotPrVal(DagI,PotPrI,FpI,PdI), PdI=1,12)
-
-!....       grPetrus berechnen
+!....grPetrus berechnen
 
             do PdI=1, cDimPd
-               grPetrus(DagI,FpI,PdI)=grPetrus(DagI,FpI,PdI) &
-                                      + grPotPrVal(DagI,PotPrI,FpI,PdI)
-!               print *,grPetrus(DagI,FpI,PdI) 
+              grPetrus(DagI,FpI,PdI)=grPetrus(DagI,FpI,PdI) &
+                                     + grPotPrVal(DagI,PotPrI,FpI,PdI)
+!              print *,grPetrus(DagI,FpI,PdI) 
             end do
             PetrusI=PetrusI+1
-
-            !print*,Line !#FIXME
          end do                 ! PotPrI
 
-         do PdI=1,gPdX
+          do PdI=1,gPdX
             grPetrus(DagI,FpI,PdI)=grPetrus(DagI,FpI,PdI)/REAL(PetrusI)
 !            print *,grPetrus(DagI,FpI,PdI) 
-         end do
+          end do
 
 !...... dd=000 und 990 gesondert behandeln ............................
 
@@ -1729,9 +1694,7 @@
       subroutine rGetValues(aSource1,aSource2,aDest1,aDest2,aFormat)
       character aSource1*(*),aSource2*(*),aFormat*(*)
       real aDest1,aDest2
-
-!      print*,aSource1,aSource2,aFormat FIXME
-
+      
       if (SCAN(aSource1//aSource2,"Xxn").eq.0) then 
          read(aSource1,aFormat) aDest1
          read(aSource2,aFormat) aDest2
@@ -1753,8 +1716,6 @@
       subroutine GetValues(aSource1,aSource2,aDest1,aDest2,aFormat)
       character aSource1*(*),aSource2*(*),aFormat*(*)
       integer aDest1,aDest2
-
-!      print*,aSource1,aSource2,aFormat FIXME
 
       if (SCAN(aSource1//aSource2,"Xxn").eq.0) then 
          read(aSource1,aFormat) aDest1

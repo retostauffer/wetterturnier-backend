@@ -450,11 +450,12 @@ class judging(object):
 
       # - Checking if we have had calm and/or variable conditions
       calm = False; variable = False; normal = False
-      #falsch#if len( np.where(obs ==    0.)[0] ) > 0:                           calm     = True
-      #falsch#if len( np.where(obs == 9900.)[0] ) > 0:                           variable = True
-      if len( np.where(obs ==    0.)[0] ) == len(obs):                    calm     = True
-      if len( np.where(obs == 9900.)[0] ) == len(obs):                    variable = True
-      if len( np.where( np.logical_and(obs > 0., obs <= 3600.) )[0] ) > 0: normal = True
+      if len( np.where(obs ==    0.)[0] ) > 0:
+         calm     = True
+      if len( np.where(obs == 9900.)[0] ) > 0:
+         variable = True
+      if len( np.where( np.logical_and(obs > 0., obs <= 3600.) )[0] ) > 0:
+         normal = True
 
       # -------------------------------------------------------------
       # - Compute the normal residuals for dd if and only if
