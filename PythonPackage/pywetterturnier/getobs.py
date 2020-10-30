@@ -759,12 +759,12 @@ class getobs( object ):
             value = np.maximum(value, i)
          # - Convert from meters per second to knots.
          #   Moreover, if knots are below 25 (or 12.5 m/s) set value to zero.
-         if value == 125:
-            value = 250
-         else:
+         if value >= 125:
             value = np.round( np.float( value ) * (900/463) / 10. ) * 10
             if value < 250.:
-               value = 0
+               value = 250
+         else:
+            value = 0
 
       # - Return value  
       return value
