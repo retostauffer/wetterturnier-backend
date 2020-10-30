@@ -607,6 +607,7 @@ class getobs( object ):
          or None if observation not available or nor recorded.
       """
 
+      #check for wind direction at 12 UTC
       dd = self.load_obs( station.wmo, 12, 'dd' )
 
       #if no wind direction is determined there can be no wind
@@ -726,14 +727,14 @@ class getobs( object ):
          for rec in data:
             value = np.maximum(value,rec) 
          # - if 12.5 m/s threshold is reached set value = 25 knots
-         if value == 125:
-            value = 250
-         else:
+         if value >= 125:
             # - Convert from meters per second to knots.
             value = np.round( np.float( value ) * 1.94384449 / 10. ) * 10
             #   Moreover, if knots are below 25, ignore.
-            if value < 250.:
-               value = 0
+            if value < 250:
+               value = 250
+         else:
+            value = 0
 
       # - Return value  
       return value
