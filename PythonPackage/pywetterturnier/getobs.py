@@ -644,7 +644,7 @@ class getobs( object ):
          dd = self.load_obs( station.wmo, 12, 'dd' )
 
       #if no wind direction is determined there can be no wind
-      if dd == 0:
+      if dd is 0:
          value = 0
       else:
          # - Loading ff valid at 12 UTC 
