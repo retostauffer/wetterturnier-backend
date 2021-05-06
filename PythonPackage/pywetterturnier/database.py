@@ -413,7 +413,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Loading stations from database for a given city
    # -------------------------------------------------------------------
-   def get_stations_for_city(self,cityID,active=False,tdate=False):
+   def get_stations_for_city(self,cityID,active=True,tdate=False):
       """Loading all stations mached to a certain city.
 
       Args:
@@ -427,7 +427,7 @@ class database(object):
       if active: sql += " AND active = 1"
       if tdate:
          tdate = str(tdate)
-         sql += " AND (since <= "+tdate+" OR since = 0) AND (until >= "+tdate+" OR until = 0)"
+         sql += " AND (since < "+tdate+" OR since = 0) AND (until > "+tdate+" OR until = 0)"
       cur = self.db.cursor()
       cur.execute( sql )
       desc = cur.description
@@ -436,7 +436,8 @@ class database(object):
       from stationclass import stationclass
       stations = []
 
-      for rec in data: stations.append( stationclass( desc, rec, self.db, self.config["mysql_prefix"] ) )
+      for rec in data:
+         stations.append( stationclass( desc, rec, self.db, self.config["mysql_prefix"] ) )
 
       return stations
 

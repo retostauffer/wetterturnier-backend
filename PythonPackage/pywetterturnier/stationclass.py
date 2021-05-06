@@ -104,11 +104,11 @@ class stationclass( object ):
 
       sql = []
       sql.append("SELECT paramID FROM (SELECT paramID,")
-      sql.append("CASE WHEN ( since <= '{0:s}' AND (until = 0 OR until >= '{1:s}'))".format(bgn,end))
+      sql.append("CASE WHEN ( since < '{0:s}' AND (until = 0 OR until > '{1:s}'))".format(bgn,end))
       sql.append("THEN 1 ELSE 0 END AS active FROM {0:s}wetterturnier_stationparams WHERE".format(self.dbprefix))
       sql.append("stationID = {0:d}) AS tmp WHERE active = 1;".format(int(self.ID)))
-
-
+      
+      
       # Fetching parameter ID's of active parameters (given tdate)
       cur = self.db.cursor()
       cur.execute( " ".join(sql) )

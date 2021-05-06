@@ -30,10 +30,10 @@ sys.setdefaultencoding('utf-8')
 # -------------------------------------------------------------------
 def print_moses( db, config, cities, tdates ):
 
-   path="moses/input/"
+   path="archiv"
    #fixed strings and headers:
    file_head  = "Berliner Wetterprognoseturnier %s\n\nEingetroffene Werte und abgegebene Prognosen:\n"
-   table_head = "Name                      N  Sd  dd ff fx Wv Wn    PPP    TTm   TTn   TTd   RR"
+   table_head = "Name                      N  Sd  dd  ff fx WvWn     PPP    TTm   TTn   TTd    RR"
    day_heads = ["Samstag:","Sonntag:"]
    ranking_str = "Wertung der Prognose vom %s:\n"
    ranking_head = "Pl. Name                      Punkte  Tag1  Tag2\n_________________________________________________"
@@ -50,7 +50,7 @@ def print_moses( db, config, cities, tdates ):
    printf = lambda *args : print( *args, file=f)
 
    def print_rows( args, file ):
-      row_format = "{name:<25.25s} {n:>1} {sd:>3} {dd:>3} {ff:>2} {fx:>2} {wv:>2} {wn:>2} {ppp:>6.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
+      row_format = "{name:<25.25s} {n:>1} {sd:>3} {dd:>4} {ff:>2} {fx:>2} {wv:>2} {wn:>1} {ppp:>8.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
 
       for i in range(1,8):
          if type( args[i] ) != str: args[i] = int( args[i] )
@@ -91,17 +91,19 @@ def print_moses( db, config, cities, tdates ):
             continue
          stations = db.get_stations_for_city( cityID, active=False, tdate=tdate )
          #print output to file, first get prober filename
-         filename = path + utils.tdate2string( tdate, moses=True )+"."+city['name'].lower()[0]+"pw"
+         C = city['name'][0].lower()
+         filename = path + "/wert_" + city['name'][0].lower() + "/dat" + utils.tdate2string( tdate, short=True ) + ".%spw" % C
+         print(filename)
          f = open(filename,'w')
 
-         tdate_str = utils.tdate2string( tdate )
+         tdate_str = utils.tdate2datetime( tdate ).strftime("%d.%m.%Y")
          printf(file_head % tdate_str )
          users = db.get_participants_in_city( cityID, tdate, sort=True, what="user_login" )
          
          for day in range(1,3):
             printf(day_heads[day-1] )
             printf(table_head )
-            printf(78*"_")
+            printf(80*"_")
             for station in stations:
                obs = [station.name]
                for param in params:
@@ -111,7 +113,7 @@ def print_moses( db, config, cities, tdates ):
                   else:
                      obs.append( float( value ) / 10 )
                print_rows( obs, f )
-            #printf(78*"_")
+            
             printf("")
             for userID in users:
                bet = [db.get_username_by_id(userID, which="user_login").replace("GRP_","")]
@@ -122,8 +124,7 @@ def print_moses( db, config, cities, tdates ):
                   else:
                      bet.append( float( value ) / 10 )
                print_rows( bet, f )
-            if day == 1: printf("\f")
-            else: printf("\n")
+            #printf("\n")
          
          #weekend ranking
          printf( ranking_str % tdate_str )
@@ -145,7 +146,6 @@ def print_moses( db, config, cities, tdates ):
          printf( "\n" ) 
 
          #TODO: season ranking (fake?)
-
 
          #TODO: 15 weeks ranking (only parts?)
  

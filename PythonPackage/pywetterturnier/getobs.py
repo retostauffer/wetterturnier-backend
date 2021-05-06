@@ -569,6 +569,7 @@ class getobs( object ):
       # - Loading td valid at 12 UTC 
       dd = self.load_obs( station.wmo, 12, 'dd' )
       ff = self.load_obs( station.wmo, 12, 'ff' )
+      
       # - If dd is valid: take this one
       if dd == None:
          value = None
@@ -607,11 +608,30 @@ class getobs( object ):
          or None if observation not available or nor recorded.
       """
 
-      #check for wind direction at 12 UTC
-      dd = self.load_obs( station.wmo, 12, 'dd' )
+
+      #first we check if a converted obs for dd is available (maybe it has been set zero by admin)
+      from pywetterturnier import database, utils
+      import numpy as np
+
+      inputs = utils.inputcheck('GetObs')
+      # - Read configuration file
+      config = utils.readconfig('config.conf', inputs)
+
+      # - Initializing class and open database connection
+      db     = database.database(config)
+
+      bdate = utils.datetime2tdate( self._date_ )
+      #calculate tdate from date of observation (Saturday = bdate -1; Sunday = bdate - 2)
+      tdate = bdate - np.round( 7 * ( ( bdate/7 - np.floor( bdate/7 ) ) - 1/7 ) )
+
+      dd = db.get_obs_data( station.cityID, db.get_parameter_id("dd"), tdate, bdate, wmo=station.wmo )
+
+      #no converted obs yet? get obs from obstable
+      if dd is False:
+         dd = self.load_obs( station.wmo, 12, 'dd' )
 
       #if no wind direction is determined there can be no wind
-      if dd == 0:
+      if dd is 0:
          value = 0
       else:
          # - Loading ff valid at 12 UTC 
@@ -725,7 +745,8 @@ class getobs( object ):
          value = 0
          import numpy as np
          for rec in data:
-            value = np.maximum(value,rec) 
+            value = np.maximum(value,rec)
+         print "fx in m/s", value
          # - if 12.5 m/s threshold is reached set value = 25 knots
          if value >= 125:
             # - Convert from meters per second to knots.
@@ -735,6 +756,8 @@ class getobs( object ):
                value = 250
          else:
             value = 0
+
+      print "fx in knots", value
 
       # - Return value  
       return value

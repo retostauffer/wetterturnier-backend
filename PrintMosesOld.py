@@ -75,7 +75,8 @@ def print_moses( db, config, cities, tdates ):
          stations = db.get_stations_for_city( cityID, active=False, tdate=tdate )
          #print output to file, first get prober filename
          #filename = path + utils.tdate2string( tdate, short=True ) + "." + city['name'][0].lower() + "pw"
-         filename = path + "/wert_" + city['name'][0].lower() + "/wert" + utils.tdate2string( tdate, short=True ) + ".txt"
+         C = city['name'][0].lower()
+         filename = path + "/wert_" + city['name'][0].lower() + "/dat" + utils.tdate2string( tdate, short=True ) + ".%spw" % C
          print(filename)
 
          f = open(filename,'w')
