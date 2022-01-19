@@ -17,7 +17,7 @@ Function to compute the mitteltipps.
 .. todo:: Could contain a bit more details!
 """
 
-import utils
+from . import utils
 # - List element to store the two dict dbects
 #   containing the bets for Petrus
 bet = [{},{}]
@@ -44,7 +44,7 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
    # - Day one, day two
    for day in range(1,3):
 
-      print '    Compute for day %d (%s)' % (tdate+day, utils.tdate2string( tdate+day ))
+      print('    Compute for day %d (%s)' % (tdate+day, utils.tdate2string( tdate+day )))
 
       #TODO shorten code for parameters with the same rule (like in old ComputePersistenz)
       #Freitag only gets calculated when the day is over (Saturday morning)
@@ -59,7 +59,7 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
       if type(data) == type(bool()): return False
       for i in [0, 80, 90]:
          if float( len(np.where( data == i )[0]) ) / float( len(data) ) > 0.5:
-            bet[day-1]['N'] = i; print "N = %d" % i
+            bet[day-1]['N'] = i; print("N = %d" % i)
          else:
             bet[day-1]['N'] = np.round( np.mean(data), -1 )
             break
@@ -130,17 +130,17 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
          return False
       dd = dd / 10.
       tips = len(dd)
-      print "total dd tips:       %d" % tips
+      print("total dd tips:       %d" % tips)
       n0 = len(np.where( dd == 0. )[0])
       n990 = len(np.where( dd == 990. )[0])
-      print "n0   = %d" % n0
-      print "n990 = %d" % n990
+      print("n0   = %d" % n0)
+      print("n990 = %d" % n990)
       #if the majority has 990 or 0 take this!
       
       if float( n0 ) / float(tips) > 0.5:
-         bet[day-1]['dd'] = 0.; print "bet: %d" % 0
+         bet[day-1]['dd'] = 0.; print("bet: %d" % 0)
       elif float( n990 ) / float(tips) >= 0.5:
-         bet[day-1]['dd'] = 9900.; print "bet: %d" % 990
+         bet[day-1]['dd'] = 9900.; print("bet: %d" % 990)
       else:
          """
          TODO: We have to ensure (rule-wise and in bet mask) that NO ONE
@@ -155,32 +155,32 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
                   np.delete(dd, i)
                   np.delete(ff, i)
             tips -= n0 + n990
-            print "tips with direction: %d" % tips
+            print("tips with direction: %d" % tips)
             for i in list(range(len(dd))):
                if dd[i] == 0 or dd[i] == 990:
                   continue
                u += ff[i] * np.sin( np.deg2rad(dd[i]) ) 
                v += ff[i] * np.cos( np.deg2rad(dd[i]) )
-            print "u = %f" % u
-            print "v = %f" % v
-            print "sum(ff) = %d" % sum(ff)
+            print("u = %f" % u)
+            print("v = %f" % v)
+            print("sum(ff) = %d" % sum(ff))
             u = u / float( sum(ff) * tips )
             v = v / float( sum(ff) * tips )
-            print "u2 = %f" % u
-            print "v2 = %f" % v         
+            print("u2 = %f" % u)
+            print("v2 = %f" % v)         
          else:
-            print "cannot link or weight dd with ff"
+            print("cannot link or weight dd with ff")
             for i in list(range(len(dd))):
                if dd[i] == 0 or dd[i] == 990:
                   continue
                u += np.sin( np.deg2rad(dd[i]) )
                v += np.cos( np.deg2rad(dd[i]) )
-            print "u = %f" % u
-            print "v = %f" % v
+            print("u = %f" % u)
+            print("v = %f" % v)
             u = u / float( tips )
             v = v / float( tips )
-            print "u2 = %f" % u
-            print "v2 = %f" % v
+            print("u2 = %f" % u)
+            print("v2 = %f" % v)
 
          bet[day-1]['dd'] = np.round( np.arctan2(u,v) * 1800. / np.pi, -2 )
          if bet[day-1]['dd'] < 0:
@@ -236,10 +236,10 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
          n7 = len(np.where(data == 7.)[0])
          n8 = len(np.where(data == 8.)[0])
          n9 = len(np.where(data == 9.)[0])
-         print "    n0={0:d},  n4={1:d},  n5={2:d},  n6={3:d},  n7={4:d},  n8={5:d},  n9={6:d}".format(
-                n0, n4, n5, n6, n7, n8, n9 )
-         print "    n0+n4 = {0:d},  len(data) = {1:d},  (n0+n4)/len(data): {2:.3f}".format(
-                (n0+n4), len(data), (n0+n4)/len(data))
+         print("    n0={0:d},  n4={1:d},  n5={2:d},  n6={3:d},  n7={4:d},  n8={5:d},  n9={6:d}".format(
+                n0, n4, n5, n6, n7, n8, n9 ))
+         print("    n0+n4 = {0:d},  len(data) = {1:d},  (n0+n4)/len(data): {2:.3f}".format(
+                (n0+n4), len(data), (n0+n4)/len(data)))
          # - Decision 0,4 .vs. 5,6,7,8,9
          if float(n0+n4) / float(len(data)) > 0.5:
             if n4 >= n0:
@@ -274,13 +274,13 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
       bet[day-1]['Wn'] = WVhelper( data )
 
    # - Show the tip 
-   print ''
-   print '    Bet for %s' % utils.tdate2string( tdate + 1 ),
-   print '    Bet for %s' % utils.tdate2string( tdate + 2 )
-   for k in bet[0].keys():
-      print '    - %-5s %5d' % (k,bet[0][k]),
-      print '         - %-5s %5d' % (k,bet[1][k])
-   print ''
+   print('')
+   print('    Bet for %s' % utils.tdate2string( tdate + 1 ), end=' ')
+   print('    Bet for %s' % utils.tdate2string( tdate + 2 ))
+   for k in list(bet[0].keys()):
+      print('    - %-5s %5d' % (k,bet[0][k]), end=' ')
+      print('         - %-5s %5d' % (k,bet[1][k]))
+   print('')
 
 
 
@@ -307,45 +307,33 @@ def statistics(db,typ,ID,city,tdate,function=False,betdata=False):
 def random(db,typ,ID,city,tdate,betdata=False):
    
    import numpy as np
-   import time as t
-   time = lambda : int(t.time())
-
-   cityID = city['ID']
-   T = (-1)**tdate
-   # - Day one, day two  
- 
+   # - Day one, day two
+   
    for day in range(1,3):
 
-      print '    Compute for day %d (%s)' % (tdate+day, utils.tdate2string( tdate+day ))
+      print('    Compute for day %d (%s)' % (tdate+day, utils.tdate2string( tdate+day )))
 
       param = 'dd'
       paramID = db.get_parameter_id(param)
-      seed = (cityID + paramID) * T
       dd = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
       if type(dd) == bool: return False
       max_dd, min_dd = max(dd), min(dd)
       if max_dd == min_dd: bet[day-1][param] = min_dd
       elif max_dd - min_dd < 1800:
-         np.random.seed( int(time() + seed ) )
          bet[day-1][param] = np.random.choice( np.arange(min_dd, max_dd+1, 100) )
       elif max_dd - min_dd > 1800:
          dd_list = []
-         for i in range(int(max_dd), int(min_dd + 3601), 100):
+         for i in range(int(max_dd), int(min_dd+3601), 100):
             if i > 3600: i -= 3600
             dd_list.append( i )
-         np.random.seed( int( time() + seed ) )
          bet[day-1][param] = np.random.choice( dd_list )
-      else:
-         np.random.seed( int( time() + seed ) )
-         bet[day-1][param] = np.random.choice( np.arange(100, 3601, 100) )
+      else: bet[day-1][param] = np.random.choice( np.arange(100, 3601, 100) )
 
       for param in ["N","Sd","ff"]:
          paramID = db.get_parameter_id(param)
-         seed = (cityID + paramID) * T
          data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
          if type(data) == bool: return False
          min_data, max_data = min(data), max(data)
-         i_min_data = int(min_data/10); i_max_data = int(max_data/10)
          if min_data == max_data:
             bet[day-1][param] = min_data
          elif param == "ff" and bet[day-1]["dd"] == 0:
@@ -357,39 +345,30 @@ def random(db,typ,ID,city,tdate,betdata=False):
             if min_data == max_data:
                bet[day-1][param] = min_data
             elif np.random.random() < p0:
-               np.random.seed( int( time() + seed ) )
                bet[day-1][param] = 0
-            else:
-               np.random.seed( int( time() + seed ) )
-               bet[day-1][param] = np.random.randint( i_min_data, i_max_data+1 ) * 10
+            else: bet[day-1][param] = np.random.randint( min_data, max_data )
          else:
-            np.random.seed( int( time() + seed ) )
-            bet[day-1][param] = np.random.randint( i_min_data, i_max_data+1 ) * 10
+            bet[day-1][param] = np.random.randint( min_data, max_data )
 
       param = "fx"
       paramID = db.get_parameter_id(param)
-      seed = (cityID + paramID) * T
       data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
       if type(data) == bool: return False
       n0 = np.count_nonzero( data == 0 )
       p = n0 / float(len(data))
-      np.random.seed( int( time() + seed ) )
       if np.random.random() < p:
          bet[day-1][param] = 0.
       else:
          min_val = 250
          min_data = min(data[data>=min_val])
          max_data = max(data)
-         i_min_data = int(min_data/10); i_max_data = int(max_data/10)
          if min_data == max_data:
             bet[day-1][param] = min_data
          else:
-            np.random.seed( int( time() + seed ) )
-            bet[day-1][param] = np.random.randint( i_min_data, i_max_data+1 ) * 10
+            bet[day-1][param] = np.random.randint( min_data, max_data )
  
       for param in ["Wv","Wn"]:
          paramID = db.get_parameter_id(param)
-         seed = (cityID + paramID) * T
          data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
          if type(data) == bool: return False
          W = []
@@ -399,16 +378,14 @@ def random(db,typ,ID,city,tdate,betdata=False):
          if len(W) == 1:
             bet[day-1][param] = W[0]
          else:
-            np.random.seed( int( time() + seed ) )
             bet[day-1][param] = np.random.choice( W )
 
       param = 'RR'
       paramID = db.get_parameter_id(param)
-      seed = (cityID + paramID) * T
       RR = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
-      if type(RR) == bool: return False
+      if type(data) == bool: return False
       max_RR = max(RR)
-      RR_0 = RR[RR >= 0]
+      RR_0 = RR[RR>=0]
       if len(RR_0) == 0:
          min_RR = -30
       else:
@@ -416,10 +393,8 @@ def random(db,typ,ID,city,tdate,betdata=False):
       if min_RR == max_RR:
          bet[day-1][param] = min_RR
       elif bet[day-1]["Wv"] > 40 or bet[day-1]["Wn"] > 40:
-         np.random.seed( int( time() + seed ) )
          bet[day-1][param] = np.random.choice( np.arange(min_RR, max_RR+1, 1) )
       else:
-         np.random.seed( int( time() + seed ) )
          n_3 = np.count_nonzero( RR == -30 )
          n0 = np.count_nonzero( RR == 0 )
          p_3 = n_3 / float(len(RR))
@@ -433,7 +408,6 @@ def random(db,typ,ID,city,tdate,betdata=False):
 
       for param in ["PPP","TTm"]:
          paramID = db.get_parameter_id(param)
-         seed = (cityID + paramID) * T
          data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
          if type(data) == bool: return False
          max_data = max(data)
@@ -441,12 +415,10 @@ def random(db,typ,ID,city,tdate,betdata=False):
          if min_data == max_data:
             bet[day-1][param] = min_data
          else:
-            np.random.seed( int( time() + seed ) )
             bet[day-1][param] = np.random.choice( np.arange(min_data, max_data+1, 1) )
 
       for param in ["TTn","TTd"]:
          paramID = db.get_parameter_id(param)
-         seed = (cityID + paramID) * T
          data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
          if type(data) == bool: return False
          max_TTm = bet[day-1]["TTm"]
@@ -455,10 +427,8 @@ def random(db,typ,ID,city,tdate,betdata=False):
          if min_data == max_data:
             bet[day-1][param] = min_data
          elif max_data > max_TTm:
-            np.random.seed( int( time() + seed ) )
             bet[day-1][param] = np.random.choice( np.arange(min_data, max_TTm+1, 1) )
          else:
-            np.random.seed( int( time() + seed ) )
             bet[day-1][param] = np.random.choice( np.arange(min_data, max_data+1, 1) )
 
    return bet

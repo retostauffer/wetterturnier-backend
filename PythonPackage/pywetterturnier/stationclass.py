@@ -28,15 +28,14 @@ class stationclass( object ):
          function self._has_db_connector_ can be used to check if the
          database handler has been set or not.
    """
-   print "check"
+   print("check")
    #WHY the fuck did need to add a print here for the next line 2 work?!?!?!
    def __init__( self, desc, data, db = None, dbprefix = None ):
       """Initializing a new stationclss object.
       """ 
 
       # - Prepare cols
-      cols = []
-      for rec in desc: cols.append( str(rec[0]) )
+      cols = [str( i[0] ) for i in desc]
 
       ## Station ID in the database. 
       self.ID         = None 
@@ -104,16 +103,14 @@ class stationclass( object ):
 
       sql = []
       sql.append("SELECT paramID FROM (SELECT paramID,")
-      sql.append("CASE WHEN ( since < '{0:s}' AND (until = 0 OR until > '{1:s}'))".format(bgn,end))
+      sql.append("CASE WHEN ( since <= '{0:s}' AND (until = 0 OR until >= '{1:s}'))".format(bgn,end))
       sql.append("THEN 1 ELSE 0 END AS active FROM {0:s}wetterturnier_stationparams WHERE".format(self.dbprefix))
       sql.append("stationID = {0:d}) AS tmp WHERE active = 1;".format(int(self.ID)))
-      
-      
+
       # Fetching parameter ID's of active parameters (given tdate)
       cur = self.db.cursor()
       cur.execute( " ".join(sql) )
-      paramIDs  = []
-      for rec in cur.fetchall(): paramIDs.append(int(rec[0]))
+      paramIDs = [int( i[0] ) for i in cur.fetchall()]
       paramIDs.sort()
       return paramIDs
 
@@ -128,9 +125,9 @@ class stationclass( object ):
       from datetime import datetime as dt
       import json
 
-      print "    Show station-object settings:"
-      print "    - Station ID:           %d" % self.ID
-      print "    - WMO station number:   %d" % self.wmo
-      print "    - Station name:         %s" % self.name
-      print "    - City ID:              %d" % self.cityID
-      print "    - Last changed:         %s" % self.changed.strftime('%Y-%m-%d %H:%M')
+      print("    Show station-object settings:")
+      print("    - Station ID:           %d" % self.ID)
+      print("    - WMO station number:   %d" % self.wmo)
+      print("    - Station name:         %s" % self.name)
+      print("    - City ID:              %d" % self.cityID)
+      print("    - Last changed:         %s" % self.changed.strftime('%Y-%m-%d %H:%M'))

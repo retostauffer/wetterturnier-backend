@@ -35,7 +35,7 @@ if __name__ == '__main__':
    #   the bet-dates are for Saturday and Sunday.
    if config['input_tdate'] == None:
       tdates     = [db.current_tournament()]
-      print '  * Current tournament is %s' % utils.tdate2string( tdates[0] )
+      print('  * Current tournament is %s' % utils.tdate2string( tdates[0] ))
    else:
       tdates     = [config['input_tdate']]
 
@@ -44,8 +44,8 @@ if __name__ == '__main__':
    # - If input city set, then drop all other cities.
    if not config['input_city'] == None:
       tmp = []
-      for elem in cities:
-         if elem['name'] == config['input_city']: tmp.append( elem )
+      for i in cities:
+         if i['name'] == config['input_city']: tmp.append( i )
       cities = tmp
 
    # - Loading all active users from the database
@@ -62,9 +62,9 @@ if __name__ == '__main__':
    # - Check if input_user is an active group.
    if not config['input_user'] == None:
       if not config['input_user'] in active_groups:
-         print '    Some help for you: currently active groups:'
+         print('    Some help for you: currently active groups:')
          for grp in active_groups:
-            print '    - %s' % grp
+            print('    - %s' % grp)
          utils.exit('Sorry, but %s is not a name of an active group. Stop.' % config['input_user'])
       else:
          active_groups = [config['input_user']]
@@ -75,7 +75,7 @@ if __name__ == '__main__':
       today = utils.today_tdate()
       hour = datetime.utcnow().hour
       minute = datetime.utcnow().minute
-      if i == "MOS-Random" and not (hour == 15 and minute in list(range(15)) and today == tdates[0]):
+      if i == "MOS-Random" and not (hour == 15 and minute in [0,1] and today == tdates[0]):
          continue
          #pass
       active_groups.append( i )
@@ -98,8 +98,8 @@ if __name__ == '__main__':
       # - Getting users for the groups
       for city in cities:
 
-         print '\n  * Compute the %s (groupID %d) for city %s (ID: %d)' % \
-                   (username,groupID,city['name'], city['ID']) 
+         print('\n  * Compute the %s (groupID %d) for city %s (ID: %d)' % \
+                   (username,groupID,city['name'], city['ID'])) 
 
          # ----------------------------------------------------------------
          # - If aldates, take all tdates from database
@@ -112,25 +112,20 @@ if __name__ == '__main__':
          # ----------------------------------------------------------------
          for tdate in tdates:
 
-            check = utils.datelock(config,tdate)
-            if not config['input_force'] and check:
-               print '    Date is \'locked\' (datelock). Dont execute, skip.'
-               continue
-
             # Check number of participants for this city, weekend, and group
             participants = db.get_participants_in_group(groupID,city['ID'],tdate)
-            print("    Found user ID's: {:s}".format(", ".join(
-                            ["{:d}".format(x) for x in participants])))
+            print(("    Found user ID's: {:s}".format(", ".join(
+                            ["{:d}".format(x) for x in participants]))))
 
             if len(participants) < 2:
-               print "[!] Less than 2 participants for this group/city/tdate."
-               print "    Skip computation of mean bets and delete old group bet if exists."
+               print("[!] Less than 2 participants for this group/city/tdate.")
+               print("    Skip computation of mean bets and delete old group bet if exists.")
                group_userID = db.get_user_id( username )
-               print "Group's userID: %s" % group_userID
+               print("Group's userID: %s" % group_userID)
                db.delete_bet( group_userID, city['ID'], tdate )
                continue
 
-            print '    Current tdate is: %d' % tdate
+            print('    Current tdate is: %d' % tdate)
 
             # ----------------------------------------------------------------
             # - Check if we are allowed to perform the computation of the
@@ -138,7 +133,7 @@ if __name__ == '__main__':
             # ----------------------------------------------------------------
             check = utils.datelock(config,tdate)
             if check:
-               print '    Date is \'locked\' (datelock). Dont execute, skip.'
+               print('    Date is \'locked\' (datelock). Dont execute, skip.')
                continue
 
             # ----------------------------------------------------------------
@@ -148,8 +143,8 @@ if __name__ == '__main__':
             #   never compute the corresponding points). Skip. 
             # ----------------------------------------------------------------
             if tdate < 12027:
-               print '[!] I dont know the rules to compute points before 2002-12-06'
-               print '    Therefore it makes no sense to compute MeanBets. Skip.' 
+               print('[!] I dont know the rules to compute points before 2002-12-06')
+               print('    Therefore it makes no sense to compute MeanBets. Skip.') 
                continue
          
             # -------------------------------------------------------------
@@ -173,18 +168,20 @@ if __name__ == '__main__':
             #   continue.
             # -------------------------------------------------------------
             if not bet:
-               print '[!] At least one parameter returned no data. Skip!!'
+               print('[!] At least one parameter returned no data. Skip!!')
                continue
    
    
             # -------------------------------------------------------------
             # - Inserting into database now
             # -------------------------------------------------------------
-            print '    Inserting data into database now'
+            print('    Inserting data into database now')
             for day in range(1,3):
-               for k in bet[day-1].keys():
+               for k in list(bet[day-1].keys()):
                   paramID = db.get_parameter_id(k)
                   db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[day-1][k])
    
    db.commit()
    db.close()
+
+print(today, hour, minute)

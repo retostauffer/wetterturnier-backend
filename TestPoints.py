@@ -84,9 +84,9 @@ if __name__ == '__main__':
 
    inputs, args = parser.parse_args()
    # - Missing input -o
-   if not inputs.param:  print parser.usage;    utils.exit( "Missing required input -p/--param.")
-   if not inputs.obs:    print parser.usage;    utils.exit( "Missing required input -o/--obs.")
-   if not inputs.values: print parser.usage;    utils.exit( "Missing required input -v/--values.")
+   if not inputs.param:  print(parser.usage);    utils.exit( "Missing required input -p/--param.")
+   if not inputs.obs:    print(parser.usage);    utils.exit( "Missing required input -o/--obs.")
+   if not inputs.values: print(parser.usage);    utils.exit( "Missing required input -v/--values.")
    # ----------------------------------------------------------------
 
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
    # - Checking if parameter is allowed
    # ----------------------------------------------------------------
    from pywetterturnier import database
-   if not inputs.quiet: print "  * Checking if parameter %s is allowed" % inputs.param
+   if not inputs.quiet: print("  * Checking if parameter %s is allowed" % inputs.param)
    db = database.database(config)
    paramID = db.get_parameter_id( inputs.param )
    db.close(False)
@@ -145,12 +145,12 @@ if __name__ == '__main__':
    #   dynamic load. If not loadable, exit.
    # ----------------------------------------------------------------
    modname = "pywetterturnier.judgingclass%s" % config['judging_test']
-   if not inputs.quiet: print "  * Try to load test-judgingclass from module %s" % modname
+   if not inputs.quiet: print("  * Try to load test-judgingclass from module %s" % modname)
    try:
       from importlib import import_module 
       judging = import_module(modname)
    except Exception as e:
-      print e
+      print(e)
       utils.exit("Problems loading the judgingclass %s" % modname)
 
    # - Initialize judging
@@ -179,12 +179,15 @@ if __name__ == '__main__':
    # - Show output
    # ----------------------------------------------------------------
    if not inputs.quiet:
-      print '\n  * Observations were:  ',
-      for o in inputs.obs: print '%8.3f ' % (o),
-      print ''
+      print('\n  * Observations were:  ', end=' ')
+      for o in inputs.obs: print('%8.3f ' % (o), end=' ')
+      print('')
       for i in range(len(inputs.values)):
-         print '    - Forecast %8.3f leads to %5.2f points' % (inputs.values[i],points[i]) 
+         print('    - Forecast %8.3f leads to %5.2f points' % (inputs.values[i],points[i])) 
    else:
-      print 'points'
+      print('points')
       for i in range(len(inputs.values)):
-         print '%5.2f' % (points[i]) 
+         print('%5.2f' % (points[i])) 
+
+
+

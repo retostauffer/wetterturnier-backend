@@ -28,7 +28,7 @@ MAILTO="prognose@met.fu-berlin.de"
 #   from database obs.bufr/obs.stations and stores them into
 #   the wetterturnier plugin wpwt.wp_wetterturnier_obs
 #   !!! Note that the script is running in a local virtual environment.
-*/5 * * * *  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 300 ionice -c 2 -n 0 python Observations.py > /home/wetterturnier/cronlog/Observations.log 
+*/5 0,6,12,18 * * 5-7,1  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 300 ionice -c 2 -n 0 python Observations.py > /home/wetterturnier/cronlog/Observations.log 
 
 # - Chain: does everything necessary:
 #   1) ComputeMeanBets (group bets)
@@ -41,7 +41,7 @@ MAILTO="prognose@met.fu-berlin.de"
 #   using "python" which has to be the python executable from the virtual
 #   environment! Do not remove source venv/bin/activate unless you install
 #   the pywetterturnier package into the system wide python library.
-*/15 * * * *  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 900 ionice -c 2 -n 0 python Chain.py > /home/wetterturnier/cronlog/Chain.log
+*/10 0,6,12,18 * * 5-7,1  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 900 ionice -c 2 -n 0 python Chain.py > /home/wetterturnier/cronlog/Chain.log
 
 #   Rerun: does the same as the Chain tool but for older tournaments.
 #   If observations or bets are modified by hand in the admin interface
@@ -55,8 +55,8 @@ MAILTO="prognose@met.fu-berlin.de"
 #   Compute Stats every Monday at 7:01 am (tdatestats and userstats)
 5 7 * * 1 cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 3600 ionice -c 2 -n 0 python ComputeStats.py > /home/wetterturnier/cronlog/ComputeStats.log
 
-#   Delete incomplete bets on Saturday 18z
-0 18 * * 6 cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 3600 ionice -c 2 -n 0 python CleanUpBets.py > /home/wetterturnier/cronlog/CleanUpBets.log
+#   Delete incomplete bets on Friday night 23 UTC
+0 23 * * 5 cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 3600 ionice -c 2 -n 0 python CleanUpBets.py > /home/wetterturnier/cronlog/CleanUpBets.log
 
 #   Recalculate AstralTable once a year at 1st January 00:00
-0 0 1 1 *  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 3600 ionice -c 2 -n 0 python AstralTable.py > /home/wetterturnier/cronlog/AstralTable.log && cp AstralTable.txt /var/www/html/
+0 0 1 1 *  cd /home/wetterturnier/wetterturnier-backend && source venv/bin/activate && timeout 3600 ionice -c 2 -n 0 python AstralTable.py > /home/wetterturnier/cronlog/AstralTable.log

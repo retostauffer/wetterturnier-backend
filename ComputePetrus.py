@@ -30,7 +30,7 @@ if __name__ == '__main__':
    # - If input_user was given as string we have to find the
    #   corresponding userID first!
    if not config['input_user'] == None:
-      print '[!] NOTE: got input -u/--user. Will be ignored in ComputePetrus.'
+      print('[!] NOTE: got input -u/--user. Will be ignored in ComputePetrus.')
       config['input_user'] = None
    
    
@@ -45,14 +45,14 @@ if __name__ == '__main__':
    else:
       tdates      = [config['input_tdate']]
 
-   print '  * Current tournament is %s' % utils.tdate2string( tdates[0] )
+   print('  * Current tournament is %s' % utils.tdate2string( tdates[0] ))
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
    # - If input city set, then drop all other cities.
    if not config['input_city'] == None:
       tmp = []
-      for elem in cities:
-         if elem['name'] == config['input_city']: tmp.append( elem )
+      for i in cities:
+         if i['name'] == config['input_city']: tmp.append( i )
       cities = tmp
 
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
    # ----------------------------------------------------------------
    for city in cities:
    
-      print '\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID']) 
+      print('\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID'])) 
 
       if config['input_alldates']:
          tdates = db.all_tournament_dates( city['ID'] )
@@ -83,9 +83,9 @@ if __name__ == '__main__':
          #   mean bets on this date
          # ----------------------------------------------------------------
          check = utils.datelock(config,tdate)
-	 if check:
-	    print '    Date is \'locked\' (datelock). Dont execute, skip.'
-	    continue
+         if check:
+            print('    Date is \'locked\' (datelock). Dont execute, skip.')
+            continue
 
 	 # ----------------------------------------------------------------
 	 # - I do not have the judgingclass before the rule changes in
@@ -93,10 +93,10 @@ if __name__ == '__main__':
 	 #   to compute MeanBets for that time period (becuase we can
 	 #   never compute the corresponding points). Skip. 
 	 # ----------------------------------------------------------------
-	 if tdate < 12027:
-	    print '[!] I dont know the rules to compute points before 2002-12-06'
-	    print '    Therefore it makes no sense to compute MeanBets. Skip.'
-	    continue
+         if tdate < 12027:
+            print('[!] I dont know the rules to compute points before 2002-12-06')
+            print('    Therefore it makes no sense to compute MeanBets. Skip.')
+            continue
  
          # - Returns list object containing two dicts 
          #   where all the bets are in.
@@ -108,9 +108,9 @@ if __name__ == '__main__':
          # -------------------------------------------------------------
          # - Inserting into database now
          # -------------------------------------------------------------
-         print '    Inserting data into database now'
+         print('    Inserting data into database now')
          for day in range(1,3):
-            for k in bet[day-1].keys():
+            for k in list(bet[day-1].keys()):
                paramID = db.get_parameter_id(k)
                db.upsert_bet_data(userID,city['ID'],paramID,tdate,day,bet[day-1][k])
    

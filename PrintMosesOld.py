@@ -24,9 +24,7 @@ from pywetterturnier import utils
 # -------------------------------------------------------------------
 def print_moses( db, config, cities, tdates ):
 
-   #path="moses/input/"
-   #path="/var/www/html/archiv"
-   path="archiv"
+   path="moses/input/"
    table_head = "Spielername               N  SD  DD FF FX Wv Wn    PPP    TX    TN    TD    RR"
    day_heads = ["                                      Samstag","                                      Sonntag"]
    params = db.get_parameter_names( sort=True )
@@ -71,16 +69,13 @@ def print_moses( db, config, cities, tdates ):
          if type(missing_bets) != bool or missing_obs:
             print("To many missing obs or parameters!")
             continue
-         
+
          stations = db.get_stations_for_city( cityID, active=False, tdate=tdate )
          #print output to file, first get prober filename
-         #filename = path + utils.tdate2string( tdate, short=True ) + "." + city['name'][0].lower() + "pw"
-         C = city['name'][0].lower()
-         filename = path + "/wert_" + city['name'][0].lower() + "/dat" + utils.tdate2string( tdate, short=True ) + ".%spw" % C
-         print(filename)
-
+         filename = path + utils.tdate2string( tdate, moses=True )+"."+city['name'].lower()[0]+"pw"
          f = open(filename,'w')
          users = db.get_participants_in_city( cityID, tdate, sort=True, what="user_login" )
+         print(users)
          for day in range(1,3):
             print(day_heads[day-1], file=f)
             print("", file=f)
@@ -99,7 +94,7 @@ def print_moses( db, config, cities, tdates ):
                print_rows( obs, f )
             print(80*"-", file=f)
             for userID in users:
-               bet = [db.get_username_by_id(userID,which="display_name").replace("GRP_","")]
+               bet = [db.get_username_by_id(userID, which="user_login").replace("GRP_", "")]
                for param in params:
                   paramID = db.get_parameter_id( param )
                   value = db.get_bet_data( "user", userID, cityID, paramID, tdate, day )

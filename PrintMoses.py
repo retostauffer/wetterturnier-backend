@@ -1,5 +1,4 @@
 # coding=utf8
-
 # -------------------------------------------------------------------
 # - NAME:        ComputeMoses.py
 # - AUTHOR:      Reto Stauffer
@@ -15,12 +14,8 @@
 # -------------------------------------------------------------------
 
 #import python3's print function, back2thefuture!
-from __future__ import print_function
-from pywetterturnier import utils
 
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+from pywetterturnier import utils
 
 # -------------------------------------------------------------------
 # - Embedded function. Can be used on its own (called from
@@ -30,27 +25,18 @@ sys.setdefaultencoding('utf-8')
 # -------------------------------------------------------------------
 def print_moses( db, config, cities, tdates ):
 
-   path="archiv"
-   #fixed strings and headers:
+   path="moses/input/"
    file_head  = "Berliner Wetterprognoseturnier %s\n\nEingetroffene Werte und abgegebene Prognosen:\n"
-   table_head = "Name                      N  Sd  dd  ff fx WvWn     PPP    TTm   TTn   TTd    RR"
+   table_head = "Name                      N  Sd  dd ff fx Wv Wn    PPP    TTm   TTn   TTd   RR"
    day_heads = ["Samstag:","Sonntag:"]
    ranking_str = "Wertung der Prognose vom %s:\n"
    ranking_head = "Pl. Name                      Punkte  Tag1  Tag2\n_________________________________________________"
    info_str = "\nDie durchschnittliche Punktzahl beträgt:    %5.1f Punkte.\nWertung für nicht teilnehmende Mitspieler:  %5.1f Punkte."
-   season_str = "Die aktuelle Jahreszeitenwertung (%s):\n(basierend auf den Prognosen vom %s bis zum %s)"
-   season_head = "Platz     Name                      Punkte\n___________________________________________________"
-   weeks_str = "Das aktuelle Gesamtranking:\n(basierend auf den Prognosen vom %s bis zum %s)"
-   weeks_head = "Platz     Name                      Punkte             Durchschnitt    Teiln.\n_____________________________________________________________________________"
-   footer = "_____________________________________\nBerliner Wetterprognoseturnier\nhttp://www.wetterturnier.de/\nprognose@bibo.met.fu-berlin.de"
-
 
    params = db.get_parameter_names( sort=True )
 
-   printf = lambda *args : print( *args, file=f)
-
    def print_rows( args, file ):
-      row_format = "{name:<25.25s} {n:>1} {sd:>3} {dd:>4} {ff:>2} {fx:>2} {wv:>2} {wn:>1} {ppp:>8.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
+      row_format = "{name:<21.21s} {n:>5} {sd:>3} {dd:>3} {ff:>2} {fx:>2} {wv:>2} {wn:>2} {ppp:>6.6} {tn:>5.5} {tx:>5.5} {td:>5.5} {rr:>5.5}"
 
       for i in range(1,8):
          if type( args[i] ) != str: args[i] = int( args[i] )
@@ -91,19 +77,16 @@ def print_moses( db, config, cities, tdates ):
             continue
          stations = db.get_stations_for_city( cityID, active=False, tdate=tdate )
          #print output to file, first get prober filename
-         C = city['name'][0].lower()
-         filename = path + "/wert_" + city['name'][0].lower() + "/dat" + utils.tdate2string( tdate, short=True ) + ".%spw" % C
-         print(filename)
+         filename = path + utils.tdate2string( tdate, moses=True )+"."+city['name'].lower()[0]+"pw"
          f = open(filename,'w')
-
-         tdate_str = utils.tdate2datetime( tdate ).strftime("%d.%m.%Y")
-         printf(file_head % tdate_str )
-         users = db.get_participants_in_city( cityID, tdate, sort=True, what="user_login" )
+         tdate_str = utils.tdate2string( tdate )
+         print(file_head % tdate_str, file=f)
+         users = db.get_participants_in_city( cityID, tdate, sort=True )
          
          for day in range(1,3):
-            printf(day_heads[day-1] )
-            printf(table_head )
-            printf(80*"_")
+            print(day_heads[day-1], file=f)
+            print(table_head, file=f)
+            print(80*"_", file=f)
             for station in stations:
                obs = [station.name]
                for param in params:
@@ -113,10 +96,10 @@ def print_moses( db, config, cities, tdates ):
                   else:
                      obs.append( float( value ) / 10 )
                print_rows( obs, f )
-            
-            printf("")
+            #print(78*"_", file=f)
+            print("", file=f)
             for userID in users:
-               bet = [db.get_username_by_id(userID, which="user_login").replace("GRP_","")]
+               bet = [db.get_username_by_id(userID, which="display_name")]
                for param in params:
                   paramID = db.get_parameter_id( param )
                   value = db.get_bet_data( "user", userID, cityID, paramID, tdate, day )
@@ -124,32 +107,26 @@ def print_moses( db, config, cities, tdates ):
                   else:
                      bet.append( float( value ) / 10 )
                print_rows( bet, f )
-            #printf("\n")
-         
-         #weekend ranking
-         printf( ranking_str % tdate_str )
-         printf( ranking_head )
+            if day == 1: print("\f", file=f)
+            else: print("\n", file=f)
+         print( ranking_str % tdate_str, file=f)
+         print( ranking_head, file=f )
+         #TODO: ranking
          sleepyID = db.get_user_id( "Sleepy" )
-         sql ="SELECT bs.rank, wu.user_login, bs.points, bs.points_d1, bs.points_d2, REPLACE(wu.user_login, 'GRP_', '') "
-         sql+="FROM wp_wetterturnier_betstat bs JOIN wp_users wu ON userID = wu.ID WHERE tdate=%d AND cityID=%d AND userID != %d ORDER BY bs.rank"
+         sql = "SELECT bs.rank, wu.display_name, bs.points, bs.points_d1, bs.points_d2 FROM wp_wetterturnier_betstat bs JOIN wp_users wu ON userID = wu.ID WHERE tdate=%d AND cityID=%d AND userID != %d ORDER BY bs.rank"
          cur = db.cursor()
          cur.execute( sql % (tdate, cityID, sleepyID) )
          data = cur.fetchall()
          for i in data:
-            printf( "{:2d}. {:<25.25s} {:5.1f} ({:5.1f}/{:5.1f})".format(i[0],i[1].replace("GRP_",""),i[2],i[3],i[4]) )
+            print( "{:2d}. {:26s}{:5.1f} ({:5.1f}/{:5.1f})".format(i[0],i[1],i[2],i[3],i[4]), file=f )
          sql = "SELECT mean FROM wp_wetterturnier_tdatestats WHERE tdate = %d AND cityID = %d"
          cur.execute( sql % (tdate, cityID) )
          mean = cur.fetchone()[0]
          do,fr = db.get_user_id( "Donnerstag" ), db.get_user_id( "Freitag" )
          sleepy = db.get_sleepy_points(cityID, tdate, [do,fr])
-         printf( info_str % (mean, sleepy) )
-         printf( "\n" ) 
+         print(sleepy)
 
-         #TODO: season ranking (fake?)
-
-         #TODO: 15 weeks ranking (only parts?)
- 
-         printf( footer )
+         print( info_str % (mean, sleepy), file=f )
 
 # -------------------------------------------------------------------
 # - Start as main script (not as module)
@@ -186,8 +163,8 @@ if __name__ == '__main__':
    # - If input city set, then drop all other cities.
    if not config['input_city'] == None:
       tmp = []
-      for elem in cities:
-         if elem['name'] == config['input_city']: tmp.append( elem )
+      for i in cities:
+         if i['name'] == config['input_city']: tmp.append( i )
       cities = tmp
 
    # - Calling the function now

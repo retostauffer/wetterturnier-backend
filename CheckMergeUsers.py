@@ -19,7 +19,8 @@ if __name__ == '__main__':
 
    import numpy as np
    # - Wetterturnier specific modules
-   from pywetterturnier import utils, database
+   from pywetterturnier import utils
+   from pywetterturnier import database
    
    # - Evaluating input arguments
    inputs = utils.inputcheck('CheckMergeUsers')
@@ -33,12 +34,12 @@ if __name__ == '__main__':
    # Usage notification
    # ----------------------------------------------------------------
    if not config['input_user']:
-      print "[!] Stop. Input -u/--user has to be set"
-      print "    Example: --user reto,rto,tro would"
-      print "    check whether we can merge these three"
-      print "    users in the database. The FIRST one "
-      print "    is the leading user (the others will be"
-      print "    removed and set to the leading user)."
+      print("[!] Stop. Input -u/--user has to be set")
+      print("    Example: --user reto,rto,tro would")
+      print("    check whether we can merge these three")
+      print("    users in the database. The FIRST one ")
+      print("    is the leading user (the others will be")
+      print("    removed and set to the leading user).")
       sys.exit(9)
    else:
       users = []
@@ -47,7 +48,7 @@ if __name__ == '__main__':
          rec = rec.strip()
          if not rec in users: users.append(rec)
       if len(rec) < 2:
-         print "Input -u/--usres: at least two required!"; sys.exit(9)
+         print("Input -u/--usres: at least two required!"); sys.exit(9)
 
    # ----------------------------------------------------------------
    # Check if users exist
@@ -56,24 +57,24 @@ if __name__ == '__main__':
    for u in range(0,len(users)):
       userids[u] = db.get_user_id( users[u] )
       if not userids[u]:
-         print "[!] Stop. User \"%s\" could not be found." % users[u]
+         print("[!] Stop. User \"%s\" could not be found." % users[u])
          sys.exit(9)
       if u == 0:
-         print "   MASTER user:   %-20s   [uid %5d]" % (users[u],userids[u])
+         print("   MASTER user:   %-20s   [uid %5d]" % (users[u],userids[u]))
       else:
-         print "   Slave user:    %-20s   [uid %5d]" % (users[u],userids[u])
+         print("   Slave user:    %-20s   [uid %5d]" % (users[u],userids[u]))
 
    # ----------------------------------------------------------------
-   # Bit inefficient, however, allows to show the data in a table form
+   # Bit inefficient, however, allows to show the data in a talbe form
    # ----------------------------------------------------------------
    sql = "SELECT count(*) AS count FROM wp_wetterturnier_betstat WHERE " + \
          "userID = %d AND tdate = %d"
 
    # Show header
-   print " %10s %6s " % ("date","tdate"),
+   print(" %10s %6s " % ("date","tdate"), end=' ')
    for u in range(0,len(users)):
-      print " %10s " % users[u],
-   print "" # line break
+      print(" %10s " % users[u], end=' ')
+   print("") # line break
 
    # Final variable. If set to False we would not allow to merge.
    # If 'True' merging would be allowed.
@@ -90,18 +91,18 @@ if __name__ == '__main__':
       if np.max(counts) == 0: continue
 
       # Show frontend
-      print " %10s %6d " % (utils.tdate2string(tdate),tdate),
+      print(" %10s %6d " % (utils.tdate2string(tdate),tdate), end=' ')
       for u in range(0,len(users)):
-         print " %10d " % counts[u],
+         print(" %10d " % counts[u], end=' ')
       if len(np.where(np.array(counts) > 0)[0]) == 1:
-         print "    merge ok"
+         print("    merge ok")
       else:
          merging_allowed = False
-         print "    [ERROR] MERGING NOT ALLOWED (OVERLAP)"
+         print("    [ERROR] MERGING NOT ALLOWED (OVERLAP)")
 
 
    if not merging_allowed:
-      print "\n\n  !!!!   MERGING NOT ALLOWED !!!!!\n\n"
+      print("\n\n  !!!!   MERGING NOT ALLOWED !!!!!\n\n")
       db.close()
       sys.exit(9)
 
@@ -109,13 +110,13 @@ if __name__ == '__main__':
    # ----------------------------------------------------------------
    # Else merge user
    # ----------------------------------------------------------------
-   print "\n\n  ++++ merging is allowed ++++\n\n"
-   print " * Merge users now"
+   print("\n\n  ++++ merging is allowed ++++\n\n")
+   print(" * Merge users now")
 
    cur = db.cursor()
    for u in range(1,len(users)):
 
-      print "   Merge %s [%d] >>> %s [%d]" % (users[u],userids[u],users[0],userids[0])
+      print("   Merge %s [%d] >>> %s [%d]" % (users[u],userids[u],users[0],userids[0]))
       # Update wetterturnier tables
       bets = "UPDATE wp_wetterturnier_bets SET userID = %d WHERE userID = %d" % \
              (userids[0],userids[1])
@@ -132,5 +133,22 @@ if __name__ == '__main__':
       cur.execute( usr )
       cur.execute( usrmeta )
 
-   db.commit()   
+   db.commit()
+      
    db.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

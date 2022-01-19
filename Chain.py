@@ -43,20 +43,18 @@ if __name__ == '__main__':
 
    # - Initializing class and open database connection
    db = database.database(config)
-   current_tdate = db.current_tournament()
-   today = utils.today_tdate()
 
    # - Loading tdate (day since 1970-01-01) for the tournament.
    #   Normaly Friday-Tornament (tdate is then Friday) while
    #   the bet-dates are for Saturday and Sunday.
    is_latest_tournament = False
    if config['input_tdate'] == None:
-      config['input_tdate'] = current_tdate
-      print '  * Using latest tournament date: %d' % config['input_tdate']
+      config['input_tdate'] = db.current_tournament()
+      print('  * Using latest tournament date: %d' % config['input_tdate'])
       is_latest_tournament = True
    else:
       #utils.exit('Sorry, need explicit -t/--tdate input for this script')
-      print '  * Using input tdate: %d' % config['input_tdate']
+      print('  * Using input tdate: %d' % config['input_tdate'])
 
    # - If input_user was given as string we have to find the
    #   corresponding userID first!
@@ -64,30 +62,30 @@ if __name__ == '__main__':
       config['input_user'] = db.get_user_id( config['input_user'] )
       if not config['input_user']:
          utils.exit('SORRY could not convert your input -u/--user to corresponding userID. Check name.')
-   
+
+
    # - Compute the Points for all the dudes first
    import subprocess as sub
    if not config['input_alldates']:
       if is_latest_tournament:
+         #TODO: REMOVE old mean tips before rerunning!
          scripts = ['ComputePetrus.py',
-                    'ComputeMoses.py',
-                    'ComputePersistenzen.py',
+#                    'ComputeMoses.py',
                     'ComputeMeanBets.py',
+                    'ComputePersistenzen.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py']
-         if today == current_tdate:
-            print "Today is a tournament day!"  
       else:
          scripts = ['ComputePetrus.py',
-#                    'ComputePersistenzen.py',
                     'ComputeMeanBets.py',
+                    #'ComputePersistenzen.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py']
    else:
       scripts = ['ComputePetrus.py',
-   #              'ComputeMoses.py',
-   #              'ComputePersistenzen',
                  'ComputeMeanBets.py',
+ #                'ComputeMoses.py',
+ #                'ComputePersistenzen',
                  'ComputePoints.py',
                  'ComputeSleepy.py']
 
@@ -106,5 +104,5 @@ if __name__ == '__main__':
       p1 = sub.Popen(cmd,stderr=sub.PIPE)
       err = p1.communicate()
       if not p1.returncode == 0:
-         for line in err: print '%s\n' % line
+         for line in err: print('%s\n' % line)
          utils.exit('ERROR WHILE RUNNING %s AS SUBPROCESS FOR DATE %d' % (script,config['input_tdate']))

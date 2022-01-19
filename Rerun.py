@@ -17,7 +17,7 @@
 # - Start as main script (not as module)
 if __name__ == '__main__':
    """
-   This is Rerun.py, a simple controlling script. Starts several
+   This is Chain.py, a simple controlling script. Starts several
    script in the order as they have to be called to compute all
    necessary things for the wetterturnier. E.g., including:
    - ComputeMeanBets.py  (compute group bets)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
    db = database.database(config)
 
    if not db.check_if_table_exists("wetterturnier_rerunrequest"):
-      print "[!] Table wetterturnier_rerunrequest does not exist, stop here."
+      print("[!] Table wetterturnier_rerunrequest does not exist, stop here.")
       db.close(); sys.exit(9)
 
    # - Check whether there are any rerun requests
@@ -54,15 +54,16 @@ if __name__ == '__main__':
                "WHERE done IS NULL GROUP BY tdate,cityID;")
    rerun = cur.fetchall()
 
-   if len(rerun) == 0:
-      print "   There are no rerun requests, stop here."; sys.exit(0)
+   if not rerun:
+      print("   There are no rerun requests, stop here."); sys.exit(0)
    
    # - Compute the Points for all the dudes first
    import subprocess as sub
    from datetime import datetime as dt
    scripts = ['ComputeMeanBets.py',
               'ComputePetrus.py',
-#              'ComputePersistenzen.py',
+              #'ComputeMoses.py',
+              'ComputePersistenzen.py',
               'ComputePoints.py',
               'ComputeSumPoints.py',
               'ComputeSleepy.py']
@@ -70,17 +71,17 @@ if __name__ == '__main__':
 
    # - Now calling the other scripts using the necessary
    #   input arguments.
-   for rec in rerun:
-      tdate    = int(rec[0])
+   for re in rerun:
+      tdate    = int( re[0] )
       tdatestr = dt.fromtimestamp(tdate*86400).strftime("%Y-%m-%d") 
-      cityID   = int(rec[1])
+      cityID   = int( re[1] )
 
       city     = db.get_city_name_by_ID( cityID )
       if not city:
-         print "[!] OUPS! Cannot find city {0:d} in database!".format(cityID)
+         print("[!] OUPS! Cannot find city {0:d} in database!".format(cityID))
 
-      print "  * Rerun for tournament date {0:d} ({1:s})".format(tdate,tdatestr)
-      print "    Run computation for city {0:s} ({1:d})".format(city,cityID)
+      print("  * Rerun for tournament date {0:d} ({1:s})".format(tdate,tdatestr))
+      print("    Run computation for city {0:s} ({1:d})".format(city,cityID))
 
       # Run the scripts in the correct order
       for script in scripts:
@@ -96,7 +97,7 @@ if __name__ == '__main__':
          p1 = sub.Popen(cmd,stderr=sub.PIPE)
          err = p1.communicate()
          if not p1.returncode == 0:
-            for line in err: print '%s\n' % line
+            for line in err: print('%s\n' % line)
             utils.exit('ERROR WHILE RUNNING %s AS SUBPROCESS FOR DATE %d CITY %s' % (script,tdate,city))
 
 

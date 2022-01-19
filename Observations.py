@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
    # - Reading WMO WW conversion file
    wmoww = utils.wmowwConversion( "wmo_ww.conf" )
-   #wmoww.show()
+   wmoww.show()
 
    # - Initializing class and open database connection
    db        = database.database(config)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
    #   the bet-dates are for Saturday and Sunday.
    if config['input_tdate'] == None:
       tdates     = [db.current_tournament()]
-      print '  * Current tournament is %s' % utils.tdate2string( tdates[0] )
+      print('  * Current tournament is %s' % utils.tdate2string( tdates[0] ))
    else:
       tdates     = [config['input_tdate']]
 
@@ -58,8 +58,8 @@ if __name__ == '__main__':
    # - If input city set, then drop all other cities.
    if not config['input_city'] == None:
       tmp = []
-      for elem in cities:
-         if elem['name'] == config['input_city']: tmp.append( elem )
+      for i in cities:
+         if i['name'] == config['input_city']: tmp.append( i )
       cities = tmp
 
    # ----------------------------------------------------------------
@@ -73,21 +73,16 @@ if __name__ == '__main__':
    #today = dt.datetime.fromtimestamp( today * 86400 )
    for tdate in tdates:
 
-      check = utils.datelock(config,tdate)
-      if not config['input_force'] and check:
-         print '    Date is \'locked\' (datelock). Dont execute, skip.'
-         continue
-
       tdate_int = tdate
       tdate = dt.datetime.fromtimestamp( tdate * 86400 )
-      print "    Processing data for tournament: %s (tdate=%d)" % (tdate,tdate_int)
+      print("    Processing data for tournament: %s (tdate=%d)" % (tdate, tdate_int))
 
       # ----------------------------------------------------------------
       # - Now going over the cities and compute the points. 
       # ----------------------------------------------------------------
       for city in cities:
 
-         print "\n  * Observations for station %s" % city['name']
+         print("\n  * Observations for station %s" % city['name'])
 
          # ----------------------------------------------------------------
          # - Looping trough tournament/bet dates.
@@ -99,8 +94,8 @@ if __name__ == '__main__':
          # ----------------------------------------------------------------
          for day in range(-1,ndays):
 
-            date = tdate + dt.timedelta( day ) 
-            print "\n  * Processing obsevations for day: %s\n" % date
+            date = tdate + dt.timedelta( day )
+            print("\n  * Processing observations for day: %s\n" % date)
 
             obs = getobs.getobs(config, db, city, date, wmoww )
 
@@ -127,3 +122,10 @@ if __name__ == '__main__':
             obs.write_to_db()
 
    db.close()
+
+
+
+
+
+
+

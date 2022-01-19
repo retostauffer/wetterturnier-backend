@@ -15,15 +15,16 @@
 import sys, os
 sys.path.append('PyModules')
 
+
 # - Start as main script (not as module)
 if __name__ == '__main__':
 
    import numpy as np
    # - Wetterturnier specific modules
    from pywetterturnier import utils, database
-   
+
    # - Evaluating input arguments
-   inputs = utils.inputcheck('ComputePoints')
+   inputs = utils.inputcheck('ComputeRanksOnly')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
 
@@ -34,7 +35,7 @@ if __name__ == '__main__':
    #   the bet-dates are for Saturday and Sunday.
    if config['input_tdate'] == None:
       tdates     = [db.current_tournament()]
-      print '  * Current tournament is %s' % utils.tdate2string( tdates[0] )
+      print('  * Current tournament is %s' % utils.tdate2string( tdates[0] ))
    else:
       tdates     = [config['input_tdate']]
 
@@ -45,7 +46,7 @@ if __name__ == '__main__':
       config['input_user'] = db.get_user_id( config['input_user'] )
       if not config['input_user']:
          utils.exit('SORRY could not convert your input -u/--user to corresponding userID. Check name.')
-   
+
    # - Loading all parameters
    params = db.get_parameter_names(False)
 
@@ -58,8 +59,8 @@ if __name__ == '__main__':
    # - If input city set, then drop all other cities.
    if not config['input_city'] == None:
       tmp = []
-      for elem in cities:
-         if elem['name'] == config['input_city']: tmp.append( elem )
+      for i in cities:
+         if i['name'] == config['input_city']: tmp.append( i )
       cities = tmp
 
    # ----------------------------------------------------------------
@@ -73,7 +74,6 @@ if __name__ == '__main__':
          tdates = db.all_tournament_dates( city['ID'] )
 
       for tdate in tdates:
-
          cur = db.cursor()
 
          sql = "SELECT userID, points FROM wp_wetterturnier_betstat " + \
@@ -83,9 +83,9 @@ if __name__ == '__main__':
          tmp = cur.fetchall()
          data   = []
          points = []
-         for rec in tmp:
-            data.append( [int(rec[0]),float(rec[1]),None] )
-            points.append( float(rec[1]) )
+         for i in tmp:
+            data.append( [int( i[0] ),float( i[1] ),None] )
+            points.append( float( i[1] ) )
 
          # Take unique points and reverse-sort them
          points = np.unique(points)
@@ -113,8 +113,6 @@ if __name__ == '__main__':
                      " WHERE cityID = %d" % city['ID'] + \
                      " AND tdate = %d AND userID IN%s" % (tdate, db.sql_tuple( data[j][0] ))
                cur.execute( sql )
-
-            db.commit()
 
    db.commit()
    db.close()

@@ -25,7 +25,7 @@ def CSP(db,config,cities,tdates):
    import sys, os
    import numpy as np
    from pywetterturnier import utils
-   print '\n  * Compute sum points to fill betstat table'
+   print('\n  * Compute sum points to fill betstat table')
 
    # ----------------------------------------------------------------
    # - Now going over the cities and compute the points. 
@@ -42,17 +42,28 @@ def CSP(db,config,cities,tdates):
       # - Looping trough dates
       # -------------------------------------------------------------
       for tdate in tdates:
-
          # ----------------------------------------------------------------
          # - Check if we are allowed to perform the computation of the
          #   mean bets on this date
          # ----------------------------------------------------------------
          check = utils.datelock(config,tdate)
          if check:
-            print '    Date is \'locked\' (datelock). Dont execute, skip.'
+            print('    Date is \'locked\' (datelock). Dont execute, skip.')
             continue
 
-         print '    For %s tournament is %s' % (city['name'], utils.tdate2string( tdate ))
+         # ----------------------------------------------------------
+         # - Which judgingclass do we have to take?
+         #   It is possible that the scoring system changed.
+         # ----------------------------------------------------------
+         #   Take the latest judgingclass changed in 2002-12-06
+         if tdate < 12027:
+            if config['input_ignore']:
+               print('[!] Judginglcass not defined - but started in ignore mode. Skip.')
+               continue
+            else:
+               utils.exit('I dont know which judgingclass I should use for this date. Stop.')
+
+         print('    For %s tournament is %s' % (city['name'], utils.tdate2string( tdate )))
 
          # - If config['input_user'] is an integer value this
          #   is a userID. Compute the sum points for this user
@@ -87,7 +98,7 @@ def CSP(db,config,cities,tdates):
                     'AND p.cityID = d2.cityID ' + \
                     ''
 
-         print '    - Reading data from database'
+         print('    - Reading data from database')
          cur = db.cursor()
          cur.execute( sql_full )
          desc = cur.description
@@ -95,10 +106,10 @@ def CSP(db,config,cities,tdates):
 
          # Now compute 
          if len(data) == 0:
-            print '    - Sorry, got no data to compute sum points'
+            print('    - Sorry, got no data to compute sum points')
          else:
             # Else: we have data, update database
-            print '    - Upserting database (%d lines)' % len(data)
+            print('    - Upserting database (%d lines)' % len(data))
 
             # Require the index of the "points" variable
             points_idx = None
@@ -110,9 +121,10 @@ def CSP(db,config,cities,tdates):
                sys.exit("ERROR: could not find variable \"points\" in data. Stop.")
 
             # - Prepare the data
-            sql = 'UPDATE IGNORE '+db.prefix+'wetterturnier_betstat ' + \
-                  'SET rank=%s, points=%s, points_d1=%s, points_d2=%s ' + \
-                  'WHERE userID=%s AND cityID=%s AND tdate=%s'
+            sql = 'INSERT INTO '+db.prefix+'wetterturnier_betstat ' + \
+                  'SET rank=%s, points=%s, points_d1=%s, points_d2=%s, ' + \
+                  'userID=%s, cityID=%s, tdate=%s ON DUPLICATE KEY UPDATE points=VALUES(points), ' + \
+                  'points_d1 = VALUES(points_d1), points_d2 = VALUES(points_d2)'
 
             #for d in data:
             #    if not int(d[0]) == 1130: continue
@@ -120,8 +132,13 @@ def CSP(db,config,cities,tdates):
 
             # Compute rank
             points = []
-            for pi in range(0,len(data)): points.append(data[pi][points_idx])
-            points = np.sort(points)[::-1]
+            for pi in range(0,len(data)):
+                points.append(data[pi][points_idx])
+            print(points)
+            try:
+                points = np.sort(points)[::-1]
+            except:
+                sys.exit("ERROR: error while computing ranks")
 
             rank = []
             data = list(data)
@@ -141,8 +158,7 @@ def CSP(db,config,cities,tdates):
                   data[pi] = (rank[0] + 1,) + data[pi]
             
             cur.executemany( sql , data )
-            db.commit()
-
+   db.commit()
 
 
 # -------------------------------------------------------------------
@@ -178,8 +194,8 @@ if __name__ == '__main__':
    # - If input city set, then drop all other cities.
    if not config['input_city'] == None:
       tmp = []
-      for elem in cities:
-         if elem['name'] == config['input_city']: tmp.append( elem )
+      for i in cities:
+         if i['name'] == config['input_city']: tmp.append( i )
       cities = tmp
 
    # - Calling the function now

@@ -23,14 +23,13 @@ if __name__ == "__main__":
    import numpy as np
 
    # - Evaluating input arguments
-   inputs = utils.inputcheck('ComputePetrus')
+   inputs = utils.inputcheck('AstralTable')
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
 
-   # - If input_user was given as string we have to find the
-   #   corresponding userID first!
+   # - If input_user was given ignore it
    if not config['input_user'] == None:
-      print '[!] NOTE: got input -u/--user. Will be ignored in ComputePetrus.'
+      print('[!] NOTE: got input -u/--user. Will be ignored in AstralTable.')
       config['input_user'] = None
 
 
@@ -38,10 +37,21 @@ if __name__ == "__main__":
    db        = database.database(config)
 
    # - Looping over cities
-   cities     = db.get_cities()
+   cities = db.get_cities()
+   # - If input city set, then drop all other cities.
+   if not config['input_city'] == None:
+      tmp = []
+      for i in cities:
+         if i['name'] == config['input_city']: tmp.append( i )
+      cities = tmp
 
-   # - Store result in a numpy ndarray
-   ndays = 365
+
+   #get currwent year and check whether its a leap year
+   base_date = dt.datetime.utcnow()
+   import calendar
+   if calendar.isleap( base_date.year ):
+      ndays = 366
+   else: ndays = 365
 
    # - Count stations
    stations = []
@@ -51,9 +61,6 @@ if __name__ == "__main__":
 
    # Store results in an ndarray of length ndays
    res = np.ndarray( (ndays,len(stations)), dtype = "float" )
-
-   # Base date
-   base_date = dt.date( 2019, 1, 1 ) # Has to be a leap year!
 
    # - Looping over all cities
    j = -1
@@ -70,7 +77,7 @@ if __name__ == "__main__":
           j += 1
 
           # Dummy
-          for i in range(0,ndays):
+          for i in range(0, ndays):
 
               # Loop date
               date = base_date + dt.timedelta(i)
@@ -97,7 +104,9 @@ if __name__ == "__main__":
 #
 # This day length is used to convert the observed sunshine duration into relative
 # sunshine duration (in percent) as used on Wetterturnier.de as one of the parameters
-# to be forecasted.
+# to be forecasted. This output file uses 2016 to compute the day length (a leap year)
+# such that February 29 is included as well.
+#
 # To be more explicit, the python astral package is called using the following lines:
 #
 #   ## Setting up location using station longitude/latitude
@@ -137,3 +146,11 @@ if __name__ == "__main__":
       for c in range(0,len(stations)):
           ofile.write( "{0:10.2f}".format( res[i,c] ) )
       ofile.write( "\n" )
+
+
+
+
+
+
+
+

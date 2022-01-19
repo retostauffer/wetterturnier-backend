@@ -1,15 +1,12 @@
 {
-"Fraktus":              ["Wettermann"],
 "wetteregon":     	["rana_2002"],
-"GRP_Meteogroup":       ["MC-Wetter"],
-"don_baecker":		["ambot_lang","Dummschwaetzer"],
+"don_baecker":		["ambot_lang"],
 "DWD-MOS-MIX-test":	["MOS-T"],
 "DWD-EZ-MOS":           ["EZ-MOS"],
 "MSwr-GFS-MOS": 	["MeteoService-GFS-MOS"],
-"GRP_MM-MOS":           ["EmJay"],
 "MM-UKMO-MOS": 		["Eugenia"],
+"GRP_MM-MOS":		["EmJay"],
 "MM-MOS-Mix":		["Enova"],
 "MM-EZ-MOS":		["Echinacin"],
-"MM-GFS-MOS":		["Egeria"],
-"GHOSTofTEMPELHOF": ["C.Barbe_Ffm"]
+"MM-GFS-MOS":		["Egeria"]
 }

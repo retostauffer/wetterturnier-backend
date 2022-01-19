@@ -20,7 +20,7 @@
 [database]
 mysql_host   = localhost
 mysql_user   = ********
-mysql_pass   = ********
+mysql_pass   = ******** 
 mysql_db     = ********
 mysql_prefix = wp_
 
@@ -50,7 +50,7 @@ allow_create_users      = True
 # - To create users properly, we need to use the
 #   wordpress intrinsic function wp_create_user. Therefore
 #   we need the location of the wp-config.php file. Path here.
-wpconfig                = /var/www/html/wp-config.php
+wpconfig                = /var/www/html/wp-config.php 
 
 # - Some directories where all the data are stored. 
 #   moses: location of the latest moses coefficient files

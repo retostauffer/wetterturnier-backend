@@ -26,33 +26,34 @@
 from setuptools import setup
 
 setup(name='pywetterturnier',     # This is the package name
-      version='0.2-0',            # Current package version, what else
+      version='0.1-0',            # Current package version, what else
       description='The Wetterturnier Python Backend Package',
       long_description='This is only the backend code.',
       classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'GNU Lesser General Public License v3 or later (LGPLv3+)',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.8',
       ],
       keywords='wetterturnier wetter tippspiel',
-      url='https://github.com/retostauffer/wetterturnier-backend',
-      author='Reto Stauffer / Juri Hubrig',
+      url='https://bitbucket.org/retos/prognose2-www-repository',
+      author='Juri Hubrig',
       author_email='juri.hubrig@fu-berlin.de',
       license='GPL-3',
       packages=['pywetterturnier'],
       install_requires=[
-          'six',          # backwards compatibility
           'numpy',        # everyone needs it!
           'matplotlib',   # plotting nice graphs
           'scipy',        # curve fitting
-          'MySQL-python', # MySQL connection
+          #'MySQL-python', # MySQL connection
           #MySQL-python not supported anymore in python3!
-          #'mysqlclient',  # new client version 1.4.4 since 1.4.5 didn't work
+          #'mysqlclient==1.4.4',  # new client version 1.4.4 since 1.4.5 didn't work
+          'mysqlclient',
           'importlib',    # Used to load the judgingclasses dynamically
           'python-dateutil',
           'pytz',         # Required by astral
           'astral',       # Used to compute astronomic sunshine duration
           'pandas',       # exporting data frames
           'xlwt',         # to excel (.xls)
+          'ConfigParser'  # for config files
       ],
       czip_safe=False)

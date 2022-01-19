@@ -48,7 +48,7 @@ if __name__ == '__main__':
    #   the bet-dates are for Saturday and Sunday.
    if config['input_tdate'] == None:
       tdates     = [db.current_tournament()]
-      print '  * Current tournament is %s' % utils.tdate2string( tdates[0] )
+      print('  * Current tournament is %s' % utils.tdate2string( tdates[0] ))
    else:
       tdates     = [config['input_tdate']]
 
@@ -57,8 +57,8 @@ if __name__ == '__main__':
    # - If input city set, then drop all other cities.
    if not config['input_city'] == None:
       tmp = []
-      for elem in cities:
-         if elem['name'] == config['input_city']: tmp.append( elem )
+      for i in cities:
+         if i['name'] == config['input_city']: tmp.append( i )
       cities = tmp
 
    # ----------------------------------------------------------------
@@ -67,7 +67,7 @@ if __name__ == '__main__':
    username = 'Sleepy'
    db.create_user( username )
    userID = db.get_user_id( username )
-   print '    The userID of the sleepy is %d' % userID
+   print('    The userID of the sleepy is %d' % userID)
    
    #exclude Sleepy, Referenztipps and Mitteltipps (groups)
    ignore = [userID] 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
    # ----------------------------------------------------------------
    for city in cities:
    
-      print '\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID']) 
+      print('\n  * Compute the %s for city %s (ID: %d)' % (username,city['name'], city['ID'])) 
 
       # ----------------------------------------------------------------
       # - If aldates, take all tdates from database
@@ -98,19 +98,14 @@ if __name__ == '__main__':
       # ----------------------------------------------------------------
       for tdate in tdates:
 
-         check = utils.datelock(config,tdate)
-         if not config['input_force'] and check:
-            print '    Date is \'locked\' (datelock). Dont execute, skip.'
-            continue
-
          # - Returns list object containing two dicts 
          #   where all the bets are in.
          points = db.get_sleepy_points(city['ID'],tdate,ignore)
          if points == False: continue
-         print "    Sleepy = " + str(points)
+ 
          # - Insert Sleepy points
-         print '    Inserting Sleepy points for %d' % tdate
-         print "    UPSERT: user %d, city %d, tdate %d, points %f " % (userID,city['ID'],tdate,points)
+         print('    Inserting Sleepy points for %d' % tdate)
+         print("    UPSERT: user %d, city %d, tdate %d, points %f " % (userID,city['ID'],tdate,points))
 
          db.upsert_sleepy_points(userID,city['ID'],tdate,points)
 

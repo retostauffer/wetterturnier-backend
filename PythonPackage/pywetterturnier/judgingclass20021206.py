@@ -22,7 +22,7 @@ class judging(object):
    """This is a judgingclass - a class used to compute the points
    a user gets on a specific weekend. Please note that it is possible
    that the rules change somewhen and that there is a second judgingclass.
-   
+
    The class contains public attributes tdate_min and tdate_max as a
    safety-instrument. As soon as you would like to compute points
    for a specific tournament which falls outside this limits the script
@@ -65,7 +65,7 @@ class judging(object):
       """
 
       if not quiet:
-         print '    Initializing judging class 2002-12-06 py'
+         print('    Initializing judging class 2002-12-06 py')
       self.quiet = quiet
 
    # ----------------------------------------------------------------
@@ -98,11 +98,7 @@ class judging(object):
          utils.exit('In judging.prepare_for_database got different lengths of userIDs and values!')
 
       # - Create result
-      res = []
-      for i in range(len(values)):
-         res.append( (values[i],userID[i],cityID[i],paramID[i],tdate[i],betdate[i]) )
-
-      return res
+      return [ (values[i], userID[i], cityID[i], paramID[i], tdate[i], betdate[i]) for i in range(len(values)) ]
 
    
    # ----------------------------------------------------------------
@@ -126,8 +122,9 @@ class judging(object):
       # - Prepare tuple list object
       data = self._prepare_for_database_(userID,cityID,paramID,tdate,betdate,values)
 
-      sql = 'UPDATE '+db.prefix+'wetterturnier_bets SET points = %s ' + \
-            'WHERE userID=%s and cityID=%s and paramID=%s and tdate=%s and betdate=%s'
+      sql = 'INSERT INTO '+db.prefix+'wetterturnier_bets SET points=%s, ' + \
+            'userID=%s, cityID=%s, paramID=%s, tdate=%s, betdate=%s ' + \
+            'ON DUPLICATE KEY UPDATE points=VALUES(points)'
 
       cur = db.cursor()
       cur.executemany( sql, data )
@@ -158,15 +155,15 @@ class judging(object):
         to one digit.
       """
 
-      import utils
+      from . import utils
       import numpy as np
 
       # - If obs is none at all: return None
       if obs is None: return(None)
       # - Filter non-None obs
       tmp = []
-      for rec in obs:
-         if not rec is None: tmp.append( rec )
+      for i in obs:
+         if not i is None: tmp.append( i )
       
       if len(tmp) == 0:
          return [0.] * len(data)
@@ -197,7 +194,7 @@ class judging(object):
 
       # - Loading method dynamical and call it.
       if not self.quiet:
-         print '    - Using method: %s' % method_to_use
+         print('    - Using method: %s' % method_to_use)
       call = getattr(self,method_to_use)
       # Round to one digit after the comma
       return np.round( call(obs,data,special), 1 )
@@ -220,17 +217,16 @@ class judging(object):
         np.ndarray of type float: np.ndarray containing the residuals.
       """
 
-      # - Observations min/max. If it is only one value min is
-      #   equal to max.
+      # - Observations MIN/MAX. If it is only one value MIN is equal to MAX.
       obs  = np.asarray(obs)
-      min  = np.min(obs)
-      max  = np.max(obs)
+      MIN  = np.min(obs)
+      MAX  = np.max(obs)
 
       # - Compute residuals
       resid = np.ndarray(len(data),dtype='float'); resid[:] = -999.
-      resid[ np.where(np.logical_and(data >= min, data <= max)) ] = 0.
-      resid[ np.where(data < min) ] = np.abs(min - data[ np.where(data < min) ])
-      resid[ np.where(data > max) ] = np.abs(max - data[ np.where(data > max) ])
+      resid[ np.where(np.logical_and(data >= MIN, data <= MAX)) ] = 0.
+      resid[ np.where(data < MIN) ] = np.abs(MIN - data[ np.where(data < MIN) ])
+      resid[ np.where(data > MAX) ] = np.abs(MAX - data[ np.where(data > MAX) ])
 
       return resid
 
@@ -277,7 +273,7 @@ class judging(object):
       """
 
       if not self.quiet:
-         print '    - Called TTm/TTn/TTd point computation method'
+         print('    - Called TTm/TTn/TTd point computation method')
       data   = np.asarray(data)
       resid  = self.__residuals__(obs,data)
 
@@ -312,36 +308,36 @@ class judging(object):
       """
 
       if not self.quiet:
-         print '    - Called N point computation method'
+         print('    - Called N point computation method')
       data   = np.asarray(data)
       resid  = self.__residuals__(obs,data)
 
       # - Full points
-      points = np.ndarray(len(data),dtype='float'); points[:] = 6.
+      points = np.ndarray(len(data),dtype='float'); points[:] = 6
       # - For a difference of 1-3 (10 - 30 in difference units)
       #   deduction of 1 per difference unit.
       idx = np.where(np.logical_and(resid > 0, resid < 30))
-      points[idx] = points[idx] - resid[idx]/10.
+      points[idx] = points[idx] - resid[idx] / 10
       #   Minus 4 points if residual is 3 (30) 
       idx = np.where(resid == 30)
-      points[idx] = points[idx] - 4. 
+      points[idx] = points[idx] - 4
       #   Minus 6 points if residual is 4 (40) 
       idx = np.where(resid >= 40)
-      points[idx] = points[idx] - 6. 
+      points[idx] = points[idx] - 6 
       # - Special: if observation was 0 or 8 and the 
       #   residual is not equal to 0: subtract one
       #   more point.
-      obs    = np.asarray(obs); min = np.min(obs); max = np.max(obs)
-      if min == 80. or max == 0.:
+      obs    = np.asarray(obs); MIN = np.min(obs); MAX = np.max(obs)
+      if MIN == 80 or MAX == 0:
          idx = np.where(resid > 0)
-         points[idx] = points[idx] - 1.
+         points[idx] = points[idx] - 1
 
       # - Points cannot be negative
       points = np.maximum( points, 0)
 
       # - Show data (development stuff)
-      #for i in range(len(data)):
-      #   print '%2d|%2d:  %2d %2d %6.2f' % (min/10., max/10., data[i]/10., resid[i]/10., points[i])
+      for i in range(len(data)):
+         print('%2d|%2d:  %2d %2d %6.2f' % (MIN/10., MAX/10., data[i]/10., resid[i]/10., points[i]))
       return points
 
 
@@ -361,7 +357,7 @@ class judging(object):
       """
 
       if not self.quiet:
-         print '    - Called Sd point computation method'
+         print('    - Called Sd point computation method')
       data   = np.asarray(data)
       resid  = self.__residuals__(obs,data)
 
@@ -373,17 +369,17 @@ class judging(object):
       points = points - resid*0.01
       # - If user bet was wrong (resid > 0) and one of the
       #   observations was 0 (0%) or 10 (1%): subtract additional 1.5 points. 
-      obs    = np.asarray(obs); min = np.min(obs); max = np.max(obs)
+      obs    = np.asarray(obs); MIN = np.min(obs); MAX = np.max(obs)
       # - Additinoal 1.5 points less between observed 0% and bet 1% or
       #   higher the other way around.
       # - minus 1.5 points. Why + 0.1? I allready subtracted
       #   0.1 points because 0/10 makes 10 difference units times
       #   0.01 above makes 0.1 points deduction. Therefore I
       #   have to subtract only 1.5 additional points here.
-      idx = np.where( np.logical_and(max == 0., data > 0.) )
+      idx = np.where( np.logical_and(MAX == 0., data > 0.) )
       points[idx] = points[idx] - 1.5 + 0.1
       # - The same the other way around
-      idx = np.where( np.logical_and(min > 0., data == 0.) )
+      idx = np.where( np.logical_and(MIN > 0., data == 0.) )
       points[idx] = points[idx] - 1.5 + 0.1
 
       # - Cannot be negative
@@ -391,7 +387,7 @@ class judging(object):
 
       # - Show data (development stuff)
       #for i in range(len(data)):
-      #   print '%3d|%3d:  %3d %3d %6.2f' % (min/10., max/10., data[i]/10., resid[i]/10., points[i])
+      #   print '%3d|%3d:  %3d %3d %6.2f' % (MIN/10., MAX/10., data[i]/10., resid[i]/10., points[i])
       return points
 
 
@@ -399,7 +395,9 @@ class judging(object):
    # - Compute dd (wind direction) 
    # ----------------------------------------------------------------
    def __points_dd__(self,obs,data,special):
-      """Rule function to compute points for wind direction parameter.
+      """
+      TODO: crashes if only one dd observed and no wind speed => try/catch fallback
+      Rule function to compute points for wind direction parameter.
 
       Args:
         obs (): Observations.
@@ -411,26 +409,26 @@ class judging(object):
       """
 
       if not self.quiet:
-         print '    - Called dd point computation method'
+         print('    - Called dd point computation method')
       data   = np.asarray(data)
       obs    = np.asarray(obs);
       try:
-         min = np.min(obs[np.where( np.logical_and(obs > 0., obs <= 3600. ))])
+         MIN = np.min(obs[np.where( np.logical_and(obs > 0., obs <= 3600. ))])
       except:
-         min = None
+         MIN = None
       try:
-         max = np.max(obs[np.where( np.logical_and(obs > 0., obs <= 3600. ))])
+         MAX = np.max(obs[np.where( np.logical_and(obs > 0., obs <= 3600. ))])
       except:
-         max = None
+         MAX = None
       # - Change minimum if angle (difference) is bigger than 180 degrees.
-      if not max == None and not min == None:
-         if max - min > 1800.:
-            tmp = max
-            max = min + 3600.
-            min = tmp 
-      # - If min or max is none, min and max are equal
-      if not min == None and max == None: max = min
-      if min == None and not max == None: min = max
+      if not MAX == None and not MIN == None:
+         if MAX - MIN > 1800.:
+            tmp = MAX
+            MAX = MIN + 3600.
+            MIN = tmp 
+      # - If min or MAX is none, MIN and MAX are equal
+      if not MIN == None and MAX == None: MAX = MIN
+      if MIN == None and not MAX == None: MIN = MAX
 
       # - Lowest observed wind speed. Has to be on speical!
       #   If nothing is observed, assume ffmin == 0 (gives
@@ -450,8 +448,13 @@ class judging(object):
 
       # - Checking if we have had calm and/or variable conditions
       calm = False; variable = False; normal = False
+      #falsch#if len( np.where(obs ==    0.)[0] ) > 0:                           calm     = True
+      #falsch#if len( np.where(obs == 9900.)[0] ) > 0:                           variable = True
+
+      #if at least one wind direction is zero, it's calm
       if len( np.where(obs ==    0.)[0] ) > 0:
          calm     = True
+      #if at least one direction is variable...
       if len( np.where(obs == 9900.)[0] ) > 0:
          variable = True
       if len( np.where( np.logical_and(obs > 0., obs <= 3600.) )[0] ) > 0:
@@ -471,7 +474,7 @@ class judging(object):
          dd_min  = np.min( obs[np.where(np.logical_and(obs > 0.,obs<=3600.))] )
          dd_max  = np.max( obs[np.where(np.logical_and(obs > 0.,obs<=3600.))] )
          dd_diff = np.abs( dd_min-dd_max )
-         
+
          if len(idx[0]) > 0:
             # - Normal penalty
             #   If minimum wind was less than 6kt: 1.0 points per 10 deg
@@ -482,7 +485,7 @@ class judging(object):
                p_normal[idx]  = maxpoints
                all_resid[idx] = 0. 
             else:
-               the_obs = np.asarray([min,max]) 
+               the_obs = np.asarray([MIN, MAX]) 
                residA = self.__residuals__(the_obs-3600.,data[idx])
                residB = self.__residuals__(the_obs,      data[idx])
                residC = self.__residuals__(the_obs+3600.,data[idx])
@@ -537,20 +540,6 @@ class judging(object):
       points = np.maximum( p_special, p_normal )
       points = np.maximum( points, 0 )
 
-      # - Show data (development stuff)
-      #print "  FFMIN: %7.2f" % ffmin
-      #if calm:     print '  CALM CONDITION TRUE'
-      #if variable: print '  VARIABLE CONDITION TRUE'
-      #print obs
-      #print min, max
-      #if min == None and max == None:
-      #   for i in range(len(data)):
-      #      print '--- | ---  bet %3d %6.2f | n: %7.2f s: %7.2f | %7.2f' \
-      #             % (data[i]/10., all_resid[i]/100, p_normal[i], p_special[i], points[i])
-      #else:
-      #   for i in range(len(data)):
-      #      print '%3d|%3d:  bet %3d %6.2f | n: %7.2f s: %7.2f | %7.2f' \
-      #             % (min/10., max/10., data[i]/10., all_resid[i]/100, p_normal[i], p_special[i], points[i])
       return points
 
 
@@ -570,7 +559,7 @@ class judging(object):
       """
 
       if not self.quiet:
-         print '    - Called ff point computation method'
+         print('    - Called ff point computation method')
       data   = np.asarray(data)
       resid  = self.__residuals__(obs,data)
 
@@ -603,15 +592,15 @@ class judging(object):
       # - Getting min and max from the obs
       data   = np.asarray(data)
       obs    = np.asarray(obs);
-      min = np.min(obs)
-      max = np.max(obs)
+      MIN = np.min(obs)
+      MAX = np.max(obs)
 
       # - To avoid wrong inputs: knots below 25 (250.)
       #   are set to 0!
       data[np.where( data < 250. )] = 0
 
       if not self.quiet:
-         print '    - Called fx point computation method'
+         print('    - Called fx point computation method')
       data   = np.asarray(data)
       resid  = self.__residuals__(obs,data)
 
@@ -625,19 +614,19 @@ class judging(object):
          return np.minimum( resid, 150. )*0.025 + np.maximum( resid-150., 0)*0.05
 
       # - Non-special penalty is if fx >= 250 and forecast >= 250 (250=25kt)
-      if max >= 250.:
+      if MAX >= 250.:
          idx = np.where( data >= 250. )
          points[idx] = points[idx] - normal_penalty( resid[idx] )
 
       # - For these where forecast (data) was 0. but obs was >= 250:
       #   Special rule. First: -3 points and then normal penalty
       #   for residuals - 250.
-      idx = np.where( np.logical_and( data == 0, min >= 250. ) )
+      idx = np.where( np.logical_and( data == 0, MIN >= 250. ) )
       points[idx] = maxpoints - 3 - normal_penalty( np.maximum(resid[idx]-250.,0) )
       # - For these where forecast (data) was >= 250. but obs was == 0:
       #   Special rule. First: -3 points and then normal penalty
       #   for residuals - 250.
-      idx = np.where( np.logical_and( data >= 250, max == 0. ) )
+      idx = np.where( np.logical_and( data >= 250, MAX == 0. ) )
       points[idx] = maxpoints - 3 - normal_penalty( np.maximum(resid[idx]-250.,0) )
 
       # - Now correcting:
@@ -647,7 +636,7 @@ class judging(object):
 
       # - Show data (development stuff)
       #for i in range(len(data)):
-      #   print '%5d %5d | %5d %5d %6.2f' % (min, max, data[i], resid[i], points[i])
+      #   print '%5d %5d | %5d %5d %6.2f' % (MIN, MAX, data[i], resid[i], points[i])
       return points
 
    # ----------------------------------------------------------------
@@ -681,7 +670,7 @@ class judging(object):
       """
 
       if not self.quiet:
-         print '    - Called WvWn point computation method'
+         print('    - Called WvWn point computation method')
       data   = np.asarray(data)
 
       # Deduction matrix list. Note that 1/2/3 will never be
@@ -709,7 +698,7 @@ class judging(object):
       for o in obs:
          for i in range(len(data)):
             #            maxpoints -              observed      bet value
-            tmp       =     10    - point_matrix[int(o/10)][int(data[i])/10]
+            tmp       =     10    - point_matrix[int(o/10)][int(data[i]/10)]
             # Minimum points: 0!
             if tmp < 0:
                points[i] = 0.
@@ -739,7 +728,7 @@ class judging(object):
       """
 
       if not self.quiet:
-         print '    - Called PPP point computation method'
+         print('    - Called PPP point computation method')
       data   = np.asarray(data)
       resid  = self.__residuals__(obs,data)
 
@@ -773,11 +762,11 @@ class judging(object):
       # - Getting min and max from the obs
       data   = np.asarray(data)
       obs    = np.asarray(obs);
-      min = np.min(obs)
-      max = np.max(obs)
+      MIN = np.min(obs)
+      MAX = np.max(obs)
 
       if not self.quiet:
-         print '    - Called RR point computation method'
+         print('    - Called RR point computation method')
       data   = np.asarray(data)
       # - WARNING: compute residuals only to 0mm observation!
       #   The penalty for observed -3.0 will be added later on.
@@ -802,14 +791,14 @@ class judging(object):
       # -------------------------------------------------------------
       # - Now take the penalty vector if max is in that range.
 
-      if max <= 0:
+      if MAX <= 0:
          penalty = full_penalty
-      elif max < len(full_penalty):
-         penalty = full_penalty[max:]
+      elif MAX < len(full_penalty):
+         penalty = full_penalty[MAX:]
       else:
          penalty = []
 
-      idx = np.where( data > max )[0]
+      idx = np.where( data > MAX )[0]
       # - For the first len(penalty) deviances
       if len(penalty) > 0:
          for i in idx:
@@ -824,9 +813,9 @@ class judging(object):
       deduction[idx] = deduction[idx] + np.maximum(0,resid[idx]-len(penalty)) * 0.05
       # - Only half points deduction for all forecasted values >= 0.1mm
       #   if and only if the forecast was bigger than the observed values.
-      idx = np.where( np.logical_and( deduction > 0., data > max, data > 0 ) )
+      idx = np.where( np.logical_and( deduction > 0., data > MAX, data > 0 ) )
       deduction[idx] = deduction[idx] * 0.5
-      # - PROBLEM: if data == 0 and max > 0 the user gets
+      # - PROBLEM: if data == 0 and MAX > 0 the user gets
       #   1.0 points deduction between 0.0 and 0.1 mm. BUT
       #   I devided the points by 2. This does not yield
       #   for the first point 1.0 between 0.0 and 0.1. Therefore  
@@ -836,7 +825,7 @@ class judging(object):
       #   - Deduction is not equal to 0.
       if len(penalty) > 0:
          if penalty[0] == 1.:
-            idx = np.where( np.logical_and( deduction > 0., data > max ) )
+            idx = np.where( np.logical_and( deduction > 0., data > MAX ) )
             deduction[idx] = deduction[idx] + 0.5
 
       # -------------------------------------------------------------
@@ -846,28 +835,28 @@ class judging(object):
       #   up to minimum observed value BUT tip was not -3.0mm
 
       # same her with the int() bugfix...
-      idx = np.where( data < min )[0]
-      imax = np.minimum( min, len(full_penalty) )
+      idx = np.where( data < MIN )[0]
+      imax = np.minimum( MIN, len(full_penalty) )
       for i in idx:
          imin = np.maximum( data[i], 0 )
          #possible 0.0 bugfix needs to be tested:
          #if imin == imax == 0:
-	 #   slc = 0
+         #   slc = 0
          #else:
-	 #   slc = range(imin+1,imax+1)
+         #   slc = range(imin+1,imax+1)
          deduction[i] = deduction[i] + np.sum( full_penalty[imin:imax] )
 
-      if min > 50.:
-         tmp = self.__residuals__( min, np.maximum(50, data[idx]) )
+      if MIN > 50.:
+         tmp = self.__residuals__( MIN, np.maximum(50, data[idx]) )
          deduction[idx] = deduction[idx] + tmp * 0.05
 
       # - Special case: min(obs) was >= 0 but forecast was -3.0
       #   remove 3 more points.
-      if min >= 0:
+      if MIN >= 0:
          idx = np.where( data < 0)
-         deduction[idx] =  deduction[idx] + 3 
+         deduction[idx] =  deduction[idx] + 3
       # - Same for case: max(obs) was < 0 (-3.0) but forecast was >=0
-      if max < 0:
+      if MAX < 0:
          idx = np.where( data >= 0)
          deduction[idx] = deduction[idx] + 3
 
@@ -876,22 +865,9 @@ class judging(object):
       points = maxpoints - deduction
 
       # - Show data (development stuff)
-      if min >=0: print ' WET CONDITIONS'
-      if max < 0: print ' DRY CONDITIONS'
+      if MIN >=0: print(' WET CONDITIONS')
+      if MAX < 0: print(' DRY CONDITIONS')
       for i in range(len(data)):
-         print '%5d %5d | bet %5d | resid: %5d | %6.2f  (ded: %6.2f)' % (min,max,data[i], resid[i], points[i], deduction[i])
+         print('%5d %5d | bet %5d | resid: %5d | %6.2f  (ded: %6.2f)' % (MIN, MAX, data[i], resid[i], points[i], deduction[i]))
 
       return points
-
-
-
-
-
-
-
-
-
-
-
-
-

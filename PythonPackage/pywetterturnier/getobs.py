@@ -27,16 +27,15 @@ class getobs( object ):
  
    Args:
       config (:obj:`list`): Contains all necessary configs for the
-         pywetterturnier package. Please have a look into 
-         See :py:meth:`utils.readconfig` for more details. 
+             pywetterturnier package. Please have a look into 
+             See :py:meth:`utils.readconfig` for more details. 
       db (:py:class:`database.database`): A pywetterturnier 
-         (:py:class:`database.database` object handling the database I/O.
+             (:py:class:`database.database` object handling the database I/O.
       city (:obj:`int`): Numeric city ID.
       date (:obj:`datetime.datetime.date` object with the date for which
-         the request should be made.
+             the request should be made.
       wmoww (:obj:`utils.wmowwConversion`): Or None. If None, no conversion will
-         be performed. If set the :meth:`utils.wmowwConversion.convert`
-         method is used to convert observed weather codes into the required ones.
+             be performed. If set the :meth:`utils.wmowwConversion.convert` method is used to convert observed weather codes into the required ones.
    """
 
 
@@ -99,6 +98,7 @@ class getobs( object ):
       """
 
       import astral
+      from astral.sun import sun
       from datetime import datetime as dt
 
       # - self._maxSd_ used to store the info based on the wmo number
@@ -112,10 +112,10 @@ class getobs( object ):
          # - no info? Skip
          if res == None:
             maxSd[station.wmo] = None
-            print "[!] ERROR: Problems in get_maximum_Sd. Reason: \n" + \
+            print("[!] ERROR: Problems in get_maximum_Sd. Reason: \n" + \
                   "    there is no entry for wmo station %d in table\n" % station.wmo + \
                   "    obs.stations and I can't compute the astronomic\n" + \
-                  "    sunshine duration."
+                  "    sunshine duration.")
             maxSd[station.wmo] = None
       
          # - Else
@@ -136,15 +136,16 @@ class getobs( object ):
                elevation = int( hoehe )
 
             # - Define location
-            loc = astral.Location( (nam,'Region',lat,lon,'Europe/London',elevation) )
-            res = loc.sun(local=True,date=date)
+            loc = astral.LocationInfo( (nam,'Region',lat,lon,'Europe/London',elevation) )
+            #res = loc.sun(local=True,date=date)
+            res = sun(loc.observer,date=date)
             daylen = int(res['sunset'].strftime('%s')) - int(res['sunrise'].strftime('%s'))
             daylen = daylen / 60.
 
             maxSd[station.wmo] = daylen
 
-            print "    WMO station %7d: daylength %5.2f min (%5.2f h)" % \
-                   (station.wmo,daylen,daylen/60.)
+            print("    WMO station %7d: daylength %5.2f min (%5.2f h)" % \
+                   (station.wmo,daylen,daylen/60.))
 
       return maxSd
 
@@ -167,10 +168,8 @@ class getobs( object ):
       sql = "SHOW COLUMNS FROM %s" % table
       cur = self.db.cursor()
       cur.execute(sql)
-      tmp = cur.fetchall()
-      res = []
-      for rec in tmp: res.append( str(rec[0]).lower() )
-      return res
+
+      return [str( i[0] ).lower() for i in cur.fetchall()]
 
    # ----------------------------------------------------------------
    # - Loading observations
@@ -198,8 +197,8 @@ class getobs( object ):
 
       parameter = parameter.lower()
       if not parameter in self._columns_:
-         print "Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
-                  (parameter, self._table_)
+         print("Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
+                  (parameter, self._table_))
          return None
 
       tmp    = self._date_ + dt.timedelta( 0, hour*3600 )
@@ -272,20 +271,19 @@ class getobs( object ):
 
       cur = self.db.cursor()
       cur.execute( sql )
-      tmp = cur.fetchall()
+      data = cur.fetchall()
 
       # Keep non-None values
-      data = []
-      for rec in tmp:
-         if rec[0] is None: continue
-         data.append( int(rec[0]) )
+      res = []
+      for i in data:
+         if i[0] is None: continue
+         res.append( int( i[0] ) )
 
-      # Return 'None' if no data have been found or a list
-      # of integers else.
-      if len(data) == 0:
+      # Return 'None' if no result has been found or a list of integers else.
+      if len(res) == 0:
          return None
       else:
-         return data
+         return res
 
 
 
@@ -316,10 +314,9 @@ class getobs( object ):
             (self._table_, wmo, datumsec )
       cur = self.db.cursor()
       cur.execute( sql )
-      data = cur.fetchone()
 
       # - Else return value
-      return (int(data[0]) > 0)
+      return (int( cur.fetchone()[0] ) > 0)
 
 
    # ----------------------------------------------------------------
@@ -342,7 +339,7 @@ class getobs( object ):
       if not self.data:
          self.data = {wmo:{}}
       # - Adding new dict with key wmo
-      elif not wmo in self.data.keys():
+      elif not wmo in list(self.data.keys()):
          self.data[wmo] = {}
       # - Adding value
       self.data[wmo][parameter] = value
@@ -386,13 +383,13 @@ class getobs( object ):
       try:
          fun = eval("self._prepare_fun_%s_" % parameter)
       except Exception as e:
-         print "[!] WARNING: method prepare_fun_%s does not exist. Cannot prepare data." % parameter
-         print e
+         print("[!] WARNING: method prepare_fun_%s does not exist. Cannot prepare data." % parameter)
+         print(e)
          return
 
       import inspect
       if not inspect.ismethod( fun ):
-         print "[!] WARNING: method prepare_fun_%s is no instancemethod. Cannot prepare data." % parameter
+         print("[!] WARNING: method prepare_fun_%s is no instancemethod. Cannot prepare data." % parameter)
          return
 
       # - Else calling function
@@ -445,7 +442,7 @@ class getobs( object ):
             if spvalue is not None:
                value = np.max(spvalue)
          else:
-            print "[!] Had problems parsing the special argument! SKip!"
+            print("[!] Had problems parsing the special argument! SKip!")
 
 
       # - Return value
@@ -484,7 +481,7 @@ class getobs( object ):
             if spvalue is not None:
                value = np.min(spvalue)
          else:
-            print "[!] Had problems parsing the special argument! SKip!"
+            print("[!] Had problems parsing the special argument! SKip!")
             
       # - Return value
       return value 
@@ -527,13 +524,33 @@ class getobs( object ):
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
       """
-
+      import numpy as np
       # - Loading td valid at 12 UTC 
       value = self.load_obs( station.wmo, 12, 'pmsl' )
       # - Original value is in 1/100 hPa. Convert.
+      if value == None:
+         cur = self.db.cursor()
+         sql = "SELECT hoehe, hbaro FROM obs.stations WHERE statnr = %d"
+         cur.execute( sql % station.wmo )
+         data = cur.fetchall()
+         if not data: h = 0
+         elif len(data[0]) > 0:
+            h = data[0][0]
+         else:
+            h = data[0][1]
+         p = self.load_obs( station.wmo, 12, 'psta' )
+         T = self.load_obs( station.wmo, 12, 't' )
+
+         #calculate reduced MSL pressure via international barometric height formula if no reduced pressure is given
+         if not (p == None or T == None or h == None):
+            T /= 10.; p /= 10.
+            T += 273.15
+            value = p * ( T / (T + 0.0065*h) )**(-5.255)
+            return value
+
       if not value == None:
-         import numpy as np
-         value = np.round( value/10. ) 
+         value = np.round( value/10. )
+
       # Return value 
       return value
 
@@ -560,7 +577,7 @@ class getobs( object ):
       Args:
          station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
-      
+
       Returns:
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
@@ -569,20 +586,19 @@ class getobs( object ):
       # - Loading td valid at 12 UTC 
       dd = self.load_obs( station.wmo, 12, 'dd' )
       ff = self.load_obs( station.wmo, 12, 'ff' )
-      
       # - If dd is valid: take this one
       if dd == None:
          value = None
-      # - if wind direction is 0 (variable) 
+      # - if wind direction is 0 (variable)
       elif dd == 0:
-         # - No wind: return variable wind!
+         # - No wind
          if ff == 0:
-            value = 0 
-         # - Else skip the dd observation!
+            value = 0
+         #else wind direction is not defined
          else:
             value = None
       # - Else take dd as it is
-      else: 
+      else:
          value = np.round(float(dd)/10) * 100.
          # - North wind will be 360, not 0. Change if 0 occurs
          if value == 0.:
@@ -602,12 +618,11 @@ class getobs( object ):
       Args:
          station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
-      
+
       Returns:
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
       """
-
 
       #first we check if a converted obs for dd is available (maybe it has been set zero by admin)
       from pywetterturnier import database, utils
@@ -636,10 +651,9 @@ class getobs( object ):
       else:
          # - Loading ff valid at 12 UTC 
          value = self.load_obs( station.wmo, 12, 'ff' )
-         if not value == None:
-            import numpy as np
-            value = np.round( np.float( value ) * 1.94384449 / 10 ) * 10
-      
+         if value:
+            value = np.round( np.float( value ) * (900/463) / 10 ) * 10
+
       # - Return value  
       return value
 
@@ -668,7 +682,7 @@ class getobs( object ):
       Args:
          station (:obj:`stationclass.stationclass`): Station handler.
          special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
-      
+
       Returns:
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
@@ -713,18 +727,17 @@ class getobs( object ):
 
       # - New object to store the values (from all sql queries)
       data = []
-      def append_data(data,tmp):
-         for rec in tmp:  data.append( rec[0] )
+
+      def append_data(data, tmp):
+         for i in tmp:
+            data.append( i[0] )
          return data
 
-      # - FFX (last 10 min gusts) 
-      cur.execute( sql  );     tmp = cur.fetchall();     data = append_data( data, tmp )
-      # - FFX1 (last 1 h gusts) 
-      cur.execute( sql1 );     tmp = cur.fetchall();     data = append_data( data, tmp )
-      # - FFX1 (last 3 h gusts) 
-      cur.execute( sql3 );     tmp = cur.fetchall();     data = append_data( data, tmp )
-      # - FFX1 (last 6 h gusts) 
-      cur.execute( sql6 );     tmp = cur.fetchall();     data = append_data( data, tmp )
+      for sql in [sql, sql1, sql3, sql6]:
+         # - FFX [10 min, 1 h, 3 h, 6 h]
+         cur.execute( sql  )
+         tmp = cur.fetchall()
+         data = append_data( data, tmp )
 
       # - Check if +30 h observation is available.
       check30 = self.check_record( station.wmo, 30 )
@@ -744,20 +757,16 @@ class getobs( object ):
       else:
          value = 0
          import numpy as np
-         for rec in data:
-            value = np.maximum(value,rec)
-         print "fx in m/s", value
-         # - if 12.5 m/s threshold is reached set value = 25 knots
+         for i in data:
+            value = np.maximum(value, i)
+         # - Convert from meters per second to knots.
+         #   Moreover, if knots are below 25 (or 12.5 m/s) set value to zero.
          if value >= 125:
-            # - Convert from meters per second to knots.
-            value = np.round( np.float( value ) * 1.94384449 / 10. ) * 10
-            #   Moreover, if knots are below 25, ignore.
-            if value < 250:
+            value = np.round( np.float( value ) * (900/463) / 10. ) * 10
+            if value < 250.:
                value = 250
          else:
             value = 0
-
-      print "fx in knots", value
 
       # - Return value  
       return value
@@ -794,14 +803,8 @@ class getobs( object ):
       if not N == None:
          import numpy as np
          # - Note: BUFR report is in percent
-         if N == 0:
-            value = 0
-         #if 0% < N <= 12% we round up to 1/8
-         elif N <= 12:
-            value = 10
-         else:
-            value = (np.floor(np.float(N)/100.*8.)) * 10
-            if value > 80: value = 80
+         value = (np.floor(np.float(N)/100.*8.)) * 10
+         if value > 80: value = 80
       # - Else if record exists but there is no observed
       #   cloud cover we have to assume that the value
       #   should be 0 but is not reported at all. 
@@ -852,14 +855,14 @@ class getobs( object ):
       # return a None (no observations available):
       check = self.check_record( station.wmo, 12 )
       if Wv is None and not check:
-	  return None
+         return None
       # If 12 UTC observation is not yet here, return None.
       # This avoids that we store live observations (developing over time)
       # into the database.
       elif not check:
           return None
       else:
-          return  0 if Wv is None else Wv
+          return  0 if (Wv is None) else Wv
 
    # ----------------------------------------------------------------
    # - Prepare Wn
@@ -886,8 +889,8 @@ class getobs( object ):
 
       # Note: difference between special_now and special_after is that special_after does
       # NOT include 1200 UTC (used for Nachwetter), special_now does.
-      special_now   = self.special_obs_object("ww today 12:00 to today 18:00",self._date_)
-      special_after = self.special_obs_object("ww today 13:00 to today 18:00",self._date_)
+      special_now   = self.special_obs_object("ww today 12:00 to today 18:00", self._date_)
+      special_after = self.special_obs_object("ww today 13:00 to today 18:00", self._date_)
 
       w1         = self.load_obs( station.wmo, 18, 'w1' )
       ww_now     = self.load_special_obs( station.wmo, special_now   )
@@ -895,19 +898,19 @@ class getobs( object ):
 
       Wn = self._get_proper_WvWn_( w1, ww_now, ww_after )
 
-      # If Wv is None but the 18 UTC record is here we assume a 0 (no
+      # If Wn is None but the 18 UTC record is here we assume a 0 (no
       # significant weather). Until the 18 UTC record is not here we
       # return a None (no observations available):
       check = self.check_record( station.wmo, 18 )
       if Wn is None and not check:
-	  return None
+         return None
       # If 12 UTC observation is not yet here, return None.
       # This avoids that we store live observations (developing over time)
       # into the database.
       elif not check:
           return None
       else:
-          return  0 if Wn is None else Wn
+          return  0 if (Wn is None) else Wn
 
    # ----------------------------------------------------------------
    # - Prepare Wv
@@ -943,14 +946,14 @@ class getobs( object ):
       # return a None (no observations available):
       check = self.check_record( station.wmo, 6 )
       if Wall is None and not check:
-	  return None
+         return None
       # If 12 UTC observation is not yet here, return None.
       # This avoids that we store live observations (developing over time)
       # into the database.
       elif not check:
           return None
       else:
-          return  0 if Wall is None else Wall
+          return  0 if (Wall is None) else Wall
 
 
    # ----------------------------------------------------------------
@@ -995,10 +998,10 @@ class getobs( object ):
       ww_after = [] if ww_after is None else ww_after 
 
       # For ww_now consider all except 20-29
-      tmp = ww_now; ww_now = []
+      tmp = np.copy(ww_now); ww_now = []
       for x in tmp:
           if not x in range(20,30) and not x is None: ww_now.append(x)
-      tmp = ww_after; ww_after = []
+      tmp = np.copy(ww_after); ww_after = []
       # For ww_after (Nachwetter; including leading hour) take only 20-29!
       for x in tmp:
           if     x in range(20,30): ww_after.append(x)
@@ -1012,8 +1015,8 @@ class getobs( object ):
       # observed w1/ww flags into the new ones.
       if self.wmoww:
           w1       =   self.wmoww.convert( "w1", w1 )
-          ww_now   = [ self.wmoww.convert( "ww", x ) for x in ww_now   ]
-          ww_after = [ self.wmoww.convert( "ww", x ) for x in ww_after ]
+          ww_now   = list(filter(None, [ self.wmoww.convert( "ww", x ) for x in ww_now   ] ))
+          ww_after = list(filter(None, [ self.wmoww.convert( "ww", x ) for x in ww_after ] ))
           #print "      [Converted]   ",w1, ww_now, ww_after
 
       # If list return is requested: do so.
@@ -1021,19 +1024,17 @@ class getobs( object ):
           w1 = [] if w1 is None else [w1]
           return w1 + ww_now + ww_after
 
-      # Convert to numpy array for further analysis
-      ww_now   = np.asarray( ww_now   )
-      ww_after = np.asarray( ww_after )
+      w1 = 0 if not w1 else w1
 
-      ww_now   = None if len(ww_now) == 0 else ww_now
-      ww_after = None if len(ww_after) == 0 else ww_after
+      print("    Observed w1 is ", w1, end=' ')
 
-      print "    Observed w1 is ",w1,
-
-      # If max(wX) > w1: use max(wX) value.
-      if np.max(ww_now   > w1): w1 = int(np.max(ww_now  ))
-      if np.max(ww_after > w1): w1 = int(np.max(ww_after))
-      print " considering [ww] as well yields ",w1
+      # If max(wX) > w1: use max(wX) value
+      for ww in [ww_now, ww_after]:
+         if ww:
+            max_ww = np.max( ww )
+            if max_ww > w1:
+               w1 = int(max_ww)
+         print(" considering [ww] as well yields ", w1)
 
       # - Return value  
       return None if w1 is None else float(w1)*10.
@@ -1148,12 +1149,11 @@ class getobs( object ):
       #   -3.0) set precip to 0.0!
       raincheck = self._prepare_fun_Wall_(station,None)
       if not raincheck is None:
-      	 raincheck = [x in [5,6,7,8] for x in raincheck]
-      	 raincheck = np.any( raincheck )
-      	 if not value is None:
-      	     if value < 0 and raincheck: value = 0.
-
-
+         raincheck = [x in [5,6,7,8] for x in raincheck]
+         raincheck = np.any( raincheck )
+         if not value is None:
+            if value < 0 and raincheck: value = 0.
+      
       # - Return value  
       return value
 
@@ -1221,8 +1221,7 @@ class getobs( object ):
 	       # Check if +24h record is here. If the record is here but we have
                # not gotten any information so far (self.load_obs(..) returned None for
                # both, +30 and +24): loading 1h observations and take the sum!
-      	       check24 = self.check_record( station.wmo, 24 )
-
+               check24 = self.check_record( station.wmo, 24 )
                # - Else try to get the hourly sums.
                if check24:
                   datum = int( self._date_.strftime('%Y%m%d') )
@@ -1231,16 +1230,15 @@ class getobs( object ):
 
                   cur = self.db.cursor()
                   cur.execute( sql )
-                  tmp = cur.fetchall()
+                  data = cur.fetchall()
                   # - No data? Return None 
-                  if len(tmp) == 0 or tmp == None:
+                  if len(data) == 0 or data == None:
                      return None
                   else:
                      # - Else sum up
-                     value = 0
-                     for rec in tmp:
-                        value += int(rec[0])
-                     value = int( np.round(np.float(value)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
+                     value = sum([int( i[0] ) for i in data])
+
+                     value = int( np.round(np.float(value) / np.float(self._maxSd_[station.wmo]) * 100) ) * 10
 	       # Else we report None 
                else: value = None
 
@@ -1258,36 +1256,36 @@ class getobs( object ):
       """
 
       if not self.data:
-         print "    Can't show data summary: no observation data loaded"
+         print("    Can't show data summary: no observation data loaded")
          return
 
       # - Else show data
       allcols = []
-      for rec in self.data:
-         for k in self.data[rec].keys():
+      for i in self.data:
+         for k in list(self.data[i].keys()):
             if not k in allcols: allcols.append(k)
       allcols.sort()
 
       # - Show data
-      print "     ",
+      print("     ", end=' ')
       for stn in self.stations:
-         print " %13d   " % stn.wmo,
-      print ""
+         print(" %13d   " % stn.wmo, end=' ')
+      print("")
 
       # - Looping over params
       pnr = 0
       for param in allcols:
          pnr = pnr + 1 
-         print "   %2d  " % pnr,
+         print("   %2d  " % pnr, end=' ')
          for stn in self.stations:
-            if not stn.wmo in self.data.keys():
+            if not stn.wmo in list(self.data.keys()):
                continue
-            elif not param in self.data[stn.wmo].keys():
-               print " %-5s %8s   " % (param,"- - -"),
+            elif not param in list(self.data[stn.wmo].keys()):
+               print(" %-5s %8s   " % (param,"- - -"), end=' ')
             else:
-               print " %-5s %8d   " % (param,self.data[stn.wmo][param]),
+               print(" %-5s %8d   " % (param,self.data[stn.wmo][param]), end=' ')
 
-         print ""
+         print("")
          
 
    # ----------------------------------------------------------------
@@ -1300,16 +1298,15 @@ class getobs( object ):
       """
 
       if self.data == None:   
-         print "Cant write data to database. Because there are no data. Return."
+         print("Cant write data to database. Because there are no data. Return.")
          return
 
       # - Create tuple for update
       data = []
 
       param = {}
-      for p in self.db.get_parameter_names():
-         id = self.db.get_parameter_id( p )
-         param[p] = id
+      for i in self.db.get_parameter_names():
+         param[i] = self.db.get_parameter_id( i )
 
       # - Prepare a few sql statements we need later 
       sql_check  = "SELECT placedby FROM %swetterturnier_obs " % self.db.prefix + \
@@ -1332,22 +1329,22 @@ class getobs( object ):
       cur = self.db.cursor()
       for stn in self.stations:
 
-         if not stn.wmo in self.data.keys():
-            print "[!] Can't find wmo %d in results. Skip." % stn.wmo
+         if not stn.wmo in list(self.data.keys()):
+            print("[!] Can't find wmo %d in results. Skip." % stn.wmo)
             continue
 
-         for key in self.data[stn.wmo].keys():
+         for key in list(self.data[stn.wmo].keys()):
 
             # - If parameter is not one of the wetterturnier parameters: skip
             if not key in param:
-               print "[!] Cant find parameter %s in database! Skip!" % key
+               print("[!] Cant find parameter %s in database! Skip!" % key)
                continue
 
             # - See if parameter is in NULLCONFIG of the station.
             #   If it is - ignore!
             if not param[key] in stn.getActiveParams( betdate ):
-               print "    Parameter %s (%d) is/was not an active parameter for station %d. Skip." % \
-                     (key, param[key], stn.wmo)
+               print("    Parameter %s (%d) is/was not an active parameter for station %d. Skip." % \
+                     (key, param[key], stn.wmo))
                continue
 
             # - Else append tuple
@@ -1422,15 +1419,15 @@ class getobs( object ):
       # Helper function to show oject content
       def show( self ):
          if self.error:
-            print "    Error: not able to extract required information from:"
-            print "           from {0:s} for {1:s}".format( self.special, self.date )
+            print("    Error: not able to extract required information from:")
+            print("           from {0:s} for {1:s}".format( self.special, self.date ))
          else:
-            print "    Parameter:    {0:s}".format( self.parameter )
-            print "    From:         {0:s} {1:s}".format( self.from_keyword, self.from_time )
-            print "    To:           {0:s} {1:s}".format( self.to_keyword,   self.to_time )
-            print "    Date is:      {0:s}".format( self.date.strftime("%Y-%m-%d %H:%M") )
-            print "    Yields from:  {0:s}".format( self.from_date.strftime("%Y-%m-%d %H:%M") )
-            print "    Yields to:    {0:s}".format( self.to_date.strftime("%Y-%m-%d %H:%M") )
+            print("    Parameter:    {0:s}".format( self.parameter ))
+            print("    From:         {0:s} {1:s}".format( self.from_keyword, self.from_time ))
+            print("    To:           {0:s} {1:s}".format( self.to_keyword,   self.to_time ))
+            print("    Date is:      {0:s}".format( self.date.strftime("%Y-%m-%d %H:%M") ))
+            print("    Yields from:  {0:s}".format( self.from_date.strftime("%Y-%m-%d %H:%M") ))
+            print("    Yields to:    {0:s}".format( self.to_date.strftime("%Y-%m-%d %H:%M") ))
          
       # Create proper date objects given the keyword,
       # the time (e.g., 19:00) and the current tournament date 'date'
