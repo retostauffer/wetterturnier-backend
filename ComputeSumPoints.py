@@ -138,7 +138,9 @@ def CSP(db,config,cities,tdates):
             try:
                 points = np.sort(points)[::-1]
             except:
-                sys.exit("ERROR: error while computing ranks")
+                print("ERROR: error while computing ranks")
+                continue
+                #sys.exit(0)
 
             rank = []
             data = list(data)

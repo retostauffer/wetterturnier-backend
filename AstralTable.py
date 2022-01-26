@@ -47,7 +47,11 @@ if __name__ == "__main__":
 
 
    #get currwent year and check whether its a leap year
-   base_date = dt.datetime.utcnow()
+   if config['input_tdate']:
+      base_date = utils.tdate2datetime( config["input_tdate"] )
+   else:
+      base_date = dt.datetime.utcnow()
+   
    import calendar
    if calendar.isleap( base_date.year ):
       ndays = 366

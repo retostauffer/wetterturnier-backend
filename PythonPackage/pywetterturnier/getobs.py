@@ -98,6 +98,7 @@ class getobs( object ):
       """
 
       import astral
+      #needed for astral version 2+
       from astral.sun import sun
       from datetime import datetime as dt
 
@@ -135,10 +136,18 @@ class getobs( object ):
             else:
                elevation = int( hoehe )
 
-            # - Define location
-            loc = astral.LocationInfo( (nam,'Region',lat,lon,'Europe/London',elevation) )
+            #old pre astral2 version
+            #loc = astral.Location( (nam,'Region',lat,lon,'Europe/London',elevation) )
             #res = loc.sun(local=True,date=date)
-            res = sun(loc.observer,date=date)
+            
+            # - Define location (no elevation)
+            #loc = astral.LocationInfo( nam,'Europe','UTC',latitude=lat,longitude=lon )
+            #res = sun(loc.observer,date=date)
+            
+            # - Define observer (station with elevation)
+            obs = astral.Observer(lat, lon, elevation)
+            res = sun(obs, date=date)
+
             daylen = int(res['sunset'].strftime('%s')) - int(res['sunrise'].strftime('%s'))
             daylen = daylen / 60.
 
