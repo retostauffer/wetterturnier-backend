@@ -135,18 +135,20 @@ class getobs( object ):
                   elevation = int( hbaro )
             else:
                elevation = int( hoehe )
+            
+            print(elevation)
 
             #old pre astral2 version
             #loc = astral.Location( (nam,'Region',lat,lon,'Europe/London',elevation) )
             #res = loc.sun(local=True,date=date)
             
             # - Define location (no elevation)
-            #loc = astral.LocationInfo( nam,'Europe','UTC',latitude=lat,longitude=lon )
-            #res = sun(loc.observer,date=date)
+            loc = astral.LocationInfo( nam,'Europe','UTC',latitude=lat,longitude=lon )
+            res = sun(loc.observer,date=date)
             
             # - Define observer (station with elevation)
-            obs = astral.Observer(lat, lon, elevation)
-            res = sun(obs, date=date)
+            #obs = astral.Observer(lat, lon, elevation)
+            #res = sun(obs, date=date)
 
             daylen = int(res['sunset'].strftime('%s')) - int(res['sunrise'].strftime('%s'))
             daylen = daylen / 60.
