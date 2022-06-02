@@ -14,7 +14,7 @@ if __name__ == '__main__':
    post_id   = config['input_param']
    t         = config['input_tdate']
    
-   excluded_usernames = ["WB-Berlin","Foehni"]
+   excluded_usernames = ["WB-Berlin","Foehni","Sleepy"]
    excluded_users = [db.get_user_id(i) for i in excluded_usernames]
 
    for i in ("Automaten", "Referenztipps", "MM-MOS", "WAV2", "Aviatik"):
