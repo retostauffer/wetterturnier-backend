@@ -47,7 +47,8 @@ setup(name='pywetterturnier',     # This is the package name
           #'MySQL-python', # MySQL connection
           #MySQL-python not supported anymore in python3!
           #'mysqlclient==1.4.4',  # new client version 1.4.4 since 1.4.5 didn't work
-          'mysqlclient',
+          #'mysqlclient',
+          'pymysql',
           'importlib',    # Used to load the judgingclasses dynamically
           'python-dateutil',
           'pytz',         # Required by astral
