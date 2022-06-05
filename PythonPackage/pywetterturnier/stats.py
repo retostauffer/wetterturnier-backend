@@ -64,7 +64,7 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
       if aliases:
          username = self.get_username_by_id( userID )
          if username in aliases.keys() or username in sum(aliases.values(), []):
-            if verbose: print username
+            if verbose: print(username)
             for j in aliases.keys():
                if username == j:
                   for k in aliases[j]:
