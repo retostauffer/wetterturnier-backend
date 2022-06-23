@@ -84,8 +84,14 @@ if __name__ == '__main__':
          data   = []
          points = []
          for i in tmp:
-            data.append( [int( i[0] ),float( i[1] ),None] )
-            points.append( float( i[1] ) )
+            try:
+               data.append( [int( i[0] ),float( i[1] ),None] )
+               points.append( float( i[1] ) )
+            #if no points in database: set to -9999 for calculation
+            except:
+               print(tdate, i[0], i[1])
+               data.append( [int( i[0] ),-9999.,None] )
+               points.append( -9999. )
 
          # Take unique points and reverse-sort them
          points = np.unique(points)

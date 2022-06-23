@@ -74,20 +74,23 @@ if __name__ == '__main__':
                     'ComputeMeanBets.py',
                     'ComputePersistenzen.py',
                     'ComputePoints.py',
-                    'ComputeSleepy.py']
+                    'ComputeSleepy.py',
+                    'ComputeRanksOnly.py']
       else:
          scripts = ['ComputePetrus.py',
                     'ComputeMeanBets.py',
                     #'ComputePersistenzen.py',
                     'ComputePoints.py',
-                    'ComputeSleepy.py']
+                    'ComputeSleepy.py',
+                    'ComputeRanksOnly.py']
    else:
       scripts = ['ComputePetrus.py',
                  'ComputeMeanBets.py',
  #                'ComputeMoses.py',
  #                'ComputePersistenzen',
                  'ComputePoints.py',
-                 'ComputeSleepy.py']
+                 'ComputeSleepy.py',
+                 'ComputeRanksOnly.py']
 
 
    # - Now calling the other scripts using the necessary
