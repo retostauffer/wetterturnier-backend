@@ -1,7 +1,69 @@
+"""
+Sd_Tag
+Abzüge von maximaler Punktzahl 8:
+3 Punkte pro 10 Prozent
+3 Punkte Zusatzabzug für Entscheidung 0/1 %
+
+Sd_1h_12Z (Sonnenscheindauer von 11Z bis 12Z)
+Abzüge von maximaler Punktzahl 8:
+1 Punkt pro 10 Minuten
+3 Punkte Zusatzabzug für Entscheidung 0/1 Minuten
+3 Punkte Zusatzabzug für Entscheidung 59/60 Minuten
+
+dd
+Abzüge von maximaler Punktzahl 7:
+1 Punkt pro 10 Richtungsgrad
+0,5 Punkte / 10° bei ff einer Station < 3 m/s
+0,5 Punkte / 10° für Abweichung von 60° bis 180°
+0,3 Punkte / 10° für Abweichung von 60° bis 180° und ff einer Station < 3 m/s
+Windstille ja/nein 6 Punkte Abzug
+
+ff
+Abzüge von maximaler Punktzahl 7:
+3 Punkte pro m/s
+
+fx (Windspitze von 0 bis 24Z)
+Abzüge von maximaler Punktzahl 7:
+3 Punkte pro m/s
+fx auch unter 12,6 m/s relevant
+
+PPP
+Abzüge von maximaler Punktzahl 7:
+3 Punkte pro hPa
+
+T_Min (18Z Vortag bis 6Z)
+Abzüge von maximaler Punktzahl 7:
+3 Punkte pro °C
+
+T_12Z (Temperatur um 12Z)
+Abzüge von maximaler Punktzahl 7:
+3 Punkte pro °C
+
+T_Max (6Z bis 18Z)
+Abzüge von maximaler Punktzahl 7:
+3 Punkte pro °C
+
+Td
+Abzüge von maximaler Punktzahl 7:
+3 Punkte pro °C
+
+RR_max_1h (höchste 1-stündige Niederschlagsmenge von 0Z bis 24Z)
+Abzüge von maximaler Punktzahl 8:
+1 Punkt pro l/m²
+5 – 1 l/m² 2-facher Abzug
+1 – 0 l/m² 4-facher Abzug
+
+RR_Tag (Niederschlagsumme von 0Z bis 24Z)
+Abzüge von maximaler Punktzahl 8:
+1 Punkt pro l/m²
+5 – 1 l/m² 2-facher Abzug
+1 – 0 l/m² 4-facher Abzug
+"""
+
 # -------------------------------------------------------------------
 # - NAME:        judgingclass.py
-# - AUTHOR:      Reto Stauffer
-# - DATE:        2014-09-21
+# - AUTHOR:      Reto Stauffer / Juri Hubrig
+# - DATE:        2022-09-02
 # -------------------------------------------------------------------
 # - DESCRIPTION: This is the judgingclass with the rules used
 #                after 2002-12-06.
@@ -49,9 +111,8 @@ class judging(object):
    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    # ----------------------------------------------------------------
 
-   ## Do not use this judgingclass in the operational mode for tournaments
-   #  smaller or equal to this date (days since 1970-01-01).
-   tdate_min = 12027
+   ## Do not use this judgingclass before 2022 rule change (2022-09-02)!
+   tdate_min = 19802
    ## If set - do not use this judgingclass in the operational mode
    #  for tournaments > this date (days sicne 1970-01-01).
    tdate_max = None
