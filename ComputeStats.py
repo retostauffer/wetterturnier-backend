@@ -11,7 +11,6 @@ if __name__ == '__main__':
    print(inputs)
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
-   print(config)
    # - Initializing class and open database connection
    db        = database.database(config)
 
@@ -25,24 +24,32 @@ if __name__ == '__main__':
    else:
       tdates     = [config['input_tdate']]
 
+   #verbose switch for debugging
+   if config["input_verbose"]:
+      verbose = True
+   else: verbose = False
+
    #-p option for testing minimum participations, exponent formula
    if config['input_param'] == None:
-      typ = "sd_logfit"
+      par = [100, 25] #pmid, pout
    else:
-      typ = config['input_param']
+      par = config['input_param'].split(",")
+      for i in range(2):
+         par[i] = int(par[i])
 
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
    # - If input city set, then drop all other cities.
    if not config['input_city'] == None:
       tmp = []
-      for i in cities:
-         if i['name'] == config['input_city']: tmp.append( i )
+      for city in cities:
+         if city['name'] == config['input_city']:
+            tmp.append( city )
       cities = tmp
 
    userIDs = db.get_all_users()
 
-   measures=["points_adj","points","part","mean","median","Qlow","Qupp","max","min","sd"]
+   measures=["sd_ind","points_adj","points","part","mean","median","Qlow","Qupp","max","min","sd"]
 
    # check whether current tournament is finished to keep open tournaments out of the userstats
    today              = utils.today_tdate()
@@ -62,7 +69,7 @@ if __name__ == '__main__':
          print('ALL DATES')
       for tdate in tdates:
          for day in range(3):
-            stats = db.get_stats( city['ID'], measures[-8:]+["sd_upp"], 0, tdate, day )
+            stats = db.compute_stats( city['ID'], measures[-8:]+["sd_upp"], 0, tdate, day )
             #if all stats are 0 we assume that no tournament took place on tdate
             if list(stats.values()) == [0] * len(stats):
                continue
@@ -71,7 +78,7 @@ if __name__ == '__main__':
       
       #Compute citystats which can be used for plotting box whiskers etc
       #TODO: we should already calculate the fit coefficients m,n / A,B,C later used for plotting here
-      stats = db.get_stats( city['ID'], measures[-7:] + ["mean_part","max_part","min_part","tdates"], last_tdate = last_tdate )
+      stats = db.compute_stats( city['ID'], measures[-7:] + ["mean_part","max_part","min_part","tdates"], last_tdate = last_tdate )
       db.upsert_stats( city['ID'], stats )
 
    if config['input_tdate'] == None:
@@ -79,18 +86,26 @@ if __name__ == '__main__':
       #calculate userstats, first import aliases.json as dict
       from json import load
       with open("aliases.json") as aliases:
+         from json import load
          aliases = load( aliases )
-      print(aliases)
-      for userID in userIDs:
-         user = db.get_username_by_id(userID)
-         for city in cities:
-            for day in range(3):
-               stats = db.get_stats( city['ID'], measures, userID, 0, day, last_tdate, aliases=aliases, typ=typ, pout=25, pmin=50 )
-               db.upsert_stats( city['ID'], stats, userID, 0, day)
+         if verbose: print(aliases)
+         for userID in userIDs:
+            user = db.get_username_by_id(userID)
+            for city in cities:
+               for day in range(3):
+                  stats = db.compute_stats( city['ID'], measures+["ranks_weekend"], userID, 0, day, last_tdate, aliases=aliases, pmid=par[0], pout=par[1] )
+                  db.upsert_stats( city['ID'], stats, userID, 0, day)
 
-      sql = "SELECT wu.user_login, us.points_adj %s FROM %swetterturnier_userstats us JOIN wp_users wu ON userID = wu.ID WHERE cityID=%d "
-      sql += "AND part >= 25 AND user_login NOT LIKE 'Sleepy' ORDER BY points_adj DESC"
-      cols = ",".join( measures[:4] )
+      sql = """
+         SELECT wu.user_login, %s
+         FROM %swetterturnier_userstats us
+         JOIN wp_users wu ON userID = wu.ID
+         WHERE cityID=%d AND part >= 25
+         ORDER BY points_adj DESC"""
+      
+      cols = ",".join(("ROUND(points_adj, 1) AS points_adj",
+                       "ROUND(points_med, 1) AS points_med",
+                       "ROUND(sd_ind, 1) AS sd_ind", "part") )
  
       if config['input_filename'] == None:
          filename = "eternal_list"
@@ -100,6 +115,9 @@ if __name__ == '__main__':
       #generating ranking table output, write to .xls file
       with pd.ExcelWriter( "plots/%s.xls" % filename ) as writer:
          for city in cities:
+            if verbose:
+               print(city["hash"])
+               print(sql % ( cols, db.prefix, city['ID'] ))
             table = pd.read_sql_query( sql % ( cols, db.prefix, city['ID'] ), db )
             table.to_excel( writer, sheet_name = city["hash"] )
             print(table)
@@ -107,7 +125,8 @@ if __name__ == '__main__':
       #now we call a plotting routine which draws some nice statistical plots
       import PlotStats
       tdate = max(tdates) - 7
-      PlotStats.plot(db, cities, tdate)
-
+      if verbose: print("Calling plot routine...")
+      PlotStats.plot(db, cities[:-2], tdate, verbose=False)
+      
    db.commit()
    db.close()
