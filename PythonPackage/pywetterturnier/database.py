@@ -21,15 +21,16 @@ def sql_tuple(IDs, strings=False):
    if not hasattr(IDs, '__len__') and type(IDs) == int:
       sql_str = "("+str(IDs)+")"
    elif len(IDs) in [0,1]:
-      if len(IDs) == 0: IDs.append(0)
+      IDs = list(IDs)
+      if len(IDs) == 0:
+         IDs.append(0)
       sql_str = str(tuple(IDs))[0:-2]+")"
    else: sql_str = str(tuple(IDs))
-   if type(IDs[0]) == str or strings:
+   if strings:
       sql_str = sql_str.replace("'","")
       sql_str = sql_str.replace("(","")
       sql_str = sql_str.replace(")","")
    return sql_str
-
 
 class database(object):
    """This is the main database handler class.
@@ -70,7 +71,7 @@ class database(object):
             IDs.append(0)
          sql_str = str(tuple(IDs))[0:-2]+")"
       else: sql_str = str(tuple(IDs))
-      if type(list(IDs)[0]) == str or strings:
+      if strings:
          sql_str = sql_str.replace("'","")
          sql_str = sql_str.replace("(","")
          sql_str = sql_str.replace(")","")
