@@ -201,6 +201,7 @@ def compute_stats(self, cityID, measures, userID=False, tdate=False, day=0, last
       
       #final adjusted points
       res["points_adj"] = f * (res["points_med"] / sd_ind) * 1000
+      print(res["points_adj"], userID) 
       if np.isnan( res["points_adj"] ):
          res["points_adj"] = 0
       

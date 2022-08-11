@@ -172,7 +172,7 @@ def plot(db, cities, tdate, verbose=False):
          ### PLOT MEDIAN
          fig, ax = pl.subplots()
          ax.plot_date( dates, median, label="Median", linestyle="-", marker="")
-         ax.plot_date( dates, func(x, *popt), "-g", label="Poly-Fitted Curve")
+         #ax.plot_date( dates, func(x, *popt), "-g", label="Poly-Fitted Curve")
          ax.plot_date( dates, e_func(x, *eopt), "-r", label="Log-Fitted Curve")
 
          # format the ticks
