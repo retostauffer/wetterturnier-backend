@@ -1,0 +1,14 @@
+Metadata-Version: 1.1
+Name: pywetterturnier
+Version: 0.1.post0
+Summary: The Wetterturnier Python Backend Package
+Home-page: https://bitbucket.org/retos/prognose2-www-repository
+Author: Juri Hubrig
+Author-email: juri.hubrig@fu-berlin.de
+License: GPL-3
+Description: This is only the backend code.
+Keywords: wetterturnier wetter tippspiel
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: GNU Lesser General Public License v3 or later (LGPLv3+)
+Classifier: Programming Language :: Python :: 3.8
