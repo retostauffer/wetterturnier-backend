@@ -1,0 +1,3 @@
+update table "wp_wetterturnier_stationsparams" to include new params
+TEST DATA
+new judgingclass

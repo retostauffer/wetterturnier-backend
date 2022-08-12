@@ -427,7 +427,8 @@ class getobs( object ):
    # - Prepare FX (m/s)
    # ----------------------------------------------------------------
    def _prepare_fun_FX_(self,station,special):
-      return self.load_obs( station.wmo, 12, "ffx" )
+      #ffx1 or ffx?
+      return self.load_obs( station.wmo, 12, "ffx1" )
 
    # ----------------------------------------------------------------
    # - Prepare Sd12z
@@ -439,7 +440,7 @@ class getobs( object ):
    # - Prepare RRm (max 1h precipitation of day)
    # ----------------------------------------------------------------
    def _prepare_fun_RRm_(self,station,special):
-      RR1h = [self.load_obs( station.wmo, i, "rr1" ) for i in range(25)]
+      RR1h = [self.load_obs( station.wmo, i, "rrr1" ) for i in range(25)]
       value = np.nanmax(filter(None, RR1h))
       if type(value) == int:
          return value
@@ -449,7 +450,7 @@ class getobs( object ):
    # - Prepare RRt (sum precipitation of day)
    # ----------------------------------------------------------------
    def _prepare_fun_RRt_(self,station,special):
-      RR1h = [self.load_obs( station.wmo, i, "rr1" ) for i in range(25)]
+      RR1h = [self.load_obs( station.wmo, i, "rrr1" ) for i in range(25)]
       value = np.nansum(filter(None, RR1h))
       if type(value) == int:
          return value

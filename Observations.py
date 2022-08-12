@@ -103,6 +103,7 @@ if __name__ == '__main__':
             #TODO get active parameters (SINCE/UNTIL columns) and loop over them
 
             for p in params:
+               print(p)
                obs.prepare(p)
 
             """
