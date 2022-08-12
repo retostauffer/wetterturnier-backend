@@ -314,7 +314,7 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
       exit('Problems rading all required data infos from config file')
    if not os.path.isdir( config['data_moses'] ):
       print("[WARNING] Could not find directory %s necessary for ComputeMoses" % config['data_moses']) 
-      print("          ComputeMoes will crash!")
+      print("          ComputeMoses will crash!")
    try:
       config['data_moses_out']   = CNF.get('data','moses_out')
       # If folder does not exist: ignore

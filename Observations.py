@@ -15,7 +15,6 @@
 # -------------------------------------------------------------------
 
 
-
 # - Start as main script (not as module)
 if __name__ == '__main__':
 
@@ -23,6 +22,8 @@ if __name__ == '__main__':
    import sys, os
    # - Wetterturnier specific modules
    from pywetterturnier import utils, database, getobs
+   
+   params=("TTm","TTn","TT12z","TTd","dd","FF","FX","PPP","Sd","Sd12z","RRm","RRt")
 
    os.environ['TZ'] = 'UTC' # Important!
    
@@ -99,6 +100,13 @@ if __name__ == '__main__':
 
             obs = getobs.getobs(config, db, city, date, wmoww )
 
+            #TODO get active parameters (SINCE/UNTIL columns) and loop over them
+
+            for p in params:
+               obs.prepare(p)
+
+            """
+            #OLD PARAMETERS:
             # - Temperatures
             obs.prepare('TTm') #,special='T today 06:00 to today 18:00')
             obs.prepare('TTn') #,special='T yesterday 18:00 to today 6:00 ')
@@ -118,14 +126,9 @@ if __name__ == '__main__':
             obs.prepare('RR')
             # - Sunshine
             obs.prepare('Sd')
-            #obs.show()
+            """
+
+            obs.show()
             obs.write_to_db()
 
    db.close()
-
-
-
-
-
-
-

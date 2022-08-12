@@ -150,7 +150,7 @@ class database(object):
       db     = self.config['mysql_db']
       port   = self.config['mysql_port']
       try:
-         res = MySQLdb.connect(host=host,user=user,passwd=passwd,db=db,port=port)
+         res = MySQLdb.connect(host=host,user=user,password=passwd,database=db,port=port)
       except Exception as e:
          print(e)
          utils.exit("Could not connect to the database. Stop.")

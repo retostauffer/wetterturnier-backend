@@ -43,6 +43,8 @@ class getobs( object ):
       """
       Initialization of the @ref getobs.getobs class.
       """
+      
+      import numpy as np
 
       # -------------------------------------------------------------
       # Public attributes
@@ -408,6 +410,52 @@ class getobs( object ):
          value = fun(station,special)
          self._add_obs_value_(parameter,station.wmo,value)
 
+
+   # ----------------------------------------------------------------
+   # - Prepare TT12z
+   # ----------------------------------------------------------------
+   def _prepare_fun_TT12z_(self,station,special):
+      return self.load_obs( station.wmo, 12, "t" )
+
+   # ----------------------------------------------------------------
+   # - Prepare FF (m/s)
+   # ----------------------------------------------------------------
+   def _prepare_fun_FF_(self,station,special):
+      return self.load_obs( station.wmo, 12, "ff" )
+
+   # ----------------------------------------------------------------
+   # - Prepare FX (m/s)
+   # ----------------------------------------------------------------
+   def _prepare_fun_FX_(self,station,special):
+      return self.load_obs( station.wmo, 12, "ffx" )
+
+   # ----------------------------------------------------------------
+   # - Prepare Sd12z
+   # ----------------------------------------------------------------
+   def _prepare_fun_Sd12z_(self,station,special):
+      return self.load_obs( station.wmo, 12, "sun" )
+
+   # ----------------------------------------------------------------
+   # - Prepare RRm (max 1h precipitation of day)
+   # ----------------------------------------------------------------
+   def _prepare_fun_RRm_(self,station,special):
+      RR1h = [self.load_obs( station.wmo, i, "rr1" ) for i in range(25)]
+      value = np.nanmax(filter(None, RR1h))
+      if type(value) == int:
+         return value
+      else: return None
+
+   # ----------------------------------------------------------------
+   # - Prepare RRt (sum precipitation of day)
+   # ----------------------------------------------------------------
+   def _prepare_fun_RRt_(self,station,special):
+      RR1h = [self.load_obs( station.wmo, i, "rr1" ) for i in range(25)]
+      value = np.nansum(filter(None, RR1h))
+      if type(value) == int:
+         return value
+      else: return None
+
+
    # ----------------------------------------------------------------
    # - Prepare TTm
    # ----------------------------------------------------------------
@@ -453,7 +501,7 @@ class getobs( object ):
             if spvalue is not None:
                value = np.max(spvalue)
          else:
-            print("[!] Had problems parsing the special argument! SKip!")
+            print("[!] Had problems parsing the special argument! Skip!")
 
 
       # - Return value
