@@ -412,9 +412,9 @@ class getobs( object ):
 
 
    # ----------------------------------------------------------------
-   # - Prepare TT12z
+   # - Prepare TT12
    # ----------------------------------------------------------------
-   def _prepare_fun_TT12z_(self,station,special):
+   def _prepare_fun_TT12_(self,station,special):
       return self.load_obs( station.wmo, 12, "t" )
 
    # ----------------------------------------------------------------
@@ -431,9 +431,9 @@ class getobs( object ):
       return self.load_obs( station.wmo, 12, "ffx1" )
 
    # ----------------------------------------------------------------
-   # - Prepare Sd12z
+   # - Prepare Sd12
    # ----------------------------------------------------------------
-   def _prepare_fun_Sd12z_(self,station,special):
+   def _prepare_fun_Sd12_(self,station,special):
       return self.load_obs( station.wmo, 12, "sun" )
 
    # ----------------------------------------------------------------

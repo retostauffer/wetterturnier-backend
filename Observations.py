@@ -22,8 +22,6 @@ if __name__ == '__main__':
    import sys, os
    # - Wetterturnier specific modules
    from pywetterturnier import utils, database, getobs
-   
-   params=("TTm","TTn","TT12z","TTd","dd","FF","FX","PPP","Sd","Sd12z","RRm","RRt")
 
    os.environ['TZ'] = 'UTC' # Important!
    
@@ -48,7 +46,9 @@ if __name__ == '__main__':
       tdates     = [config['input_tdate']]
 
    # - Loading all parameters
-   params = db.get_parameter_names()
+   params = db.get_parameter_names(active=True, sort=True, tdate=tdates[0])
+   #params = ("TTm","TTn","TT12","TTd","dd","FF","FX","PPP","Sd","Sd12","RRm","RRt")
+   #print(params)
 
    # ----------------------------------------------------------------
    # - Because of the observations we have to compute the
@@ -103,7 +103,6 @@ if __name__ == '__main__':
             #TODO get active parameters (SINCE/UNTIL columns) and loop over them
 
             for p in params:
-               print(p)
                obs.prepare(p)
 
             """

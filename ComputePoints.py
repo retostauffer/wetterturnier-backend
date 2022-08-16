@@ -47,7 +47,7 @@ if __name__ == '__main__':
          utils.exit('SORRY could not convert your input -u/--user to corresponding userID. Check name.')
    
    # - Loading all parameters
-   params = db.get_parameter_names(False)
+   params = db.get_parameter_names(active=True, sort=True, tdate=tdates[0])
 
    # ----------------------------------------------------------------
    # - Because of the observations we have to compute the
@@ -162,8 +162,6 @@ if __name__ == '__main__':
    
                # - Now compute points
                points = jug.get_points(obs,param,values,special,tdate)
-               print(points)
-               print(type(points[0]))
                jug.points_to_database( db, db_userID, db_cityID, db_paramID, db_tdate, \
                                        db_betdate, points )
    #db.commit()
