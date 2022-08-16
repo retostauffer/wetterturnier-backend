@@ -210,8 +210,8 @@ class getobs( object ):
 
       parameter = parameter.lower()
       if not parameter in self._columns_:
-         print("Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
-                  (parameter, self._table_))
+         #print("Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
+         #         (parameter, self._table_))
          return None
 
       tmp    = self._date_ + dt.timedelta( 0, hour*3600 )
@@ -359,102 +359,83 @@ class getobs( object ):
 
 
    # ----------------------------------------------------------------
-   # - Calling the prepare_fun methods for the different
-   #   parameters like TTm, TTn, ... 
+   # - Prepare T12
    # ----------------------------------------------------------------
-   def prepare( self, parameter,special=None):
-      """Prepares the different observed parameters like ``TTn``, ``TTm``, ``N``,
-      and so on (depending on what's defined in the database table
-      ``params``). Note that the script will ignore a wrong specified
-      or unknown parameter as the internal method then does not exist. 
-      The date will be taken from the public arguments of the parent
-      class :class`getobs.getobs`.
-      The additional data (specified via ``special`` input argument will only
-      be used when the final value is not yet available.
-
-      Args:
-         parameter (:obj:`str`): shortname of the Wetterturnier parameters. 
-         special   (:obj:`str`): String with a very specific format. This is to
-            compute some live observations such as min/max.
-
-      Examples:
-         Prepare weather type parameter ``Wv``, in addition select database
-         column ``w1`` and select all available observations between 07:00 today
-         and 18:00 of the requested date (today), see input argument
-         ``date`` on :obj:`getobs.getobs`.
-
-         ``x.prepare( "Wv", "w1 today 07:00 to today 12:00" )``
-
-         Compute minimum temperature ``TTn``, in addition select
-         database column ``T`` between yesterday 18:00 and today 06:00.
-
-         ``x.prepare( "TTn", "T yesterday 18:00 to today 6:00" )``
-
-      .. todo:: Reference to database table param.
-      """
-
-      try:
-         fun = eval("self._prepare_fun_%s_" % parameter)
-      except Exception as e:
-         print("[!] WARNING: method prepare_fun_%s does not exist. Cannot prepare data." % parameter)
-         print(e)
-         return
-
-      import inspect
-      if not inspect.ismethod( fun ):
-         print("[!] WARNING: method prepare_fun_%s is no instancemethod. Cannot prepare data." % parameter)
-         return
-
-      # - Else calling function
-      for station in self.stations:
-         value = fun(station,special)
-         self._add_obs_value_(parameter,station.wmo,value)
-
-
-   # ----------------------------------------------------------------
-   # - Prepare TT12
-   # ----------------------------------------------------------------
-   def _prepare_fun_TT12_(self,station,special):
+   def _prepare_fun_T12_(self,station,special):
       return self.load_obs( station.wmo, 12, "t" )
 
    # ----------------------------------------------------------------
-   # - Prepare FF (m/s)
+   # - Prepare FF12 (m/s)
    # ----------------------------------------------------------------
-   def _prepare_fun_FF_(self,station,special):
+   def _prepare_fun_ff12_(self,station,special):
       return self.load_obs( station.wmo, 12, "ff" )
 
+   def none_filter(self, values):
+      return list(filter(lambda x : x not in (None,-1), values))
+
+   def observed(self, values, func=np.max):
+      if len(values) == 0: return None
+      values = self.none_filter(values)
+      if len(values) > 0:
+         return func(values)
+      else: return 0
+
    # ----------------------------------------------------------------
-   # - Prepare FX (m/s)
+   # - Prepare FX24 (m/s)
    # ----------------------------------------------------------------
-   def _prepare_fun_FX_(self,station,special):
-      #ffx1 or ffx?
-      return self.load_obs( station.wmo, 12, "ffx1" )
+   def _prepare_fun_fx24_(self,station,special):
+      
+      ffx_max = []
+
+      ff = [self.load_obs( station.wmo, i, "ff" ) for i in range(24)]
+      if len(ff) > 0:
+         ff_max = self.observed( ff )
+         if ff_max:
+            ffx_max.append( ff_max )
+
+      ffx1 = [self.load_obs( station.wmo, i, "ffx1" ) for i in range(24)]
+      if len(ffx1) > 0:
+         ffx1_max = self.observed( ffx1 )
+         if ffx1_max:
+            ffx_max.append( ffx1_max )
+      
+      ffx3 = [self.load_obs( station.wmo, i, "ffx3" ) for i in range(3,24,3)]
+      if len(ffx3) > 0:
+         ffx3_max = self.observed( ffx3 )
+         if ffx3_max:
+            ffx_max.append( ffx3_max )
+
+      ffx6 = [self.load_obs( station.wmo, i, "ffx6" ) for i in range(6,24,6)]
+      if len(ffx6) > 0:
+         ffx6_max = self.observed( ffx6 )
+         if ffx6:
+            ffx_max.append( ffx6_max )
+
+      try: return np.max( self.none_filter(ffx_max) )
+      except: return None
+
 
    # ----------------------------------------------------------------
    # - Prepare Sd12
    # ----------------------------------------------------------------
    def _prepare_fun_Sd12_(self,station,special):
-      return self.load_obs( station.wmo, 12, "sun" )
+      try: return self.load_obs( station.wmo, 12, "sun" ) * 10
+      except: return None
+
 
    # ----------------------------------------------------------------
-   # - Prepare RRm (max 1h precipitation of day)
+   # - Prepare RR1 (max 1h precipitation of day)
    # ----------------------------------------------------------------
-   def _prepare_fun_RRm_(self,station,special):
-      RR1h = [self.load_obs( station.wmo, i, "rrr1" ) for i in range(25)]
-      value = np.nanmax(filter(None, RR1h))
-      if type(value) == int:
-         return value
-      else: return None
+   def _prepare_fun_RR1_(self,station,special):
+      RR1h = [self.load_obs( station.wmo, i, "rrr1" ) for i in range(24)]
+      return self.observed(RR1h)
 
    # ----------------------------------------------------------------
-   # - Prepare RRt (sum precipitation of day)
+   # - Prepare RR24 (sum precipitation of day)
    # ----------------------------------------------------------------
-   def _prepare_fun_RRt_(self,station,special):
-      RR1h = [self.load_obs( station.wmo, i, "rrr1" ) for i in range(25)]
-      value = np.nansum(filter(None, RR1h))
-      if type(value) == int:
-         return value
-      else: return None
+   def _prepare_fun_RR24_(self,station,special):
+      RR1h = [self.load_obs( station.wmo, i, "rrr1" ) for i in range(24)]
+      return self.observed(RR1h, np.sum)
 
 
    # ----------------------------------------------------------------
@@ -508,6 +489,7 @@ class getobs( object ):
       # - Return value
       return value
 
+   _prepare_fun_Tmax_ = lambda self,station,special : self._prepare_fun_TTm_(station,special)
 
    # ----------------------------------------------------------------
    # - Prepare TTn
@@ -546,6 +528,7 @@ class getobs( object ):
       # - Return value
       return value 
 
+   _prepare_fun_Tmin_ = lambda self,station,special : self._prepare_fun_TTn_(station,special)
 
    # ----------------------------------------------------------------
    # - Prepare TTd
@@ -568,6 +551,7 @@ class getobs( object ):
       # - Return value
       return value
 
+   _prepare_fun_Td12_ = lambda self,station,special : self._prepare_fun_TTd_(station,special)
 
    # ----------------------------------------------------------------
    # - Prepare PPP
@@ -614,6 +598,7 @@ class getobs( object ):
       # Return value 
       return value
 
+   _prepare_fun_PPP12_ = lambda self,station,special : self._prepare_fun_PPP_(station,special)
 
    # ----------------------------------------------------------------
    # - Prepare dd
@@ -665,6 +650,8 @@ class getobs( object ):
             value = 3600.
       # - Return value
       return value
+
+   _prepare_fun_dd12_ = lambda self,station,special : self._prepare_fun_dd_(station,special)
 
 
    # ----------------------------------------------------------------
@@ -1278,7 +1265,7 @@ class getobs( object ):
                 
             # - Else try to sum up hourly observations
             else:
-	       # Check if +24h record is here. If the record is here but we have
+	         # Check if +24h record is here. If the record is here but we have
                # not gotten any information so far (self.load_obs(..) returned None for
                # both, +30 and +24): loading 1h observations and take the sum!
                check24 = self.check_record( station.wmo, 24 )
@@ -1297,14 +1284,69 @@ class getobs( object ):
                   else:
                      # - Else sum up
                      value = sum([int( i[0] ) for i in data])
-
                      value = int( np.round(np.float(value) / np.float(self._maxSd_[station.wmo]) * 100) ) * 10
-	       # Else we report None 
+	            
+               # Else we report None 
                else: value = None
 
       # - Return value
       return value
+      
+   _prepare_fun_Sd24_ = lambda self,station,special : self._prepare_fun_Sd_(station,special)
 
+
+   # ----------------------------------------------------------------
+   # - Calling the prepare_fun methods for the different
+   #   parameters like TTm, TTn, ... 
+   # ----------------------------------------------------------------
+   def prepare( self, parameter,special=None):
+      """Prepares the different observed parameters like ``TTn``, ``TTm``, ``N``,
+      and so on (depending on what's defined in the database table
+      ``params``). Note that the script will ignore a wrong specified
+      or unknown parameter as the internal method then does not exist. 
+      The date will be taken from the public arguments of the parent
+      class :class`getobs.getobs`.
+      The additional data (specified via ``special`` input argument will only
+      be used when the final value is not yet available.
+
+      Args:
+         parameter (:obj:`str`): shortname of the Wetterturnier parameters.
+         special   (:obj:`str`): String with a very specific format. This is to
+            compute some live observations such as min/max.
+
+      Examples:
+         Prepare weather type parameter ``Wv``, in addition select database
+         column ``w1`` and select all available observations between 07:00 today
+         and 18:00 of the requested date (today), see input argument
+         ``date`` on :obj:`getobs.getobs`.
+
+         ``x.prepare( "Wv", "w1 today 07:00 to today 12:00" )``
+
+         Compute minimum temperature ``TTn``, in addition select
+         database column ``T`` between yesterday 18:00 and today 06:00.
+
+         ``x.prepare( "TTn", "T yesterday 18:00 to today 6:00" )``
+
+      .. todo:: Reference to database table param.
+      """
+
+      try:
+         #print("eval", parameter)
+         fun = eval("self._prepare_fun_%s_" % parameter)
+      except Exception as e:
+         print("[!] WARNING: method prepare_fun_%s does not exist. Cannot prepare data." % parameter)
+         print(e)
+         return
+
+      import inspect
+      if not inspect.ismethod( fun ):
+         print("[!] WARNING: method prepare_fun_%s is no instancemethod. Cannot prepare data." % parameter)
+         return
+
+      # - Else calling function
+      for station in self.stations:
+         value = fun(station,special)
+         self._add_obs_value_(parameter,station.wmo,value)
 
    # ----------------------------------------------------------------
    # - Show loaded data
@@ -1324,7 +1366,7 @@ class getobs( object ):
       for i in self.data:
          for k in list(self.data[i].keys()):
             if not k in allcols: allcols.append(k)
-      allcols.sort()
+      #allcols.sort()
 
       # - Show data
       print("     ", end=' ')

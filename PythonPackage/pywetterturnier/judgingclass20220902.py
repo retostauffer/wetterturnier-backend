@@ -1,72 +1,10 @@
-"""
-Sd_Tag
-Abzüge von maximaler Punktzahl 8:
-3 Punkte pro 10 Prozent
-3 Punkte Zusatzabzug für Entscheidung 0/1 %
-
-Sd_1h_12Z (Sonnenscheindauer von 11Z bis 12Z)
-Abzüge von maximaler Punktzahl 8:
-1 Punkt pro 10 Minuten
-3 Punkte Zusatzabzug für Entscheidung 0/1 Minuten
-3 Punkte Zusatzabzug für Entscheidung 59/60 Minuten
-
-dd
-Abzüge von maximaler Punktzahl 7:
-1 Punkt pro 10 Richtungsgrad
-0,5 Punkte / 10° bei ff einer Station < 3 m/s
-0,5 Punkte / 10° für Abweichung von 60° bis 180°
-0,3 Punkte / 10° für Abweichung von 60° bis 180° und ff einer Station < 3 m/s
-Windstille ja/nein 6 Punkte Abzug
-
-ff
-Abzüge von maximaler Punktzahl 7:
-3 Punkte pro m/s
-
-fx (Windspitze von 0 bis 24Z)
-Abzüge von maximaler Punktzahl 7:
-3 Punkte pro m/s
-fx auch unter 12,6 m/s relevant
-
-PPP
-Abzüge von maximaler Punktzahl 7:
-3 Punkte pro hPa
-
-T_Min (18Z Vortag bis 6Z)
-Abzüge von maximaler Punktzahl 7:
-3 Punkte pro °C
-
-T_12Z (Temperatur um 12Z)
-Abzüge von maximaler Punktzahl 7:
-3 Punkte pro °C
-
-T_Max (6Z bis 18Z)
-Abzüge von maximaler Punktzahl 7:
-3 Punkte pro °C
-
-Td
-Abzüge von maximaler Punktzahl 7:
-3 Punkte pro °C
-
-RR_max_1h (höchste 1-stündige Niederschlagsmenge von 0Z bis 24Z)
-Abzüge von maximaler Punktzahl 8:
-1 Punkt pro l/m²
-5 – 1 l/m² 2-facher Abzug
-1 – 0 l/m² 4-facher Abzug
-
-RR_Tag (Niederschlagsumme von 0Z bis 24Z)
-Abzüge von maximaler Punktzahl 8:
-1 Punkt pro l/m²
-5 – 1 l/m² 2-facher Abzug
-1 – 0 l/m² 4-facher Abzug
-"""
-
 # -------------------------------------------------------------------
 # - NAME:        judgingclass.py
 # - AUTHOR:      Reto Stauffer / Juri Hubrig
 # - DATE:        2022-09-02
 # -------------------------------------------------------------------
 # - DESCRIPTION: This is the judgingclass with the rules used
-#                after 2002-12-06.
+#                after 2022-09-02.
 #                Note: you can simply make a copy of this
 #                class, adapt the scoring rules. Furthermore you
 #                have to define/change/adapt the rule in the
@@ -76,10 +14,9 @@ Abzüge von maximaler Punktzahl 8:
 # -------------------------------------------------------------------
 # - L@ST MODIFIED: 2018-01-22 12:04 on marvin
 # -------------------------------------------------------------------
-
 # - Need numpy everywhere
 import numpy as np
-
+   
 class judging(object):
    """This is a judgingclass - a class used to compute the points
    a user gets on a specific weekend. Please note that it is possible
@@ -112,9 +49,10 @@ class judging(object):
    # ----------------------------------------------------------------
 
    ## Do not use this judgingclass before 2022 rule change (2022-09-02)!
-   tdate_min = 19802
+   #tdate_min = 19802
+   tdate_min = 19215
    ## If set - do not use this judgingclass in the operational mode
-   #  for tournaments > this date (days sicne 1970-01-01).
+   #  for tournaments > this date (days since 1970-01-01).
    tdate_max = None
 
    def __init__(self,quiet=False):
@@ -236,16 +174,14 @@ class judging(object):
       if not tdate == None:
          if not self.tdate_min == None:
             if self.tdate_min > tdate:
-               import sys
                utils.exit("judgingclass %s not allowed for tournament date %d" % \
                         (__name__,tdate))
          if not self.tdate_max == None:
             if self.tdate_max <= tdate:
-               import sys
                utils.exit("judgingclass %s not allowed for tournament date %d" % \
                         (__name__,tdate))
 
-      # - What to plot?
+      # - What to judge?
       method_to_use = '__points_%s__' % what
 
       # - Not available?
@@ -256,7 +192,7 @@ class judging(object):
       # - Loading method dynamical and call it.
       if not self.quiet:
          print('    - Using method: %s' % method_to_use)
-      call = getattr(self,method_to_use)
+      call = getattr(self, method_to_use)
       # Round to one digit after the comma
       return np.round( call(obs,data,special), 1 )
 
@@ -294,71 +230,42 @@ class judging(object):
    # ----------------------------------------------------------------
    # - Compute TTm (maximum temperature) points
    #   Compute TTn (minimum temperature) points
+   #   Compute TT12 (12z temperature) points
    #   Compute TTd (dewpoint temperature) points
    #   - They are using the same method (forwarding)
    # ----------------------------------------------------------------
-   def __points_TT12__(self,obs,data,special):
-      return self.__points__TTmTTnTTd__(obs,data,special,0.5)
-   def __points_TTm__(self,obs,data,special):
-      """Function to compute points for TTm (maximum temperature).
-      This is only an alias to __points_TTmTTnTTd__ as they all use
+   def __points_Tmax__(self,obs,data,special,full=7,factor=0.3):
+      """Function to compute points for Tmax (maximum temperature).
+      This is only an alias to __points_KISS__ as they all use
       the same rule.
       """
-      return self.__points_TTmTTnTTd__(obs,data,special,0.3)
-   def __points_TTn__(self,obs,data,special):
-      """Function to compute points for TTn (minimum temperature)
-      This is only an alias to __points_TTmTTnTTd__ as they all use
+      return self.__points_KISS__(obs,data,special,full,factor)
+   def __points_Tmin__(self,obs,data,special,full=7,factor=0.3):
+      """Function to compute points for Tmin (minimum temperature)
+      This is only an alias to __points_KISS__ as they all use
       the same rule.
       """
-      return self.__points_TTmTTnTTd__(obs,data,special,0.3)
-   def __points_TTd__(self,obs,data,special):
-      """Function to compute points for TTd (dew-point temperature)
-      This is only an alias to __points_TTmTTnTTd__ as they all use
+      return self.__points_KISS__(obs,data,special,full,factor)
+   def __points_Td12__(self,obs,data,special,full=7,factor=0.3):
+      """Function to compute points for Td12 (dew-point temperature)
+      This is only an alias to __points_KISS__ as they all use
       the same rule.
       """
-      return self.__points_TTmTTnTTd__(obs,data,special,0.2)
-   # - Here TTm and TTn are getting computed
-   def __points_TTmTTnTTd__(self,obs,data,special,factor):
-      """Rule function to compute points for minimum/maximum temperature
-      and dew-point temperature.
-
-      Args:
-        obs (): Observations.
-        data (): Forecasted values.
-        special (): Special observations for additional rules.
-            These are not used to compute the points in this function.
-        factor (): Factor for the loss of points for non-perfect forecasts.
-            As this factor differs for TTm/TTn and TTd it is specified
-            via input argument.
-      
-      Returns:
-         Returns the corresponding points.
+      return self.__points_KISS__(obs,data,special,full,factor)
+   def __points_T12__(self,obs,data,special,full=7,factor=0.3):
+      """Function to compute points for T12 (12z temperature)
+      This is only an alias to __points_KISS__ as they all use
+      the same rule.
       """
+      return self.__points_KISS__(obs,data,special,full,factor)
 
-      if not self.quiet:
-         print('    - Called TTm/TTn/TTd point computation method')
-      data   = np.asarray(data)
-      resid  = self.__residuals__(obs,data)
-
-      # - Full points
-      points = np.ndarray(len(data),dtype='float'); points[:] = 10.
-      # - Deduction for the first 10 tenth
-      #   Minus 0.1 Points for each difference unit
-      points = points - np.minimum( resid, 10. )*0.1
-      # - Deduction for the rest
-      #   Minus 0.3 points for each difference unit
-      points = points - np.maximum( resid - 10., 0. )*factor
-
-      # - Show data (development stuff)
-      #for i in range(len(data)):
-      #   print '%5d %5d %6.2f' % (data[i], resid[i], points[i])
-      return points
-
+   def __points_Sd12__(self,obs,data,special,full=8,factor=0.02):
+      return self.__points_KISS__(obs,data,special,full,factor)
 
    # ----------------------------------------------------------------
-   # - Compute Sd (sunshine duration) points 
+   # - Compute Sd24 (sunshine duration) points 
    # ----------------------------------------------------------------
-   def __points_Sd__(self,obs,data,special):
+   def __points_Sd24__(self,obs,data,special,full=8,factor=0.02):
       """Rule function to compute points for relative sunshine duration.
 
       Args:
@@ -369,46 +276,12 @@ class judging(object):
       Returns:
          Returns the corresponding points.
       """
-
-      if not self.quiet:
-         print('    - Called Sd point computation method')
-      data   = np.asarray(data)
-      resid  = self.__residuals__(obs,data)
-
-      # - Full points
-      points = np.ndarray(len(data),dtype='float'); points[:] = 5.
-      # - Deduction for each percent. 
-      #   Minus 0.01 Points for each difference unit
-      #   Note: i store 1/10 percent in the database.
-      points = points - resid*0.01
-      # - If user bet was wrong (resid > 0) and one of the
-      #   observations was 0 (0%) or 10 (1%): subtract additional 1.5 points. 
-      obs    = np.asarray(obs); MIN = np.min(obs); MAX = np.max(obs)
-      # - Additinoal 1.5 points less between observed 0% and bet 1% or
-      #   higher the other way around.
-      # - minus 1.5 points. Why + 0.1? I allready subtracted
-      #   0.1 points because 0/10 makes 10 difference units times
-      #   0.01 above makes 0.1 points deduction. Therefore I
-      #   have to subtract only 1.5 additional points here.
-      idx = np.where( np.logical_and(MAX == 0., data > 0.) )
-      points[idx] = points[idx] - 1.5 + 0.1
-      # - The same the other way around
-      idx = np.where( np.logical_and(MIN > 0., data == 0.) )
-      points[idx] = points[idx] - 1.5 + 0.1
-
-      # - Cannot be negative
-      points = np.maximum( points, 0)
-
-      # - Show data (development stuff)
-      #for i in range(len(data)):
-      #   print '%3d|%3d:  %3d %3d %6.2f' % (MIN/10., MAX/10., data[i]/10., resid[i]/10., points[i])
-      return points
-
+      return self.__points_KISS__(obs,data,special,full,factor)
 
    # ----------------------------------------------------------------
-   # - Compute dd (wind direction) 
+   # - Compute dd12 (wind direction) 
    # ----------------------------------------------------------------
-   def __points_dd__(self,obs,data,special):
+   def __points_dd12__(self,obs,data,special,full=7,factor=0.005):
       """
       TODO: crashes if only one dd observed and no wind speed => try/catch fallback
       Rule function to compute points for wind direction parameter.
@@ -444,7 +317,7 @@ class judging(object):
       if not MIN == None and MAX == None: MAX = MIN
       if MIN == None and not MAX == None: MIN = MAX
 
-      # - Lowest observed wind speed. Has to be on speical!
+      # - Lowest observed wind speed. Has to be on special!
       #   If nothing is observed, assume ffmin == 0 (gives
       #   less negative points, however, that is not the players
       #   fault if there is no ff observation).
@@ -454,7 +327,7 @@ class judging(object):
          ffmin = np.min( special )
 
       # - Max points
-      maxpoints = 9.
+      maxpoints = full
       #   Give everyone max points at the beginning
       p_normal  = np.ndarray( len(data), dtype='float'); p_normal[:]   = -999.
       p_special = np.ndarray( len(data), dtype='float'); p_special[:]  = -999.
@@ -465,8 +338,8 @@ class judging(object):
       #falsch#if len( np.where(obs ==    0.)[0] ) > 0:                           calm     = True
       #falsch#if len( np.where(obs == 9900.)[0] ) > 0:                           variable = True
 
-      #if at least one wind direction is zero, it's calm
-      if len( np.where(obs ==    0.)[0] ) > 0:
+      #if (ffmin == 0) or at least one wind direction is zero, it's calm
+      if ( ffmin == 0 ) or ( len( np.where(obs ==    0.)[0] ) > 0 ):
          calm     = True
       #if at least one direction is variable...
       if len( np.where(obs == 9900.)[0] ) > 0:
@@ -487,10 +360,10 @@ class judging(object):
          #   or counter clock wise).
          dd_min  = np.min( obs[np.where(np.logical_and(obs > 0.,obs<=3600.))] )
          dd_max  = np.max( obs[np.where(np.logical_and(obs > 0.,obs<=3600.))] )
-         dd_diff = np.abs( dd_min-dd_max )
+         dd_diff = np.abs( dd_min - dd_max )
 
          if len(idx[0]) > 0:
-            # - Normal penalty
+            # - Normal penalty: 0.5 points deduction per 10 deg
             #   If minimum wind was less than 6kt: 1.0 points per 10 deg
             #   If minimum wind was >=        6kt: 0.5 points per 10 deg
             #   Please note that the 'data' (bets) are in 1/10th of degrees
@@ -505,10 +378,8 @@ class judging(object):
                residC = self.__residuals__(the_obs+3600.,data[idx])
                resid  = np.minimum(residA,residB)
                resid  = np.minimum(resid, residC)
-               if ffmin < 60.:
-                  p_normal[idx] = maxpoints - resid*0.005
-               else:
-                  p_normal[idx] = maxpoints - resid*0.01
+               
+               p_normal[idx] = maxpoints - resid * factor
 
                all_resid[idx] = resid
 
@@ -518,37 +389,33 @@ class judging(object):
       #        ----------------------------------
       #   (a)        0.       9900.        5
       #   (b)     9900.          0.        5
-      #   (c)   0/9900.   >0/<3600.        7
-      #   (d)   0/9900.   >0/<3600.        7
+      #   (c)        0.   >0/<3600.        5
+      #   (d)     9900.   >0/<3600.        5
       #        ----------------------------------
       # -------------------------------------------------------------
+      #TODO MAKE IT KISS!
       if calm or variable:
          if calm:
             # - Full points for people obs 0 and forecast 0
             p_special[np.where( data == 0. )] = maxpoints
-            # - If calm observed but forecast was in between >0/<=3600: -7
-            idx = np.where( np.logical_and( data > 0., data <= 3600. ) )
-            p_special[idx] = maxpoints - 7
-            # - If calm observed but 9900 forecasted: -5
+            
+            # - If calm observed but 9900 or direction forecasted: -5
             idx = np.where( data == 9900. )
             p_special[idx] = maxpoints - 5
          if variable:
             # - Full points for people obs 9900 and forecast 9900
             p_special[np.where( data == 9900. )] = maxpoints
-            # - If variable observed but forecast was in between >0/<=3600: -7
-            idx = np.where( np.logical_and( data > 0., data <= 3600. ) )
-            p_special[idx] = maxpoints - 7
-            # - If variable observed but 0 forecasted: -5
+            # - If variable observed but 0 or direction forecasted: -5
             idx = np.where( data == 0. )
             p_special[idx] = maxpoints - 5
       # - If 0 forecasted but not 'normal' wind direction observed 
       if not calm:
          idx = np.where( data == 0. )
-         p_special[idx] = maxpoints - 7
+         p_special[idx] = maxpoints - 5
       # - If 9900 forecasted but not 'normal' wind direction observed 
       if not variable:
          idx = np.where( data >= 9900. )
-         p_special[idx] = maxpoints - 7
+         p_special[idx] = maxpoints - 5
 
       # - Now take maximum points
       points = np.maximum( p_special, p_normal )
@@ -558,41 +425,18 @@ class judging(object):
 
 
    # ----------------------------------------------------------------
-   # - Compute ff (mean wind speed) points 
+   # - Compute ff12 (mean wind speed) points 
    # ----------------------------------------------------------------
-   def __points_ff__(self,obs,data,special):
-      """Rule function to compute points for wind speed.
+   def __points_ff12__(self,obs,data,special,full=7,factor=0.3):
+      return self.__points_KISS__(obs,data,special,full,factor)
 
-      Args:
-        obs (): Observations.
-        data (): Forecasted values.
-        special (): Special observations for additional rules.
-      
-      Returns:
-         Returns the corresponding points.
-      """
-
-      if not self.quiet:
-         print('    - Called ff point computation method')
-      data   = np.asarray(data)
-      resid  = self.__residuals__(obs,data)
-
-      # - Full points
-      points = np.ndarray(len(data),dtype='float'); points[:] = 6.
-      # - Deduction
-      #   Minus 0.1 Points for each difference unit
-      points = points - resid*0.1
-
-      # - Show data (development stuff)
-      #for i in range(len(data)):
-      #   print '%5d %5d | %5d %5d %6.2f' % (np.min(obs), np.max(obs), data[i], resid[i], points[i])
-      return points
-
+   def __points_fx24__(self,obs,data,special,full=7,factor=0.3):
+      return self.__points_KISS__(obs,data,special,full,factor)
 
    # ----------------------------------------------------------------
-   # - Compute PPP (station pressure) points 
+   # - Compute PPP12 (station pressure) points 
    # ----------------------------------------------------------------
-   def __points_PPP__(self,obs,data,special):
+   def __points_PPP12__(self,obs,data,special,full=7,factor=0.3):
       """Rule function to compute points for reduced surface air pressure.
 
       Args:
@@ -603,19 +447,45 @@ class judging(object):
       Returns:
          Returns the corresponding points.
       """
+      return self.__points_KISS__(obs,data,special,full,factor)
+
+
+   def __points_KISS__(self,obs,data,special,full=7,factor=0.3):
+      """Rule function to compute points for KISS (Keep It Simple Stupid) params.
+
+      Args:
+        obs (): Observations.
+        data (): Forecasted values.
+        special (): Special observations for additional rules.
+
+      Returns:
+         Returns the corresponding points.
+      """
 
       if not self.quiet:
-         print('    - Called PPP point computation method')
+         print('    - Called point computation method')
       data   = np.asarray(data)
       resid  = self.__residuals__(obs,data)
 
       # - Full points
-      points = np.ndarray(len(data),dtype='float'); points[:] = 10.
+      points = np.ndarray(len(data),dtype='float'); points[:] = full
       # - Deduction
-      #   Minus 0.1 points for each unit difference (bets are stored in hPa*10)
-      points = points - resid*0.1
+      #   Minus 'factor' points for each unit difference
+      points = points - resid * factor
 
       # - Show data (development stuff)
       #for i in range(len(data)):
       #   print '%5d %5d %6.2f' % (data[i], resid[i], points[i])
       return points
+
+
+   def __points_RR__(self,obs,data,special,full=8,factor=0.1):
+      points = None
+      # - doubled deduction from 5 - 1 mm
+      return points
+
+   def __points_RR1__(self,obs,data,special,full=8,factor=0.1):
+      return self.__points_RR__(obs,data,special,full,factor)
+
+   def __points_RR24__(self,obs,data,special,full=8,factor=0.1):
+      return self.__points_RR__(obs,data,special,full,factor)

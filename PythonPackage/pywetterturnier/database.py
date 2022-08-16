@@ -423,8 +423,7 @@ class database(object):
       sql = "SELECT * FROM %swetterturnier_stations WHERE cityID = %d" % (self.prefix,cityID)
       if active: sql += " AND active = 1"
       if tdate:
-         tdate = str(tdate)
-         sql += " AND (since < "+tdate+" OR since = 0) AND (until > "+tdate+" OR until = 0)"
+         sql += f" AND (since<={tdate} OR since=0) AND (until>{tdate} OR until=0)"
       cur = self.db.cursor()
       cur.execute( sql )
       desc = cur.description
@@ -481,7 +480,6 @@ class database(object):
          cities (unique) will be returned.
 
       Returns:
-         list: A list wil be returned containing a set of integer values where
          each element represents one tournament played for the city. Dates in
          days since 1970-01-01.
       """
@@ -946,6 +944,7 @@ class database(object):
 
       #print sql % (self.prefix,self.prefix,cityID,paramID,bdate)
       cur.execute( sql % (self.prefix,self.prefix,cityID,paramID,bdate) )
+      cur.execute( sql % (self.prefix,self.prefix,cityID,paramID,bdate) )
 
       data = cur.fetchall()
       #print data
@@ -963,7 +962,7 @@ class database(object):
    #   date where they were used at that time. The point computation
    #   code will skip if there are no data.
    # -------------------------------------------------------------------
-   def get_parameter_names(self, active = False, sort=False, cityID=False):
+   def get_parameter_names(self,active=False,sort=False,cityID=False,tdate=False):
       """Returns all parameter names.
       If input active is set, only active parametres will be returned.
       
@@ -979,6 +978,8 @@ class database(object):
       cur = self.db.cursor()
       sql = "SELECT paramName FROM %swetterturnier_param" % self.prefix
       if active: sql += " WHERE active = 1"
+      if tdate:
+         sql += f" AND (since<={tdate} OR since=0) AND (until>{tdate} OR until=0)"
       if sort: sql += " ORDER BY sort"
       cur.execute( sql )
       data = cur.fetchall()
@@ -1007,7 +1008,21 @@ class database(object):
       else:
          return int( data[0] )
 
-   
+
+   def get_max_points(self,param):
+      """Return max points given per parameter saved in database (for bonus points)
+      """
+      cur = self.db.cursor()
+      cur.execute("SELECT pmax FROM %swetterturnier_param WHERE paramName = \'%s\'" % (self.prefix, param))
+      data = cur.fetchone()
+      if not data:
+         return False
+      res = data[0]
+      if res:
+         return res
+      else: return False
+  
+
    # -------------------------------------------------------------------
    # - Returns user id. And creates user if necessary.
    # -------------------------------------------------------------------
@@ -1040,7 +1055,6 @@ class database(object):
    # -------------------------------------------------------------------
    # - Returning user ID
    # -------------------------------------------------------------------
-   def get_user_id(self,user):
       """Returns user ID given a username. If the user cannot be found,
       the method returns False. There is a vice versa function called
       :py:meth:`database.get_username_by_id`.
@@ -1050,6 +1064,7 @@ class database(object):
       Returns:
         bool or int: False if user does not exist, else the integer user ID.
       """
+   def get_user_id(self, user):
       for i in ["user_login","user_nicename","display_name"]:
          cur = self.db.cursor()
          cur.execute('SELECT ID FROM %susers WHERE LOWER(%s) = \'%s\'' % (self.prefix, i, user.lower()))
