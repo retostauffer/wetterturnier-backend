@@ -152,10 +152,10 @@ if __name__ == '__main__':
                   print('    Got no data for this parameter. Skip.')
                   continue
    
-               # - If the parameter to judge is "dd" we need additional
+               # - If the parameter to judge is "dd/dd12" we need additional
                #   information about the observed wind speed! Take it here.
-               if param == 'dd':
-                  ffID = db.get_parameter_id( 'ff' )
+               if 'dd' in param:
+                  ffID = db.get_parameter_id( param )
                   special = db.get_obs_data(city['ID'],ffID,tdate,day)
                else:
                   special = None # unused
