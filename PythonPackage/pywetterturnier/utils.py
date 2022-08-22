@@ -502,13 +502,13 @@ class wmowwConversion( object ):
 #   Helper function which creates a timestamp from a datetime object
 def timestamp( dt ):
     "Return POSIX timestamp from datetime object as float"
-    import time as t
-    return t.mktime( dt.timetuple() )
+    import time
+    return time.mktime( dt.timetuple() )
 
 
 def datetime2tdate( datetime ):
     "Convert datetime object to tdate"
-    return np.floor( timestamp( datetime ) / 86400 )
+    return int( timestamp( datetime ) / 86400 )
 
 
 def tdate2datetime( tdate ):
@@ -540,7 +540,7 @@ def string2tdate( datestring, moses = False ):
     "opposite of the above function"
     from datetime import datetime as dt
 
-    if moses: #mosesYYMMDD
+    if moses or len(datestring) == 6: #YYMMDD
        year = int(datestring[0:2])
        mon  = int(datestring[2:4])
        day  = int(datestring[4:6])
@@ -550,15 +550,16 @@ def string2tdate( datestring, moses = False ):
        day   = int(datestring[8:10])
 
     dtobj = dt(year, mon, day)
-    return int( timestamp2tdate( timestamp( dtobj ) ) )
+    
+    return datetime2tdate( dtobj )
 
 
 def timestamp2tdate( timestamp ):
-    return int( timestamp / 86400 )
+    return int( timestamp // 86400 )
 
 
 def tdate2timestamp( tdate ):
-    return tdate * 86400
+    return int( tdate * 86400 )
 
 
 def today_tdate():

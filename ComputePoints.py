@@ -47,8 +47,8 @@ if __name__ == '__main__':
          utils.exit('SORRY could not convert your input -u/--user to corresponding userID. Check name.')
    
    # - Loading all parameters
-   #params = db.get_parameter_names(active=True, sort=True, tdate=tdates[0])
-   params = db.get_parameter_names(active=False)
+   params = db.get_parameter_names(active=True, sort=True, tdate=tdates[0])
+   #params = db.get_parameter_names(active=False)
 
    # ----------------------------------------------------------------
    # - Because of the observations we have to compute the
@@ -166,16 +166,17 @@ if __name__ == '__main__':
                # - Now compute points
                points = jug.get_points(obs,param,values,special,tdate)
                pmax = db.get_max_points(param)
-               print(pmax)
+               print(points[0], "/", pmax)
                if pmax:
                   for i in range(len(points)):
                      if points[i] == pmax:
                         points[i] = points[i] + 1
                         print("BONUS POINT GIVEN!")
+                        #save bonus points seperately?
                 
                jug.points_to_database( db, db_userID, db_cityID, db_paramID, db_tdate, \
                                        db_betdate, points )
-   #db.commit()
+   db.commit()
                
                
    # ----------------------------------------------------------------

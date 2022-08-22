@@ -94,6 +94,7 @@ class judging(object):
       """
 
       if not len(userID) == len(values):
+         from . import utils
          utils.exit('In judging.prepare_for_database got different lengths of userIDs and values!')
 
       # - Create result
@@ -227,6 +228,7 @@ class judging(object):
 
       return resid
 
+
    # ----------------------------------------------------------------
    # - Compute TTm (maximum temperature) points
    #   Compute TTn (minimum temperature) points
@@ -259,8 +261,13 @@ class judging(object):
       """
       return self.__points_KISS__(obs,data,special,full,factor)
 
-   def __points_Sd12__(self,obs,data,special,full=8,factor=0.02):
+   def __points_Sd1__(self,obs,data,special,full=8,factor=0.02):
+      """Function to compute points for Sd1 (12z 1h sunshine duration)
+      This is only an alias to __points_KISS__ as they all use
+      the same rule.
+      """
       return self.__points_KISS__(obs,data,special,full,factor)
+
 
    # ----------------------------------------------------------------
    # - Compute Sd24 (sunshine duration) points 
@@ -277,6 +284,7 @@ class judging(object):
          Returns the corresponding points.
       """
       return self.__points_KISS__(obs,data,special,full,factor)
+
 
    # ----------------------------------------------------------------
    # - Compute dd12 (wind direction) 
@@ -425,7 +433,7 @@ class judging(object):
 
 
    # ----------------------------------------------------------------
-   # - Compute ff12 (mean wind speed) points 
+   # - Compute ff (mean wind speed) points 
    # ----------------------------------------------------------------
    def __points_ff12__(self,obs,data,special,full=7,factor=0.3):
       return self.__points_KISS__(obs,data,special,full,factor)
@@ -471,7 +479,7 @@ class judging(object):
       points = np.ndarray(len(data),dtype='float'); points[:] = full
       # - Deduction
       #   Minus 'factor' points for each unit difference
-      points = points - resid * factor
+      points -= resid * factor
 
       # - Show data (development stuff)
       #for i in range(len(data)):
@@ -480,9 +488,31 @@ class judging(object):
 
 
    def __points_RR__(self,obs,data,special,full=8,factor=0.1):
-      points = None
-      # - doubled deduction from 5 - 1 mm
+
+      data  = np.asarray(data); obs = np.asarray(obs)
+      resid = self.__residuals__(obs,data)
+      obs_min = np.min(obs)
+      obs_max = np.max(obs)
+
+      # - Full points
+      points = np.ndarray(len(data),dtype='float'); points[:] = full
+     
+      # - Compute deduction
+      # - Apply doubled deduction from 0 - 5 mm (resid)
+      if obs_min <= 50:
+         print("obs_min <= 50")
+         data_50 = np.repeat( 50, len(data) )
+         res_50 = self.__residuals__( obs, np.minimum(data, data_50 ) )
+         print("res_50", res_50)
+         points -= res_50 * factor
+         print(points)
+
+      # - Single deduction gets applied always
+      points -= resid * factor
+      print(points)
+
       return points
+
 
    def __points_RR1__(self,obs,data,special,full=8,factor=0.1):
       return self.__points_RR__(obs,data,special,full,factor)
