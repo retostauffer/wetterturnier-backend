@@ -679,8 +679,7 @@ class database(object):
       # - Ignore the sleepy!
       deadID = self.get_user_id('Sleepy')
 
-      # - For Petrus, load all bets for a given
-      #   tdate/betdate, city and parameter.
+      # - For averaged bets, load all bets for a given tdate/betdate, city and parameter.
       
       if typ == 'all': 
          # - Also ignore Referenztipps. They look like players but they
@@ -701,7 +700,7 @@ class database(object):
          sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
          sql.append("AND bet.userID != %d" % deadID)
          sql.append("AND bet.userID NOT IN%s" % sql_tuple(ref))
-         #print "\n".join(sql)
+         #print("\n".join(sql))
          cur.execute( "\n".join(sql) )
       # - If input was user, load tips for a specific user.
       elif typ == 'user':
@@ -713,7 +712,7 @@ class database(object):
          sql.append("WHERE bet.userID = %d" % ID) 
          sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
          sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
-         #print "\n".join( sql )
+         #print("\n".join( sql ))
          cur.execute( "\n".join(sql) ) 
       # - If input was user, load tips for a specific user.
       elif typ == 'group':
@@ -741,13 +740,12 @@ class database(object):
          strdate_end = dt.fromtimestamp((tdate+1)*86400).strftime("%Y-%m-%d 00:00:00")
          sql.append("AND (gu.since IS NULL OR gu.since < '{0:s}') AND (gu.until IS NULL OR gu.until >= '{1:s}')".format(
                     strdate_end,strdate_bgn))
-         #print "\n".join(sql)
+         #print("\n".join(sql))
 
          # Execute query
          cur.execute( "\n".join(sql) ) 
       elif typ == 'human' or typ == 'petrus':
          # - get only human players, no sleepy no groups, no automats, no reference tips
-         # TODO: exclude automatons in 'human' mode
          # - look for Petrus, Moses and Persistenz ID to exclude them:
          PetrusID = self.get_user_id('Petrus')
          MosesID = self.get_user_id('Moses')
@@ -767,13 +765,14 @@ class database(object):
          if typ == 'human':
             ref = self.get_group_id('Automaten')
             cur.execute( 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d' % (self.prefix, ref) )
-            ref = [i[0] for i in cur.fetchall()]
-            
-            sql.append("AND bet.userID NOT IN (%d,%d,%d,%d,%d)" % (deadID,PetrusID,MosesID,DonnerstagID,FreitagID))
-            sql.append(" ".join(ref)) 
+            mosIDs = [str(i[0]) for i in cur.fetchall()]
+            try: mosIDs = "," + ",".join(mosIDs)
+            except: mosIDs = ""
+
+            sql.append("AND bet.userID NOT IN (%d,%d,%d,%d,%d%s)" % (deadID,PetrusID,MosesID,DonnerstagID,FreitagID,",".join(mosIDs)) )
          else:
             sql.append("AND bet.userID NOT IN (%d,%d,%d)" % (deadID,PetrusID,MosesID))
-         #print "\n".join(sql)
+         #print("\n".join(sql))
          cur.execute( "\n".join(sql) )
       # - If input was user, load tips for a specific user.
 

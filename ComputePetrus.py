@@ -100,7 +100,7 @@ if __name__ == '__main__':
  
          # - Returns list object containing two dicts 
          #   where all the bets are in.
-         bet = mitteltip.mitteltip(db,'all',False,city,tdate)
+         bet = mitteltip.mitteltip(db,'petrus',False,city,tdate)
  
          # - If bet is False, continue
          if bet == False: continue

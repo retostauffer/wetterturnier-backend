@@ -709,7 +709,7 @@ class getobs( object ):
          or None if observation not available or nor recorded.
       """
 
-      #first we check if a converted obs for dd is available (maybe it has been set zero by admin)
+      # - first we check if a converted obs for dd is available (maybe it has been set zero by admin)
       from pywetterturnier import database, utils
       import numpy as np
 
@@ -729,6 +729,10 @@ class getobs( object ):
       #no converted obs yet? get obs from obstable
       if dd is False:
          dd = self.load_obs( station.wmo, 12, 'dd' )
+      if type(dd) == None:
+         # - Fallback that we probably never need:
+         #   If no dd observation take max gust direction
+         dd = self.load_obs( station.wmo, 12, 'ddx' )
 
       #if no wind direction is determined there can be no wind
       if dd is 0:
