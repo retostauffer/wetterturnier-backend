@@ -233,7 +233,7 @@ class getobs( object ):
       if len(data) == 0:
          # try hh:50 obs
          sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
-            (parameter, self._table_, wmo, datum, stdmin-10)
+            (parameter, self._table_, wmo, datum, int(stdmin-10))
 
          cur = self.db.cursor()
          cur.execute( sql )
