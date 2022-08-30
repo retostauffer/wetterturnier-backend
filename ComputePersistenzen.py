@@ -76,7 +76,7 @@ if __name__ == '__main__':
       for tdate in tdates:
 
          # - Using obervations of the tournament day for our Persistenz player
-         tdate_str = dt.fromtimestamp( tdate-j * 86400 ).strftime('%a, %Y-%m-%d')
+         tdate_str = utils.tdate2string( tdate - j )
 
          print("    Searching for Observations:     %s (%d)" % (tdate_str, tdate-j))
 
@@ -99,8 +99,8 @@ if __name__ == '__main__':
             #   instead of user bets like in Petrus. typ='persistenz' for db
             #   idea: we could also take thursday's obs for saturday and
             #   fridays tip for sunday, or even saturday's for sunday...
-            bet = mitteltip.mitteltip(db,'persistenz',False,city,tdate-j)
-            print(bet) 
+            bet = mitteltip.mitteltip( db, 'persistenz', False, city, tdate - j )
+            print("bet:", bet) 
             # - If bet is False, continue
             if bet == False: continue
             

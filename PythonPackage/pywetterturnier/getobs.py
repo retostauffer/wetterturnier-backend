@@ -56,7 +56,9 @@ class getobs( object ):
       #  data[wmo station number][parameter] = observation value.
       self.data     = None
       ## List of stationclass objects
-      self.stations = self.db.get_stations_for_city( city['ID'] )
+      from .utils import datetime2tdate
+      tdate = datetime2tdate( date )
+      self.stations = self.db.get_stations_for_city( city['ID'], tdate = tdate )
       ## Store wmoww input arg
       self.wmoww    = wmoww
 
@@ -217,7 +219,7 @@ class getobs( object ):
       tmp    = self._date_ + dt.timedelta( 0, hour*3600 )
       datum  = int( tmp.strftime('%Y%m%d') )
       stdmin = int( tmp.strftime('%H%M')   )
-      #print "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter)
+      #print( "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter) )
 
       # - Load from db
       sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
@@ -364,21 +366,24 @@ class getobs( object ):
    def _prepare_fun_T12_(self,station,special):
       return self.load_obs( station.wmo, 12, "t" )
 
+
    # ----------------------------------------------------------------
    # - Prepare ff12 (m/s)
    # ----------------------------------------------------------------
    def _prepare_fun_ff12_(self,station,special):
       return self.load_obs( station.wmo, 12, "ff" )
 
+
    def none_filter(self, values):
       return list(filter(lambda x : x not in (None,-1), values))
 
-   def observed(self, values, func=np.max):
+
+   def observed(self, values, func = np.max ):
       if len(values) == 0: return None
       values = self.none_filter(values)
       if len(values) > 0:
          return func(values)
-      else: return 0
+      return None
 
    # ----------------------------------------------------------------
    # - Prepare fx24 (m/s)
@@ -387,29 +392,39 @@ class getobs( object ):
       
       ffx_max = []
 
-      ff = [self.load_obs( station.wmo, i, "ff" ) for i in range(24)]
+      ff = [self.load_obs( station.wmo, i, "ff" ) for i in range(1,25)]
       if len(ff) > 0:
          ff_max = self.observed( ff )
          if ff_max:
             ffx_max.append( ff_max )
 
-      ffx1 = [self.load_obs( station.wmo, i, "ffx1" ) for i in range(24)]
+      ffx1 = [self.load_obs( station.wmo, i, "ffx1" ) for i in range(1,25)]
       if len(ffx1) > 0:
          ffx1_max = self.observed( ffx1 )
          if ffx1_max:
             ffx_max.append( ffx1_max )
       
-      ffx3 = [self.load_obs( station.wmo, i, "ffx3" ) for i in range(3,24,3)]
+      ffx3 = [self.load_obs( station.wmo, i, "ffx3" ) for i in range(3,25,3)]
       if len(ffx3) > 0:
          ffx3_max = self.observed( ffx3 )
          if ffx3_max:
             ffx_max.append( ffx3_max )
 
-      ffx6 = [self.load_obs( station.wmo, i, "ffx6" ) for i in range(6,24,6)]
+      ffx6 = [self.load_obs( station.wmo, i, "ffx6" ) for i in range(6,25,6)]
       if len(ffx6) > 0:
          ffx6_max = self.observed( ffx6 )
          if ffx6:
             ffx_max.append( ffx6_max )
+
+      ffx12 = [self.load_obs( station.wmo, i, "ffx12" ) for i in range(12,25,6)]
+      if len(ffx12) > 0:
+         ffx12_max = self.observed( ffx12 )
+         if ffx12:
+            ffx_max.append( ffx12_max )
+
+      ffx24 = self.load_obs( station.wmo, 24, "ffx24" )
+      if ffx24:
+         ffx_max.append( ffx24 )
 
       try: return np.max( self.none_filter(ffx_max) )
       except: return None
@@ -427,15 +442,38 @@ class getobs( object ):
    # - Prepare RR1 (max 1h precipitation of day)
    # ----------------------------------------------------------------
    def _prepare_fun_RR1_(self,station,special):
-      RR1h = [self.load_obs( station.wmo, i, "rrr1" ) for i in range(24)]
-      return self.observed(RR1h)
+      
+      RR1 = []
+      for RRx in ("rrr1","rrp1","rracc1"):
+         RR1 += [self.load_obs( station.wmo, i, RRx ) for i in range(1,25)]
+      print(RR1)
+
+      if len(RR1) == 0:
+         RRint = [self.load_obs( station.wmo, i, "rrint" ) for i in range(1,25)]
+         # - Maybe we can derive rain sums from intensity and time period (1h)?
+         print("RR intensities:")
+         print(RRint)
+
+      RR1_max = self.observed(RR1)
+      
+      if RR1_max: return RR1_max
+      else: return None
+
 
    # ----------------------------------------------------------------
    # - Prepare RR24 (sum precipitation of day)
    # ----------------------------------------------------------------
    def _prepare_fun_RR24_(self,station,special):
-      RR1h = [self.load_obs( station.wmo, i, "rrr1" ) for i in range(24)]
-      return self.observed(RR1h, np.sum)
+      
+      RR1 = []
+      for RRx in ("rrr1","rrp1","rracc1"):
+         RR1 += [self.load_obs( station.wmo, i, RRx ) for i in range(1,25)]
+
+      RR1_sum = self.observed(RR1, np.sum)
+      if RR1_sum: return RR1_sum
+      else:
+         RR3 = [self.load_obs( station.wmo, i, "rrr3" ) for i in range(3,25,3)]
+         return self.observed(RR3, np.sum)
 
 
    # ----------------------------------------------------------------
@@ -1054,9 +1092,9 @@ class getobs( object ):
           if     x in range(20,30): ww_after.append(x)
 
 
-      #print "      [Input]  w1:       ", w1
-      #print "               ww_now:   ", ww_now
-      #print "               ww_after: ", ww_after
+      #print("      [Input]  w1:       ", w1      )
+      #print("               ww_now:   ", ww_now  )
+      #print("               ww_after: ", ww_after)
 
       # If wmoww input argument to this class has been set: convert all
       # observed w1/ww flags into the new ones.
@@ -1064,7 +1102,7 @@ class getobs( object ):
           w1       =   self.wmoww.convert( "w1", w1 )
           ww_now   = list(filter(None, [ self.wmoww.convert( "ww", x ) for x in ww_now   ] ))
           ww_after = list(filter(None, [ self.wmoww.convert( "ww", x ) for x in ww_after ] ))
-          #print "      [Converted]   ",w1, ww_now, ww_after
+          #print("      [Converted]   ",w1, ww_now, ww_after)
 
       # If list return is requested: do so.
       if returnlist:
@@ -1143,12 +1181,12 @@ class getobs( object ):
       check18 = self.check_record( station.wmo, 18 )
       check06 = self.check_record( station.wmo, 30 )
 
-      #print " ------------- "
-      #print "RR18     ", RR18
-      #print "RR06     ", RR06
-      #print "RR06_24  ", RR06_24
-      #print "check18  ", check18
-      #print "check06  ", check06
+      #print(" ------------- ")
+      #print("RR18     ", RR18   )
+      #print("RR06     ", RR06   )
+      #print("RR06_24  ", RR06_24)
+      #print("check18  ", check18)
+      #print("check06  ", check06)
 
       # - If observed values RR18/RR06 are empty but the observations
       #   are in the database we have to assume that there was no
@@ -1459,11 +1497,11 @@ class getobs( object ):
 
             # - If length res is empty: INSERT
             if len(res) == 0:
-               #print "    Insert ...."
+               #print("    Insert ....")
                cur.execute( sql_insert % (stn.wmo,param[key],betdate,now,self.data[stn.wmo][key]) )
             # - If there is no user-change, update
             elif res[0][0] == 0:
-               #print "    Update ...."
+               #print("    Update ....")
                #print( sql_update % (now,self.data[wmo][key],wmo,param[key],betdate) )
                cur.execute( sql_update % (now,self.data[stn.wmo][key],stn.wmo,param[key],betdate) )
    

@@ -502,8 +502,8 @@ class wmowwConversion( object ):
 #   Helper function which creates a timestamp from a datetime object
 def timestamp( dt ):
     "Return POSIX timestamp from datetime object as float"
-    import time
-    return time.mktime( dt.timetuple() )
+    from calendar import timegm
+    return timegm( dt.timetuple() )
 
 
 def datetime2tdate( datetime ):
