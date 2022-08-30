@@ -300,8 +300,10 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
    # ----------------------------------------------------------------
    # - Loading operational and test judgingclass
    try:
-      config['judging_operational'] = CNF.get('judging','operational')
-      config['judging_test']        = CNF.get('judging','test')
+      config['judging_operational']  = CNF.get('judging','operational')
+      try: config['judging_test']    = CNF.get('judging','test')
+      except: config['judging_test'] = None
+      config['judging_old']          = CNF.get('judging','old')
    except:
       exit('Problems reading necessary judging config!') 
 

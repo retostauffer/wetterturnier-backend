@@ -105,7 +105,14 @@ if __name__ == '__main__':
          # ----------------------------------------------------------
          # - Dynamically loading judgingclass
          # ----------------------------------------------------------
-         modname = "pywetterturnier.judgingclass%s" % config['judging_test']
+         
+         # TODO: replace quick and dirty with automatic recognition of newest judgingclass
+
+         if tdate <= 19200:
+            judgingdate = config["judging_old"]
+         else:
+            judgingdate = config["judging_operational"]
+         modname = "pywetterturnier.judgingclass%s" % judgingdate
          try:
             from importlib import import_module
             judging = import_module(modname)

@@ -231,7 +231,16 @@ class getobs( object ):
 
       # - No row in database at all 
       if len(data) == 0:
-         return None
+         # try hh:50 obs
+         sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
+            (parameter, self._table_, wmo, datum, stdmin-10)
+
+         cur = self.db.cursor()
+         cur.execute( sql )
+         data = cur.fetchall()
+         if len(data) == 0:
+            return None
+         
       elif len(data) > 1:
          utils.exit("got more than one row - thats not good. Stop.")
       # - Field is empty
@@ -1472,6 +1481,11 @@ class getobs( object ):
       # - Looping over wmo stations
       cur = self.db.cursor()
       for stn in self.stations:
+
+         # put Bad Lauchstädt in Holzhausen and IBK Flughafen Automat in Flughen
+         #TODO: doesnt work???
+         #if stn.wmo == 2878:    stn.wmo = 10471
+         #elif stn.wmo == 11121: stn.wmo = 11120
 
          if not stn.wmo in list(self.data.keys()):
             print("[!] Can't find wmo %d in results. Skip." % stn.wmo)
