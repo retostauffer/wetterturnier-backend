@@ -977,9 +977,10 @@ class database(object):
       """
       cur = self.db.cursor()
       sql = "SELECT paramName FROM %swetterturnier_param" % self.prefix
+      if tdate: active = True
       if active: sql += " WHERE active = 1"
       if tdate:
-         sql += f" AND (since<={tdate} OR since=0) AND (until>{tdate} OR until=0)"
+         sql += f" AND (since <= {tdate} OR since = 0) AND (until > {tdate} OR until = 0)"
       if sort: sql += " ORDER BY sort"
       cur.execute( sql )
       data = cur.fetchall()

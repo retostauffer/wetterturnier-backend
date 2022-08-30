@@ -52,6 +52,8 @@ if __name__ == "__main__":
    else:
       base_date = dt.datetime.utcnow()
    
+   tdate = utils.datetime2tdate( base_date )
+
    import calendar
    if calendar.isleap( base_date.year ):
       ndays = 366
@@ -60,8 +62,8 @@ if __name__ == "__main__":
    # - Count stations
    stations = []
    for city in cities:
-       for station in db.get_stations_for_city(city["ID"]):
-           stations.append( station.wmo )
+      for station in db.get_stations_for_city(city["ID"], active=1, tdate=tdate):
+         stations.append( station.wmo )
 
    # Store results in an ndarray of length ndays
    res = np.ndarray( (ndays,len(stations)), dtype = "float" )
@@ -70,27 +72,27 @@ if __name__ == "__main__":
    j = -1
    for city in cities:
 
-       # We don't need the obs but use this object as in the computation
-       # of the points as it includes the get_maximum_Sd method.
-       obj = getobs.getobs( config, db, city, base_date )
+      # We don't need the obs but use this object as in the computation
+      # of the points as it includes the get_maximum_Sd method.
+      obj = getobs.getobs( config, db, city, base_date )
 
-       # Looping over stations
-       for station in db.get_stations_for_city(city.get("ID")):
+      # Looping over stations
+      for station in db.get_stations_for_city(city.get("ID")):
 
-          # Increase column index
-          j += 1
+         # Increase column index
+         j += 1
 
-          # Dummy
-          for i in range(0, ndays):
+         # Dummy
+         for i in range(0, ndays):
 
-              # Loop date
-              date = base_date + dt.timedelta(i)
+            # Loop date
+            date = base_date + dt.timedelta(i)
 
-              # Getting maximum sunshine duration
-              sd = obj.get_maximum_Sd( [station], date )
+            # Getting maximum sunshine duration
+            sd = obj.get_maximum_Sd( [station], date )
 
-              # Store sunshine duration in hours 
-              res[i,j] = sd[station.wmo] / 60.
+            # Store sunshine duration in hours 
+            res[i,j] = sd[station.wmo] / 60.
 
 
    # - Create temporary file
@@ -131,15 +133,15 @@ if __name__ == "__main__":
    # - First: header line with city name
    ofile.write( "{0:>5s} {1:>5s} ".format("","") )
    for city in cities:
-       for i in range(0,len(db.get_stations_for_city(city["ID"]))):
-            ofile.write( "{0:>10s}".format(city["name"]) )
+      for i in range(0,len(db.get_stations_for_city(city["ID"]))):
+         ofile.write( "{0:>10s}".format(city["name"]) )
    ofile.write( "\n" )
 
    # - Second: header line with colum names
    ofile.write( "{0:>5s} {1:>5s} ".format("month","day") )
    for city in cities:
-       for station in db.get_stations_for_city(city["ID"]):
-          ofile.write( "{0:10d}".format(station.wmo))
+      for station in db.get_stations_for_city(city["ID"]):
+         ofile.write( "{0:10d}".format(station.wmo))
    ofile.write( "\n" )
 
    # Append data
@@ -148,13 +150,5 @@ if __name__ == "__main__":
 
       ofile.write( "{0:5d} {1:5d} ".format( int(date.strftime("%m")), int(date.strftime("%d")) ) )
       for c in range(0,len(stations)):
-          ofile.write( "{0:10.2f}".format( res[i,c] ) )
+         ofile.write( "{0:10.2f}".format( res[i,c] ) )
       ofile.write( "\n" )
-
-
-
-
-
-
-
-
