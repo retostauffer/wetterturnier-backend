@@ -242,7 +242,12 @@ class getobs( object ):
             return None
          
       elif len(data) > 1:
-         utils.exit("got more than one row - thats not good. Stop.")
+         for i in range(len(data)):
+            try:
+               return data[i][0]
+            except:
+               continue
+         #utils.exit("got more than one row - thats not good. Stop.")
       # - Field is empty
       elif data[0][0] == None:
          return None
