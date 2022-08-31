@@ -19,6 +19,7 @@
 # - Db stuff
 [database]
 mysql_host   = localhost
+mysql_port   = 3306
 mysql_user   = ********
 mysql_pass   = ******** 
 mysql_db     = ********

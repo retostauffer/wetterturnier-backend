@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 numpy
 matplotlib
 scipy
@@ -9,3 +10,16 @@ astral
 pandas
 xlwt
 ConfigParser
+=======
+ConfigParser
+astral
+importlib
+matplotlib
+numpy
+pandas
+pymysql
+python-dateutil
+pytz
+scipy
+xlwt
+>>>>>>> 3213479f46b981e85b36366c152710a4230f72ca
