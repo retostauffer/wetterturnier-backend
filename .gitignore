@@ -8,8 +8,9 @@ Documentation/*.toc
 
 # - Ignore local .conf files
 *.conf
-# - But include the ww config
-!wmo_ww.conf
+# - But include the ww config and conf template
+!wmo_ww.conf*
+!config.conf.template
 
 # - Ignore some folders
 /raw/
@@ -36,3 +37,5 @@ config.conf
 
 # Logfiles from the autosubmit tool
 autosubmit/*.log
+
+"\342\200\223"
