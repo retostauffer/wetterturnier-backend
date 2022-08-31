@@ -1,0 +1,11 @@
+numpy
+matplotlib
+scipy
+pymysql
+importlib
+python-dateutil
+pytz
+astral
+pandas
+xlwt
+ConfigParser
