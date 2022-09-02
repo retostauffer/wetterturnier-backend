@@ -296,6 +296,7 @@ def random(db,typ,ID,city,tdate,betdata=False):
    
    import numpy as np
    # - Day one, day two
+   dd_param = "dd"
   
    if type(tdate) == int and tdate <= 19230:
 
@@ -303,42 +304,26 @@ def random(db,typ,ID,city,tdate,betdata=False):
 
          print('    Compute for day %d (%s)' % (tdate+day, utils.tdate2string( tdate+day )))
 
-         param = 'dd'
-         paramID = db.get_parameter_id(param)
-         dd = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
-         if type(dd) == bool: return False
-         max_dd, min_dd = max(dd), min(dd)
-         if max_dd == min_dd: bet[day-1][param] = min_dd
-         elif max_dd - min_dd < 1800:
-            bet[day-1][param] = np.random.choice( np.arange(min_dd, max_dd+1, 100) )
-         elif max_dd - min_dd > 1800:
-            dd_list = []
-            for i in range(int(max_dd), int(min_dd+3601), 100):
-               if i > 3600: i -= 3600
-               dd_list.append( i )
-            bet[day-1][param] = np.random.choice( dd_list )
-         else: bet[day-1][param] = np.random.choice( np.arange(100, 3601, 100) )
-
-         for param in ["N","Sd","ff"]:
+         for param in ("N","Sd","ff"):
             paramID = db.get_parameter_id(param)
             data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
             if type(data) == bool: return False
-            min_data, max_data = min(data), max(data)
+            min_data, max_data = np.min(data), np.max(data)
             if min_data == max_data:
                bet[day-1][param] = min_data
             elif param == "ff" and bet[day-1]["dd"] == 0:
                bet[day-1][param] = 0.
             elif param == "Sd":
-               min_data = min(data[data > 0])
+               min_data = np.min(data[data > 0])
                n0 = np.count_nonzero( data == 0 )
                p0 = n0 / float(len(data))
                if min_data == max_data:
                   bet[day-1][param] = min_data
                elif np.random.random() < p0:
                   bet[day-1][param] = 0
-               else: bet[day-1][param] = np.random.randint( min_data, max_data )
+               else: bet[day-1][param] = np.random.randint( min_data, max_data+1 )
             else:
-               bet[day-1][param] = np.random.randint( min_data, max_data )
+               bet[day-1][param] = np.random.randint( min_data, max_data+1 )
 
          param = "fx"
          paramID = db.get_parameter_id(param)
@@ -350,14 +335,14 @@ def random(db,typ,ID,city,tdate,betdata=False):
             bet[day-1][param] = 0.
          else:
             min_val = 250
-            min_data = min(data[data>=min_val])
-            max_data = max(data)
+            min_data = np.min(data[data>=min_val])
+            max_data = np.max(data)
             if min_data == max_data:
                bet[day-1][param] = min_data
             else:
-               bet[day-1][param] = np.random.randint( min_data, max_data )
+               bet[day-1][param] = np.random.randint( min_data, max_data+1 )
     
-         for param in ["Wv","Wn"]:
+         for param in ("Wv","Wn"):
             paramID = db.get_parameter_id(param)
             data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
             if type(data) == bool: return False
@@ -374,7 +359,7 @@ def random(db,typ,ID,city,tdate,betdata=False):
          paramID = db.get_parameter_id(param)
          RR = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
          if type(data) == bool: return False
-         max_RR = max(RR)
+         max_RR = np.max(RR)
          RR_0 = RR[RR>=0]
          if len(RR_0) == 0:
             min_RR = -30
@@ -396,24 +381,24 @@ def random(db,typ,ID,city,tdate,betdata=False):
             else:
                bet[day-1][param] = np.random.choice( np.arange(min_RR, max_RR+1, 1) )
 
-         for param in ["PPP","TTm"]:
+         for param in ("PPP","TTm"):
             paramID = db.get_parameter_id(param)
             data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
             if type(data) == bool: return False
-            max_data = max(data)
-            min_data = min(data)
+            max_data = np.max(data)
+            min_data = np.min(data)
             if min_data == max_data:
                bet[day-1][param] = min_data
             else:
                bet[day-1][param] = np.random.choice( np.arange(min_data, max_data+1, 1) )
 
-         for param in ["TTn","TTd"]:
+         for param in ("TTn","TTd"):
             paramID = db.get_parameter_id(param)
             data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
             if type(data) == bool: return False
             max_TTm = bet[day-1]["TTm"]
-            min_data = min(data)
-            max_data = max(data)
+            min_data = np.min(data)
+            max_data = np.max(data)
             if min_data == max_data:
                bet[day-1][param] = min_data
             elif max_data > max_TTm:
@@ -421,8 +406,56 @@ def random(db,typ,ID,city,tdate,betdata=False):
             else:
                bet[day-1][param] = np.random.choice( np.arange(min_data, max_data+1, 1) )
 
-      return bet
-
    else:
-      #TODO new parameters!
-      return False
+      dd_param += "12"
+
+      for day in range(1,3):
+         
+         print('    Compute for day %d (%s)' % (tdate+day, utils.tdate2string( tdate+day )))
+         params_easy = ("ff12","fx24","PPP12","Tmin","T12","Tmax","Td12","RR1","RR24")
+         #TODO RR* could be more sophisticated (differentiation between >= / <= 1 )
+         for param in params_easy:
+            paramID = db.get_parameter_id( param )
+            if betdata: data = betdata[day-1][param]
+            else: data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+            if type(data) == type(bool()): return False
+            min_data = np.min(data)
+            max_data = np.max(data)
+            if min_data == max_data:
+               bet[day-1][param] = min_data
+            else:
+               random_array = np.arange( min_data, max_data+1 )
+               bet[day-1][param] = np.random.choice( random_array, 1)
+
+         for param in ("Sd1","Sd24"):
+            paramID = db.get_parameter_id( param )
+            if betdata: data = betdata[day-1][param]
+            else: data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+            if type(data) == type(bool()): return False
+            min_data = np.min(data)
+            max_data = np.max(data)
+            if min_data == max_data:
+               bet[day-1][param] = min_data
+            else:
+               bet[day-1][param] = np.random.randint( min_data, max_data+1 )
+
+
+   for day in range(1,3):
+
+      paramID = db.get_parameter_id(dd_param)
+      dd = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+      if type(dd) == bool: return False
+      max_dd, min_dd = max(dd), min(dd)
+      if max_dd == min_dd: bet[day-1][dd_param] = min_dd
+      elif max_dd - min_dd < 1800:
+         bet[day-1][dd_param] = np.random.choice( np.arange(min_dd, max_dd+1, 100) )
+      elif max_dd - min_dd > 1800:
+         dd_list = []
+         for i in range(int(max_dd), int(min_dd+3601), 100):
+            if i > 3600: i -= 3600
+            dd_list.append( i )
+         bet[day-1][dd_param] = np.random.choice( dd_list )
+      else: bet[day-1][dd_param] = np.random.choice( np.arange(100, 3601, 100) )
+
+   print(bet)
+   return bet

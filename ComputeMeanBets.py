@@ -75,7 +75,7 @@ if __name__ == '__main__':
       today = utils.today_tdate()
       hour = datetime.utcnow().hour
       minute = datetime.utcnow().minute
-      if i == "MOS-Random" and not (hour == 15 and minute in [0,1] and today == tdates[0]):
+      if not config["input_tdate"] and i == "MOS-Random" and not (hour == 15 and minute in [0,1] and today == tdates[0]):
          continue
          #pass
       active_groups.append( i )
