@@ -189,7 +189,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading observations
    # ----------------------------------------------------------------
-   def load_obs( self, wmo, hour, parameter ):
+   def load_obs( self, wmo, hour, parameter, min50=0 ):
       """Loading a specific observation from the database.
       The date for which the observation should be valid and the
       name of the database are coming from the public attributes of the
@@ -220,6 +220,9 @@ class getobs( object ):
       datum  = int( tmp.strftime('%Y%m%d') )
       stdmin = int( tmp.strftime('%H%M')   )
       #print( "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter) )
+      
+      # for some parameters we prefer the obs at minute 50 (SYNOP)
+      if min50: stdmin -= 50
 
       # - Load from db
       sql = "SELECT %s FROM %s WHERE statnr=%d AND datum=%d AND stdmin=%d" % \
@@ -241,16 +244,6 @@ class getobs( object ):
                continue
          #utils.exit("got more than one row - thats not good. Stop.")
       
-      # - Field is empty
-      elif data[0][0] == None and str(stdmin)[-2:] == "00":
-         # try hh:50 obs
-         sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
-            (parameter, self._table_, wmo, datum, int(stdmin-50))
-         cur.execute( sql )
-         data = cur.fetchall()
-         if len(data) == 0:
-            return None
-
       # - Else return value
       return data[0][0]
 
@@ -381,14 +374,14 @@ class getobs( object ):
    # - Prepare T2m 12z
    # ----------------------------------------------------------------
    def _prepare_fun_T12_(self,station,special):
-      return self.load_obs( station.wmo, 12, "t" )
+      return self.load_obs( station.wmo, 12, "t", min50=1 )
 
 
    # ----------------------------------------------------------------
    # - Prepare ff12 (m/s)
    # ----------------------------------------------------------------
    def _prepare_fun_ff12_(self,station,special):
-      return self.load_obs( station.wmo, 12, "ff" )
+      return self.load_obs( station.wmo, 12, "ff", min50=1 )
 
 
    def none_filter(self, values):
@@ -441,7 +434,7 @@ class getobs( object ):
    # - Prepare Sd 1h @12z
    # ----------------------------------------------------------------
    def _prepare_fun_Sd1_(self,station,special):
-      try: return self.load_obs( station.wmo, 12, "sun" ) * 10
+      try: return self.load_obs( station.wmo, 12, "sun", min50=1 ) * 10
       except: return None
 
 
@@ -592,7 +585,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Prepare TTd
    # ----------------------------------------------------------------
-   def _prepare_fun_TTd_(self,station,special):
+   def _prepare_fun_TTd_(self,station,special,min50=False):
       """Helper function for dew point temperature. Returns 12 UTC observed
       dew point temperature from database column td in 1/10 degrees Celsius.
 
@@ -606,16 +599,16 @@ class getobs( object ):
       """
 
       # - Loading td valid at 12 UTC 
-      value = self.load_obs( station.wmo, 12, 'td' )
+      value = self.load_obs( station.wmo, 12, 'td', min50=min50 )
       # - Return value
       return value
 
-   _prepare_fun_Td12_ = lambda self,station,special : self._prepare_fun_TTd_(station,special)
+   _prepare_fun_Td12_ = lambda self,station,special : self._prepare_fun_TTd_(station,special,min50=1)
 
    # ----------------------------------------------------------------
    # - Prepare PPP
    # ----------------------------------------------------------------
-   def _prepare_fun_PPP_(self,station,special):
+   def _prepare_fun_PPP_(self,station,special,min50=False):
       """Helper function for mean sea level pressure at 12 UTC.
       Based on database column pmsl. Return value will be in 1/10 hPa.
 
@@ -629,7 +622,7 @@ class getobs( object ):
       """
       import numpy as np
       # - Loading td valid at 12 UTC 
-      value = self.load_obs( station.wmo, 12, 'pmsl' )
+      value = self.load_obs( station.wmo, 12, 'pmsl', min50=min50 )
       # - Original value is in 1/100 hPa. Convert.
       if value == None:
          cur = self.db.cursor()
@@ -641,8 +634,8 @@ class getobs( object ):
             h = data[0][0]
          else:
             h = data[0][1]
-         p = self.load_obs( station.wmo, 12, 'psta' )
-         T = self.load_obs( station.wmo, 12, 't' )
+         p = self.load_obs( station.wmo, 12, 'psta', min50=min50 )
+         T = self.load_obs( station.wmo, 12, 't', min50=min50 )
 
          #calculate reduced MSL pressure via international barometric height formula if no reduced pressure is given
          if not (p == None or T == None or h == None):
@@ -657,12 +650,12 @@ class getobs( object ):
       # Return value 
       return value
 
-   _prepare_fun_PPP12_ = lambda self,station,special : self._prepare_fun_PPP_(station,special)
+   _prepare_fun_PPP12_ = lambda self,station,special : self._prepare_fun_PPP_(station,special,min50=1)
 
    # ----------------------------------------------------------------
    # - Prepare dd
    # ----------------------------------------------------------------
-   def _prepare_fun_dd_(self,station,special):
+   def _prepare_fun_dd_(self,station,special,min50=False):
       """Helper function for the wind direction at 12 UTC from database
       column dd. Values will be returned in 1/10 degrees but rounded
       to full 10 degrees. E.g., observed '138' degrees will be converted
@@ -688,8 +681,8 @@ class getobs( object ):
       """
 
       # - Loading td valid at 12 UTC 
-      dd = self.load_obs( station.wmo, 12, 'dd' )
-      ff = self.load_obs( station.wmo, 12, 'ff' )
+      dd = self.load_obs( station.wmo, 12, 'dd', min50=min50 )
+      ff = self.load_obs( station.wmo, 12, 'ff', min50=min50 )
       # - If dd is valid: take this one
       if dd == None:
          value = None
@@ -710,7 +703,7 @@ class getobs( object ):
       # - Return value
       return value
 
-   _prepare_fun_dd12_ = lambda self,station,special : self._prepare_fun_dd_(station,special)
+   _prepare_fun_dd12_ = lambda self,station,special : self._prepare_fun_dd_(station,special,min50=True)
 
 
    # ----------------------------------------------------------------

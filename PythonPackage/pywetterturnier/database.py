@@ -462,7 +462,7 @@ class database(object):
       cur.execute( sql % (self.prefix ,today) )
       tdate = cur.fetchone()[0]
 
-      if verbose: print('    Current tournament date is: %d' % tdate)
+      if verbose: print(f'    Current tournament date is: {tdate:d}')
 
       return tdate
 
@@ -961,7 +961,7 @@ class database(object):
    #   date where they were used at that time. The point computation
    #   code will skip if there are no data.
    # -------------------------------------------------------------------
-   def get_parameter_names(self,active=False,sort=False,cityID=False,tdate=False):
+   def get_parameter_names(self,active=True,sort=False,cityID=False,tdate=False):
       """Returns all parameter names.
       If input active is set, only active parametres will be returned.
       
@@ -1382,7 +1382,7 @@ class database(object):
          tdate = self.current_tournament()
 
       userIDs  = self.get_participants_in_city( cityID, tdate, "human" )
-      params = self.get_parameter_names()
+      params = self.get_parameter_names( active = True, tdate = tdate )
       missing = []
 
       for userID in userIDs:
