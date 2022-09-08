@@ -231,15 +231,7 @@ class getobs( object ):
 
       # - No row in database at all 
       if len(data) == 0:
-         # try hh:50 obs
-         sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
-            (parameter, self._table_, wmo, datum, int(stdmin-10))
-
-         cur = self.db.cursor()
-         cur.execute( sql )
-         data = cur.fetchall()
-         if len(data) == 0:
-            return None
+         return None
          
       elif len(data) > 1:
          for i in range(len(data)):
@@ -249,8 +241,15 @@ class getobs( object ):
                continue
          #utils.exit("got more than one row - thats not good. Stop.")
       # - Field is empty
-      elif data[0][0] == None:
-         return None
+      elif data[0][0] == None and str(stdmin)[-2:] == "00":
+         # try hh:50 obs
+         sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
+            (parameter, self._table_, wmo, datum, int(stdmin-50))
+
+         cur.execute( sql )
+         data = cur.fetchall()
+         if len(data) == 0:
+            return None
 
       # - Else return value
       return data[0][0]
@@ -361,6 +360,10 @@ class getobs( object ):
          wmo (:obj:`int`): WMO station number.
          value (:obj:`float`): Either a numeric value or None.
       """
+
+      #convert WMOs of Lauchstaedt and Flughafen Automat
+      if   wmo == 2878:  wmo = 10471
+      elif wmo == 11121: wmo = 11120
 
       # - If value is none: return
       if value == None: return
@@ -1487,7 +1490,7 @@ class getobs( object ):
       cur = self.db.cursor()
       for stn in self.stations:
 
-         # put Bad Lauchstädt in Holzhausen and IBK Flughafen Automat in Flughen
+         # put Bad Lauchstädt in Holzhausen and IBK Flughafen Automat in Flugafen
          #TODO: doesnt work???
          #if stn.wmo == 2878:    stn.wmo = 10471
          #elif stn.wmo == 11121: stn.wmo = 11120
