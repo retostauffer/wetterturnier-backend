@@ -177,9 +177,16 @@ def mitteltip(db,typ,ID,city,tdate,betdata=False):
       # - Day one, day two
       for day in range(1,3):
 
-         params_easy = ("Sd1","Sd24","ff12","fx24","PPP12","Tmin","T12","Tmax","Td12","RR1","RR24")
+         for param in ("Sd1","Sd24"):
+            paramID = db.get_parameter_id( param )
+            if betdata: data = betdata[day-1][param]
+            else: data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+            if type(data) == type(bool()): return False
+            bet[day-1][param] = np.round( np.mean(data), -1 )
 
-         for param in params_easy:
+         params = ("ff12","fx24","PPP12","Tmin","T12","Tmax","Td12","RR1","RR24")
+
+         for param in params:
             paramID = db.get_parameter_id( param )
             if betdata: data = betdata[day-1][param]
             else: data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
