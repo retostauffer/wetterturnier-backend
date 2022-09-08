@@ -57,8 +57,8 @@ class getobs( object ):
       self.data     = None
       ## List of stationclass objects
       from .utils import datetime2tdate
-      tdate = datetime2tdate( date )
-      self.stations = self.db.get_stations_for_city( city['ID'], tdate = tdate )
+      self.tdate = datetime2tdate( date )
+      self.stations = self.db.get_stations_for_city( city['ID'], tdate = self.tdate )
       ## Store wmoww input arg
       self.wmoww    = wmoww
 
@@ -222,7 +222,7 @@ class getobs( object ):
       #print( "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter) )
 
       # - Load from db
-      sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
+      sql = "SELECT %s FROM %s WHERE statnr=%d AND datum=%d AND stdmin=%d" % \
             (parameter, self._table_, wmo, datum, stdmin)
 
       cur = self.db.cursor()
@@ -240,12 +240,12 @@ class getobs( object ):
             except:
                continue
          #utils.exit("got more than one row - thats not good. Stop.")
+      
       # - Field is empty
       elif data[0][0] == None and str(stdmin)[-2:] == "00":
          # try hh:50 obs
          sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
             (parameter, self._table_, wmo, datum, int(stdmin-50))
-
          cur.execute( sql )
          data = cur.fetchall()
          if len(data) == 0:
@@ -361,9 +361,9 @@ class getobs( object ):
          value (:obj:`float`): Either a numeric value or None.
       """
 
-      #convert WMOs of Lauchstaedt and Flughafen Automat
-      if   wmo == 2878:  wmo = 10471
-      elif wmo == 11121: wmo = 11120
+      if   wmo == 2878 and parameter in ["Sd1","Sd24"]:  wmo = 10471
+      elif wmo == 11121 and parameter == "Sd1": wmo = 11120
+      #TODO add dd12 from 11121 only if not already observed from 11120
 
       # - If value is none: return
       if value == None: return
@@ -392,60 +392,50 @@ class getobs( object ):
 
 
    def none_filter(self, values):
-      return list(filter(lambda x : x not in (None,-1), values))
+      #replace all occurences of -1 by 0
+      values[:] = [x if x != -1 else 0 for x in values]
+      return list(filter(lambda x : x != None, values))
 
 
    def observed(self, values, func = np.max ):
-      if len(values) == 0: return None
-      values = self.none_filter(values)
       if len(values) > 0:
          return func(values)
-      return None
+      return 0
 
    # ----------------------------------------------------------------
    # - Prepare fx24 (m/s)
    # ----------------------------------------------------------------
    def _prepare_fun_fx24_(self,station,special):
-      
-      ffx_max = []
-
-      ff = [self.load_obs( station.wmo, i, "ff" ) for i in range(1,25)]
-      if len(ff) > 0:
-         ff_max = self.observed( ff )
-         if ff_max:
-            ffx_max.append( ff_max )
-
-      ffx1 = [self.load_obs( station.wmo, i, "ffx1" ) for i in range(1,25)]
-      if len(ffx1) > 0:
-         ffx1_max = self.observed( ffx1 )
-         if ffx1_max:
-            ffx_max.append( ffx1_max )
-      
-      ffx3 = [self.load_obs( station.wmo, i, "ffx3" ) for i in range(3,25,3)]
-      if len(ffx3) > 0:
-         ffx3_max = self.observed( ffx3 )
-         if ffx3_max:
-            ffx_max.append( ffx3_max )
-
-      ffx6 = [self.load_obs( station.wmo, i, "ffx6" ) for i in range(6,25,6)]
-      if len(ffx6) > 0:
-         ffx6_max = self.observed( ffx6 )
-         if ffx6:
-            ffx_max.append( ffx6_max )
-
-      ffx12 = [self.load_obs( station.wmo, i, "ffx12" ) for i in range(12,25,6)]
-      if len(ffx12) > 0:
-         ffx12_max = self.observed( ffx12 )
-         if ffx12:
-            ffx_max.append( ffx12_max )
-
-      ffx24 = self.load_obs( station.wmo, 24, "ffx24" )
+     
+      ffx24 = self.load_obs( station.wmo, 24, "fx24" )
       if ffx24:
-         ffx_max.append( ffx24 )
+         return ffx24
 
-      try: return np.max( self.none_filter(ffx_max) )
-      except: return None
+      ffx12 = self.none_filter([self.load_obs( station.wmo, i, "ffx12" ) for i in range(12,25,6)])
+      if len(ffx12) == 2:
+         return self.observed( ffx12 )
 
+      ffx6 = self.none_filter([self.load_obs( station.wmo, i, "ffx6" ) for i in range(6,25,6)])
+      if len(ffx6) == 4:
+         return self.observed( ffx6 )
+
+      ffx3 = self.none_filter([self.load_obs( station.wmo, i, "ffx3" ) for i in range(3,25,3)])
+      if len(ffx3) == 8:
+         return self.observed( ffx3 )
+
+      ffx1 = self.none_filter([self.load_obs( station.wmo, i, "ffx1" ) for i in range(1,25)])
+      if len(ffx1) == 24:
+         return self.observed( ffx1 )
+      
+      ffx = self.none_filter([self.load_obs( station.wmo, i, "ffx" ) for i in range(1,25)])
+      if len(ffx) == 24:
+         return self.observed( ffx1 )
+
+      ff1 = self.none_filter([self.load_obs( station.wmo, i, "ff" ) for i in range(1,25)])
+      if len(ff1) == 24:
+         return self.observed( ffx1 )
+
+      return None
 
    # ----------------------------------------------------------------
    # - Prepare Sd 1h @12z
@@ -460,20 +450,12 @@ class getobs( object ):
    # ----------------------------------------------------------------
    def _prepare_fun_RR1_(self,station,special):
       
-      RR1 = []
-      for RRx in ("rrr1","rrp1","rracc1"):
-         RR1 += [self.load_obs( station.wmo, i, RRx ) for i in range(1,25)]
-      print(RR1)
-
-      if len(RR1) == 0:
-         RRint = [self.load_obs( station.wmo, i, "rrint" ) for i in range(1,25)]
-         # - Maybe we can derive rain sums from intensity and time period (1h)?
-         print("RR intensities:")
-         print(RRint)
-
-      RR1_max = self.observed(RR1)
-      
-      if RR1_max: return RR1_max
+      RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
+     
+      from .utils import today_tdate
+      today = today_tdate()
+      if len(RR1) == 24 or today > self.tdate:
+         return self.observed(RR1)
       else: return None
 
 
@@ -481,16 +463,30 @@ class getobs( object ):
    # - Prepare RR24 (sum precipitation of day)
    # ----------------------------------------------------------------
    def _prepare_fun_RR24_(self,station,special):
-      
-      RR1 = []
-      for RRx in ("rrr1","rrp1","rracc1"):
-         RR1 += [self.load_obs( station.wmo, i, RRx ) for i in range(1,25)]
+     
+      RR24 = self.load_obs( station.wmo, 24, "rr24" )
+      if RR24:
+         return RR24
 
-      RR1_sum = self.observed(RR1, np.sum)
-      if RR1_sum: return RR1_sum
-      else:
-         RR3 = [self.load_obs( station.wmo, i, "rrr3" ) for i in range(3,25,3)]
-         return self.observed(RR3, np.sum)
+      RR12 = self.none_filter([self.load_obs( station.wmo, i, "rrr12" ) for i in range(12,25,6)])
+      if len(RR12) == 2:
+         return self.observed( RR12, np.sum )
+
+      RR6 = self.none_filter([self.load_obs( station.wmo, i, "rrr6" ) for i in range(6,25,6)])
+      if len(RR6) == 4:
+         return self.observed( RR6, np.sum )
+
+      RR3 = self.none_filter([self.load_obs( station.wmo, i, "rrr3" ) for i in range(3,25,3)])
+      if len(RR3) == 8:
+         return self.observed( RR3, np.sum )
+
+      RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
+      from .utils import today_tdate
+      today = today_tdate()
+      if len(RR1) == 24 or today > self.tdate:
+         return self.observed( RR1, np.sum )
+
+      return None
 
 
    # ----------------------------------------------------------------
@@ -514,7 +510,13 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       tmax12 = self.load_obs( station.wmo, 18, 'tmax12' )
+      if not tmax12:
+         tmax12 = self.load_obs( station.wmo, 18, 't2max12' )
+      
       tmax24 = self.load_obs( station.wmo, 18, 'tmax24' )
+      if not tmax24:
+         tmax24 = self.load_obs( station.wmo, 18, 't2max24' )
+
       # - If tmax12 is valid: take this one
       if not tmax12 == None:
          value = tmax12
@@ -565,6 +567,8 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       value = self.load_obs( station.wmo,  6, 'tmin12' )
+      if not value:
+         value = self.load_obs( station.wmo, 6 , 't2min12' )
 
       if special is not None and value is None:
          special = self.special_obs_object( special, self._date_ )
@@ -578,7 +582,7 @@ class getobs( object ):
             if spvalue is not None:
                value = np.min(spvalue)
          else:
-            print("[!] Had problems parsing the special argument! SKip!")
+            print("[!] Had problems parsing the special argument! Skip!")
             
       # - Return value
       return value 
@@ -691,8 +695,8 @@ class getobs( object ):
          value = None
       # - if wind direction is 0 (variable)
       elif dd == 0:
-         # - No wind
-         if ff == 0:
+         # - No wind (ff <= 0.2 m/s)
+         if ff <= 2:
             value = 0
          #else wind direction is not defined
          else:
@@ -1490,11 +1494,6 @@ class getobs( object ):
       cur = self.db.cursor()
       for stn in self.stations:
 
-         # put Bad Lauchstädt in Holzhausen and IBK Flughafen Automat in Flugafen
-         #TODO: doesnt work???
-         #if stn.wmo == 2878:    stn.wmo = 10471
-         #elif stn.wmo == 11121: stn.wmo = 11120
-
          if not stn.wmo in list(self.data.keys()):
             print("[!] Can't find wmo %d in results. Skip." % stn.wmo)
             continue
@@ -1563,8 +1562,8 @@ class getobs( object ):
          # First group: parameter
          # Second group: 'from' statement
          # Third group 'to' statement
-         regex_day="yesterday|today|tomorrow"
-         regex_time="[0-9]{1,2}:[0-9]{1,2}"
+         regex_day  = "yesterday|today|tomorrow"
+         regex_time = "[0-9]{1,2}:[0-9]{1,2}"
          regex = "^([a-zA-Z0-9]+)\s+({0:s})\s+({1:s})\s+to\s+({0:s})\s+({1:s}).*$".format(
                   regex_day,regex_time)
 
