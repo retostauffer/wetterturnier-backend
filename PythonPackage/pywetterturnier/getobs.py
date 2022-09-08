@@ -232,9 +232,14 @@ class getobs( object ):
       cur.execute( sql )
       data = cur.fetchall()
 
-      # - No row in database at all 
+      # - No row in database at all
       if len(data) == 0:
-         return None
+         if min50:
+            stdmin += 50
+            cur.execute( sql )
+            data = cur.fetchall()
+         else:
+            return None
          
       elif len(data) > 1:
          for i in range(len(data)):
@@ -245,7 +250,8 @@ class getobs( object ):
          #utils.exit("got more than one row - thats not good. Stop.")
       
       # - Else return value
-      return data[0][0]
+      try: return data[0][0]
+      except: return None
 
 
    # ----------------------------------------------------------------
