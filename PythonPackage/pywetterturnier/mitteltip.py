@@ -299,6 +299,26 @@ def statistics(db,typ,ID,city,tdate,function=False,betdata=False):
    return bet
 
 
+def mswr(db,typ,ID,city,tdate,betdata=False):
+   
+   import numpy as np
+   params = db.get_parameter_names(tdate=tdate)
+
+   for day in range(1,3):
+      for param in params:
+         paramID = db.get_parameter_id( param )
+         if not betdata:
+            data = db.get_bet_data(typ,ID,city['ID'],paramID,tdate,day)
+         else: data = betdata[day-1][param]
+         try:
+            if len(data) != 2: return False
+         except: return False
+         pre = db.get_parameter_precission( paramID )
+         bet[day-1][param] = np.round( (2/3) * data[0] + (1/3) * data[1], pre )
+
+   return bet
+
+
 def random(db,typ,ID,city,tdate,betdata=False):
    
    import numpy as np
@@ -464,5 +484,4 @@ def random(db,typ,ID,city,tdate,betdata=False):
          bet[day-1][dd_param] = np.random.choice( dd_list )
       else: bet[day-1][dd_param] = np.random.choice( np.arange(100, 3601, 100) )
 
-   print(bet)
    return bet

@@ -653,7 +653,7 @@ class database(object):
       # - Typ is either "all" for Petrus (takes all human bets),
       #   "user" to get the bet of one user (ID = userID), or
       #   "group" to get the bets for a group (ID = groupID)
-      l = ['persistenz','all','user','group','human','petrus']
+      l = ['persistenz','all','user','group','human','petrus','mswr']
       if not typ in l:
          utils.exit('Wrong typ input to database.get_bet_data. Has to be all, user, or group')
       
@@ -774,10 +774,23 @@ class database(object):
             sql.append("AND bet.userID NOT IN (%d,%d,%d)" % (deadID,PetrusID,MosesID))
          #print("\n".join(sql))
          cur.execute( "\n".join(sql) )
-      # - If input was user, load tips for a specific user.
+      
+      # MSwr: get GFS and EZ bets to compute the mix
+      elif typ == "mswr":
+         EZ  = self.get_user_id('MSwr-EZ-MOS')
+         GFS = self.get_user_id('MSwr-GFS-MOS')
+         sql = f"SELECT bet.value AS value FROM {self.prefix}wetterturnier_bets AS bet "
+         sql+= f"LEFT OUTER JOIN {self.prefix}users AS usr "
+         sql+= f"ON bet.userID = usr.ID "
+         sql+= f"INNER JOIN {self.prefix}wetterturnier_betstat AS stat "
+         sql+= f"ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tdate=stat.tdate "
+         sql+= f"WHERE bet.cityID = {cityID} AND bet.paramID = {paramID} "
+         sql+= f"AND bet.tdate = {tdate} AND bet.betdate = {bdate} AND bet.userID IN ({EZ},{GFS}) "
+         sql+= f"ORDER BY bet.userID DESC"
+         #print(sql)
+         cur.execute(sql)
 
       # - Else ... adapt the exit condition above please.
-
       else:
          utils.exit('Seems that you allowed another type in database.get_bet_data but you have not created a propper rule')
 
@@ -1021,7 +1034,14 @@ class database(object):
       if res:
          return res
       else: return False
-  
+ 
+   
+   def get_parameter_precission(self,paramID):
+      cur = self.db.cursor()
+      cur.execute(f"SELECT valpre FROM {self.prefix}wetterturnier_param WHERE paramID={paramID}")
+      try: return cur.fetchone()[0]
+      except: return False
+
 
    # -------------------------------------------------------------------
    # - Returns user id. And creates user if necessary.
