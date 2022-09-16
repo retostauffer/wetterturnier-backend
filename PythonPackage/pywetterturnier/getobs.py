@@ -225,18 +225,17 @@ class getobs( object ):
       if min50: stdmin -= 50
 
       # - Load from db
-      sql = "SELECT %s FROM %s WHERE statnr=%d AND datum=%d AND stdmin=%d" % \
-            (parameter, self._table_, wmo, datum, stdmin)
-
+      sql = "SELECT %s FROM %s WHERE statnr=%d AND datum=%d AND stdmin=%d"
       cur = self.db.cursor()
-      cur.execute( sql )
+      cur.execute( sql % (parameter, self._table_, wmo, datum, stdmin) )
       data = cur.fetchall()
 
-      # - No row in database at all
-      if len(data) == 0:
+      # - No row in database at all or None value
+      if len(data) == 0 or data[0][0] == None:
+         # if no obs at minute 50 try :00 obs (SYNOP)
          if min50:
             stdmin += 50
-            cur.execute( sql )
+            cur.execute( sql % (parameter, self._table_, wmo, datum, stdmin) )
             data = cur.fetchall()
          else:
             return None
@@ -440,7 +439,7 @@ class getobs( object ):
    # - Prepare Sd 1h @12z
    # ----------------------------------------------------------------
    def _prepare_fun_Sd1_(self,station,special):
-      try: return self.load_obs( station.wmo, 12, "sun", min50=1 ) * 10
+      try: return self.load_obs( station.wmo, 12, "sun", min50=0 ) * 10
       except: return None
 
 
