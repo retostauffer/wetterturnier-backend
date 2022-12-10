@@ -684,7 +684,10 @@ class getobs( object ):
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
       """
-
+      #helper function to implement round half up (bankers rounding)
+      #https://stackoverflow.com/questions/33019698/how-to-properly-round-up-half-float-numbers
+      HalfRoundUp = lambda value: int(value + 0.5)
+      
       # - Loading td valid at 12 UTC 
       dd = self.load_obs( station.wmo, 12, 'dd', min50=min50 )
       ff = self.load_obs( station.wmo, 12, 'ff', min50=min50 )
@@ -701,8 +704,8 @@ class getobs( object ):
             value = None
       # - Else take dd as it is
       else:
-         value = np.round(float(dd)/10) * 100.
-         # - North wind will be 360, not 0. Change if 0 occurs
+         value = HalfRoundUp( float(dd) / 10 ) * 100.
+         # - North wind will be 360, not 0 (no wind!). Change if 0 occurs
          if value == 0.:
             value = 3600.
       # - Return value
