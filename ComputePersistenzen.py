@@ -36,7 +36,7 @@ if __name__ == '__main__':
    #   the bet-dates are for Saturday and Sunday if there was
    #   no input tournament date -t/--tdate.
    if config['input_tdate'] == None:
-      tdates     = [db.current_tournament()]
+      tdates     = [db.current_tournament(active=True)]
    else:
       tdates     = [config['input_tdate']]
       print(tdates)

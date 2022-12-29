@@ -438,7 +438,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Current tournament
    # -------------------------------------------------------------------
-   def current_tournament(self, verbose=False):
+   def current_tournament(self, verbose=False, active=False):
       """Returns tdate for current tournament.
       The tdate is the number of days since 1970-01-01. Loading the
       ``max(tdate)`` from the dates table which is smaller than the
@@ -447,7 +447,7 @@ class database(object):
       Return:
          int: Integer date (days since 1970-01-01)
 
-      .. todo:: Reto just take care of the idea that we cold start two tournaments
+      .. todo:: Reto just take care of the idea that we could start two tournaments
          in a row. Can this method then handle the requests?
       """
 
@@ -456,8 +456,9 @@ class database(object):
 
       if verbose: print('  * %s' % 'Searching current tournament date')
       today = int(np.floor(float(dt.datetime.now().strftime("%s"))/86400))
-      #print today
+      if verbose: print(today)
       sql = 'SELECT max(tdate) FROM %swetterturnier_dates WHERE tdate <= %d'
+      if active: sql += ' AND status = 1'
       cur = self.cursor()
       cur.execute( sql % (self.prefix ,today) )
       tdate = cur.fetchone()[0]
