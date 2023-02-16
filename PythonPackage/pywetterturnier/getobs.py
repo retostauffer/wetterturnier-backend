@@ -386,7 +386,11 @@ class getobs( object ):
    # - Prepare ff12 (m/s)
    # ----------------------------------------------------------------
    def _prepare_fun_ff12_(self,station,special):
-      return self.load_obs( station.wmo, 12, "ff", min50=1 )
+      ff12 = self.load_obs( station.wmo, 0, "ff12" )
+      if ff12:
+         return ff12
+      else:
+         return self.load_obs( station.wmo, 12, "ff", min50=1 )
 
 
    def none_filter(self, values):
