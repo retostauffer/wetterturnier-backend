@@ -15,7 +15,6 @@
 # -------------------------------------------------------------------
 
 
-
 # - Start as main script (not as module)
 if __name__ == '__main__':
 
@@ -31,10 +30,6 @@ if __name__ == '__main__':
    # - Read configuration file
    config = utils.readconfig('config.conf',inputs)
 
-   # - Reading WMO WW conversion file
-   wmoww = utils.wmowwConversion( "wmo_ww.conf" )
-   wmoww.show()
-
    # - Initializing class and open database connection
    db        = database.database(config)
    # - Loading tdate (day since 1970-01-01) for the tournament.
@@ -47,7 +42,11 @@ if __name__ == '__main__':
       tdates     = [config['input_tdate']]
 
    # - Loading all parameters
-   params = db.get_parameter_names()
+   params = db.get_parameter_names(active=True, sort=True, tdate=tdates[0])
+
+   # load WMO ww conversion config
+   wmoww = utils.wmowwConversion( "wmo_ww.conf" )
+
 
    # ----------------------------------------------------------------
    # - Because of the observations we have to compute the
@@ -73,8 +72,12 @@ if __name__ == '__main__':
    #today = dt.datetime.fromtimestamp( today * 86400 )
    for tdate in tdates:
 
+      # - Show WMO WW config (only for tournaments with old parameters)
+      if tdate <= 19230:
+         wmoww.show()
+
       tdate_int = tdate
-      tdate = dt.datetime.fromtimestamp( tdate * 86400 )
+      tdate = dt.datetime.utcfromtimestamp( tdate * 86400 )
       print("    Processing data for tournament: %s (tdate=%d)" % (tdate, tdate_int))
 
       # ----------------------------------------------------------------
@@ -99,33 +102,10 @@ if __name__ == '__main__':
 
             obs = getobs.getobs(config, db, city, date, wmoww )
 
-            # - Temperatures
-            obs.prepare('TTm') #,special='T today 06:00 to today 18:00')
-            obs.prepare('TTn') #,special='T yesterday 18:00 to today 6:00 ')
-            obs.prepare('TTd')
-            # - Wind speed and direction
-            obs.prepare('dd')
-            obs.prepare('ff')
-            obs.prepare('fx')
-            # - Mean sea level Pressure
-            obs.prepare('PPP')
-            # - Cloud cover
-            obs.prepare('N')
-            # - Significant weather
-            obs.prepare('Wv')
-            obs.prepare('Wn')
-            # - Precipitation
-            obs.prepare('RR')
-            # - Sunshine
-            obs.prepare('Sd')
-            #obs.show()
+            for p in params:
+               obs.prepare(p)
+
+            obs.show()
             obs.write_to_db()
 
    db.close()
-
-
-
-
-
-
-

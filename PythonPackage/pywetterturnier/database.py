@@ -150,7 +150,7 @@ class database(object):
       db     = self.config['mysql_db']
       port   = self.config['mysql_port']
       try:
-         res = MySQLdb.connect(host=host,user=user,passwd=passwd,db=db,port=port)
+         res = MySQLdb.connect(host=host,user=user,password=passwd,database=db,port=port)
       except Exception as e:
          print(e)
          utils.exit("Could not connect to the database. Stop.")
@@ -423,8 +423,7 @@ class database(object):
       sql = "SELECT * FROM %swetterturnier_stations WHERE cityID = %d" % (self.prefix,cityID)
       if active: sql += " AND active = 1"
       if tdate:
-         tdate = str(tdate)
-         sql += " AND (since < "+tdate+" OR since = 0) AND (until > "+tdate+" OR until = 0)"
+         sql += f" AND (since<={tdate} OR since=0) AND (until>{tdate} OR until=0)"
       cur = self.db.cursor()
       cur.execute( sql )
       desc = cur.description
@@ -439,7 +438,7 @@ class database(object):
    # -------------------------------------------------------------------
    # - Current tournament
    # -------------------------------------------------------------------
-   def current_tournament(self, verbose=False):
+   def current_tournament(self, verbose=False, active=False):
       """Returns tdate for current tournament.
       The tdate is the number of days since 1970-01-01. Loading the
       ``max(tdate)`` from the dates table which is smaller than the
@@ -448,7 +447,7 @@ class database(object):
       Return:
          int: Integer date (days since 1970-01-01)
 
-      .. todo:: Reto just take care of the idea that we cold start two tournaments
+      .. todo:: Reto just take care of the idea that we could start two tournaments
          in a row. Can this method then handle the requests?
       """
 
@@ -457,13 +456,14 @@ class database(object):
 
       if verbose: print('  * %s' % 'Searching current tournament date')
       today = int(np.floor(float(dt.datetime.now().strftime("%s"))/86400))
-      #print today
+      if verbose: print(today)
       sql = 'SELECT max(tdate) FROM %swetterturnier_dates WHERE tdate <= %d'
+      if active: sql += ' AND status = 1'
       cur = self.cursor()
       cur.execute( sql % (self.prefix ,today) )
       tdate = cur.fetchone()[0]
 
-      if verbose: print('    Current tournament date is: %d' % tdate)
+      if verbose: print(f'    Current tournament date is: {tdate:d}')
 
       return tdate
 
@@ -481,7 +481,6 @@ class database(object):
          cities (unique) will be returned.
 
       Returns:
-         list: A list wil be returned containing a set of integer values where
          each element represents one tournament played for the city. Dates in
          days since 1970-01-01.
       """
@@ -655,7 +654,7 @@ class database(object):
       # - Typ is either "all" for Petrus (takes all human bets),
       #   "user" to get the bet of one user (ID = userID), or
       #   "group" to get the bets for a group (ID = groupID)
-      l = ['persistenz','all','user','group','human','petrus']
+      l = ['persistenz','all','user','group','human','petrus','mswr']
       if not typ in l:
          utils.exit('Wrong typ input to database.get_bet_data. Has to be all, user, or group')
       
@@ -681,8 +680,7 @@ class database(object):
       # - Ignore the sleepy!
       deadID = self.get_user_id('Sleepy')
 
-      # - For Petrus, load all bets for a given
-      #   tdate/betdate, city and parameter.
+      # - For averaged bets, load all bets for a given tdate/betdate, city and parameter.
       
       if typ == 'all': 
          # - Also ignore Referenztipps. They look like players but they
@@ -703,7 +701,7 @@ class database(object):
          sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
          sql.append("AND bet.userID != %d" % deadID)
          sql.append("AND bet.userID NOT IN%s" % sql_tuple(ref))
-         #print "\n".join(sql)
+         #print("\n".join(sql))
          cur.execute( "\n".join(sql) )
       # - If input was user, load tips for a specific user.
       elif typ == 'user':
@@ -715,7 +713,7 @@ class database(object):
          sql.append("WHERE bet.userID = %d" % ID) 
          sql.append("AND bet.cityID = %d AND bet.paramID = %d" % (cityID,paramID))
          sql.append("AND bet.tdate = %d AND bet.betdate = %d" % (tdate,bdate))
-         #print "\n".join( sql )
+         #print("\n".join( sql ))
          cur.execute( "\n".join(sql) ) 
       # - If input was user, load tips for a specific user.
       elif typ == 'group':
@@ -743,13 +741,12 @@ class database(object):
          strdate_end = dt.fromtimestamp((tdate+1)*86400).strftime("%Y-%m-%d 00:00:00")
          sql.append("AND (gu.since IS NULL OR gu.since < '{0:s}') AND (gu.until IS NULL OR gu.until >= '{1:s}')".format(
                     strdate_end,strdate_bgn))
-         #print "\n".join(sql)
+         #print("\n".join(sql))
 
          # Execute query
          cur.execute( "\n".join(sql) ) 
       elif typ == 'human' or typ == 'petrus':
          # - get only human players, no sleepy no groups, no automats, no reference tips
-         # TODO: exclude automatons in 'human' mode
          # - look for Petrus, Moses and Persistenz ID to exclude them:
          PetrusID = self.get_user_id('Petrus')
          MosesID = self.get_user_id('Moses')
@@ -769,18 +766,32 @@ class database(object):
          if typ == 'human':
             ref = self.get_group_id('Automaten')
             cur.execute( 'SELECT userID FROM %swetterturnier_groupusers WHERE groupID = %d' % (self.prefix, ref) )
-            ref = [i[0] for i in cur.fetchall()]
-            
-            sql.append("AND bet.userID NOT IN (%d,%d,%d,%d,%d)" % (deadID,PetrusID,MosesID,DonnerstagID,FreitagID))
-            sql.append(" ".join(ref)) 
+            mosIDs = [str(i[0]) for i in cur.fetchall()]
+            try: mosIDs = "," + ",".join(mosIDs)
+            except: mosIDs = ""
+
+            sql.append("AND bet.userID NOT IN (%d,%d,%d,%d,%d%s)" % (deadID,PetrusID,MosesID,DonnerstagID,FreitagID,",".join(mosIDs)) )
          else:
             sql.append("AND bet.userID NOT IN (%d,%d,%d)" % (deadID,PetrusID,MosesID))
-         #print "\n".join(sql)
+         #print("\n".join(sql))
          cur.execute( "\n".join(sql) )
-      # - If input was user, load tips for a specific user.
+      
+      # MSwr: get GFS and EZ bets to compute the mix
+      elif typ == "mswr":
+         EZ  = self.get_user_id('MSwr-EZ-MOS')
+         GFS = self.get_user_id('MSwr-GFS-MOS')
+         sql = f"SELECT bet.value AS value FROM {self.prefix}wetterturnier_bets AS bet "
+         sql+= f"LEFT OUTER JOIN {self.prefix}users AS usr "
+         sql+= f"ON bet.userID = usr.ID "
+         sql+= f"INNER JOIN {self.prefix}wetterturnier_betstat AS stat "
+         sql+= f"ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tdate=stat.tdate "
+         sql+= f"WHERE bet.cityID = {cityID} AND bet.paramID = {paramID} "
+         sql+= f"AND bet.tdate = {tdate} AND bet.betdate = {bdate} AND bet.userID IN ({EZ},{GFS}) "
+         sql+= f"ORDER BY bet.userID DESC"
+         #print(sql)
+         cur.execute(sql)
 
       # - Else ... adapt the exit condition above please.
-
       else:
          utils.exit('Seems that you allowed another type in database.get_bet_data but you have not created a propper rule')
 
@@ -946,6 +957,7 @@ class database(object):
 
       #print sql % (self.prefix,self.prefix,cityID,paramID,bdate)
       cur.execute( sql % (self.prefix,self.prefix,cityID,paramID,bdate) )
+      cur.execute( sql % (self.prefix,self.prefix,cityID,paramID,bdate) )
 
       data = cur.fetchall()
       #print data
@@ -963,7 +975,7 @@ class database(object):
    #   date where they were used at that time. The point computation
    #   code will skip if there are no data.
    # -------------------------------------------------------------------
-   def get_parameter_names(self, active = False, sort=False, cityID=False):
+   def get_parameter_names(self,active=True,sort=False,cityID=False,tdate=False):
       """Returns all parameter names.
       If input active is set, only active parametres will be returned.
       
@@ -978,7 +990,10 @@ class database(object):
       """
       cur = self.db.cursor()
       sql = "SELECT paramName FROM %swetterturnier_param" % self.prefix
+      if tdate: active = True
       if active: sql += " WHERE active = 1"
+      if tdate:
+         sql += f" AND (since <= {tdate} OR since = 0) AND (until > {tdate} OR until = 0)"
       if sort: sql += " ORDER BY sort"
       cur.execute( sql )
       data = cur.fetchall()
@@ -1007,7 +1022,28 @@ class database(object):
       else:
          return int( data[0] )
 
+
+   def get_max_points(self,param):
+      """Return max points given per parameter saved in database (for bonus points)
+      """
+      cur = self.db.cursor()
+      cur.execute("SELECT pmax FROM %swetterturnier_param WHERE paramName = \'%s\'" % (self.prefix, param))
+      data = cur.fetchone()
+      if not data:
+         return False
+      res = data[0]
+      if res:
+         return res
+      else: return False
+ 
    
+   def get_parameter_precission(self,paramID):
+      cur = self.db.cursor()
+      cur.execute(f"SELECT valpre FROM {self.prefix}wetterturnier_param WHERE paramID={paramID}")
+      try: return cur.fetchone()[0]
+      except: return False
+
+
    # -------------------------------------------------------------------
    # - Returns user id. And creates user if necessary.
    # -------------------------------------------------------------------
@@ -1040,7 +1076,6 @@ class database(object):
    # -------------------------------------------------------------------
    # - Returning user ID
    # -------------------------------------------------------------------
-   def get_user_id(self,user):
       """Returns user ID given a username. If the user cannot be found,
       the method returns False. There is a vice versa function called
       :py:meth:`database.get_username_by_id`.
@@ -1050,6 +1085,7 @@ class database(object):
       Returns:
         bool or int: False if user does not exist, else the integer user ID.
       """
+   def get_user_id(self, user):
       for i in ["user_login","user_nicename","display_name"]:
          cur = self.db.cursor()
          cur.execute('SELECT ID FROM %susers WHERE LOWER(%s) = \'%s\'' % (self.prefix, i, user.lower()))
@@ -1367,7 +1403,7 @@ class database(object):
          tdate = self.current_tournament()
 
       userIDs  = self.get_participants_in_city( cityID, tdate, "human" )
-      params = self.get_parameter_names()
+      params = self.get_parameter_names( active = True, tdate = tdate )
       missing = []
 
       for userID in userIDs:

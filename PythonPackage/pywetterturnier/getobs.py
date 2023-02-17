@@ -43,6 +43,8 @@ class getobs( object ):
       """
       Initialization of the @ref getobs.getobs class.
       """
+      
+      import numpy as np
 
       # -------------------------------------------------------------
       # Public attributes
@@ -54,7 +56,9 @@ class getobs( object ):
       #  data[wmo station number][parameter] = observation value.
       self.data     = None
       ## List of stationclass objects
-      self.stations = self.db.get_stations_for_city( city['ID'] )
+      from .utils import datetime2tdate
+      self.tdate = datetime2tdate( date )
+      self.stations = self.db.get_stations_for_city( city['ID'], tdate = self.tdate )
       ## Store wmoww input arg
       self.wmoww    = wmoww
 
@@ -185,7 +189,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading observations
    # ----------------------------------------------------------------
-   def load_obs( self, wmo, hour, parameter ):
+   def load_obs( self, wmo, hour, parameter, min50=0 ):
       """Loading a specific observation from the database.
       The date for which the observation should be valid and the
       name of the database are coming from the public attributes of the
@@ -208,34 +212,45 @@ class getobs( object ):
 
       parameter = parameter.lower()
       if not parameter in self._columns_:
-         print("Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
-                  (parameter, self._table_))
+         #print("Parameter %s does not exist in database table %s. Stop in getobs.load_obs" % \
+         #         (parameter, self._table_))
          return None
 
       tmp    = self._date_ + dt.timedelta( 0, hour*3600 )
       datum  = int( tmp.strftime('%Y%m%d') )
       stdmin = int( tmp.strftime('%H%M')   )
-      #print "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter)
+      #print( "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter) )
+      
+      # for some parameters we prefer the obs at minute 50 (SYNOP)
+      if min50: stdmin -= 50
 
       # - Load from db
-      sql = "SELECT %s FROM %s WHERE msgtyp='bufr' AND statnr=%d AND datum=%d AND stdmin=%d" % \
-            (parameter, self._table_, wmo, datum, stdmin)
-
+      sql = "SELECT %s FROM %s WHERE statnr=%d AND datum=%d AND stdmin=%d"
       cur = self.db.cursor()
-      cur.execute( sql )
+      cur.execute( sql % (parameter, self._table_, wmo, datum, stdmin) )
       data = cur.fetchall()
 
-      # - No row in database at all 
-      if len(data) == 0:
-         return None
+      # - No row in database at all or None value
+      if len(data) == 0 or data[0][0] == None:
+         # if no obs at minute 50 try :00 obs (SYNOP)
+         if min50:
+            stdmin += 50
+            cur.execute( sql % (parameter, self._table_, wmo, datum, stdmin) )
+            data = cur.fetchall()
+         else:
+            return None
+         
       elif len(data) > 1:
-         utils.exit("got more than one row - thats not good. Stop.")
-      # - Field is empty
-      elif data[0][0] == None:
-         return None
-
+         for i in range(len(data)):
+            try:
+               return data[i][0]
+            except:
+               continue
+         #utils.exit("got more than one row - thats not good. Stop.")
+      
       # - Else return value
-      return data[0][0]
+      try: return data[0][0]
+      except: return None
 
 
    # ----------------------------------------------------------------
@@ -344,6 +359,10 @@ class getobs( object ):
          value (:obj:`float`): Either a numeric value or None.
       """
 
+      if   wmo == 2878 and parameter in ["Sd1","Sd24"]:  wmo = 10471
+      elif wmo == 11121 and parameter == "Sd1": wmo = 11120
+      #TODO add dd12 from 11121 only if not already observed from 11120
+
       # - If value is none: return
       if value == None: return
       # - Initialize data object and add new dict with key wmo
@@ -357,56 +376,120 @@ class getobs( object ):
 
 
    # ----------------------------------------------------------------
-   # - Calling the prepare_fun methods for the different
-   #   parameters like TTm, TTn, ... 
+   # - Prepare T2m 12z
    # ----------------------------------------------------------------
-   def prepare( self, parameter,special=None):
-      """Prepares the different observed parameters like ``TTn``, ``TTm``, ``N``,
-      and so on (depending on what's defined in the database table
-      ``params``). Note that the script will ignore a wrong specified
-      or unknown parameter as the internal method then does not exist. 
-      The date will be taken from the public arguments of the parent
-      class :class`getobs.getobs`.
-      The additional data (specified via ``special`` input argument will only
-      be used when the final value is not yet available.
+   def _prepare_fun_T12_(self,station,special):
+      return self.load_obs( station.wmo, 12, "t", min50=1 )
 
-      Args:
-         parameter (:obj:`str`): shortname of the Wetterturnier parameters. 
-         special   (:obj:`str`): String with a very specific format. This is to
-            compute some live observations such as min/max.
 
-      Examples:
-         Prepare weather type parameter ``Wv``, in addition select database
-         column ``w1`` and select all available observations between 07:00 today
-         and 18:00 of the requested date (today), see input argument
-         ``date`` on :obj:`getobs.getobs`.
+   # ----------------------------------------------------------------
+   # - Prepare ff12 (m/s)
+   # ----------------------------------------------------------------
+   def _prepare_fun_ff12_(self,station,special):
+      ff12 = self.load_obs( station.wmo, 24, "ff12" )
+      if ff12:
+         return ff12
+      else:
+         return self.load_obs( station.wmo, 12, "ff", min50=1 )
 
-         ``x.prepare( "Wv", "w1 today 07:00 to today 12:00" )``
 
-         Compute minimum temperature ``TTn``, in addition select
-         database column ``T`` between yesterday 18:00 and today 06:00.
+   def none_filter(self, values):
+      #replace all occurences of -1 by 0
+      values[:] = [x if x != -1 else 0 for x in values]
+      return list(filter(lambda x : x != None, values))
 
-         ``x.prepare( "TTn", "T yesterday 18:00 to today 6:00" )``
 
-      .. todo:: Reference to database table param.
-      """
+   def observed(self, values, func = np.max ):
+      if len(values) > 0:
+         return func(values)
+      return 0
 
-      try:
-         fun = eval("self._prepare_fun_%s_" % parameter)
-      except Exception as e:
-         print("[!] WARNING: method prepare_fun_%s does not exist. Cannot prepare data." % parameter)
-         print(e)
-         return
+   # ----------------------------------------------------------------
+   # - Prepare fx24 (m/s)
+   # ----------------------------------------------------------------
+   def _prepare_fun_fx24_(self,station,special):
+     
+      ffx24 = self.load_obs( station.wmo, 24, "fx24" )
+      if ffx24:
+         return ffx24
 
-      import inspect
-      if not inspect.ismethod( fun ):
-         print("[!] WARNING: method prepare_fun_%s is no instancemethod. Cannot prepare data." % parameter)
-         return
+      ffx12 = self.none_filter([self.load_obs( station.wmo, i, "ffx12" ) for i in range(12,25,6)])
+      if len(ffx12) == 2:
+         return self.observed( ffx12 )
 
-      # - Else calling function
-      for station in self.stations:
-         value = fun(station,special)
-         self._add_obs_value_(parameter,station.wmo,value)
+      ffx6 = self.none_filter([self.load_obs( station.wmo, i, "ffx6" ) for i in range(6,25,6)])
+      if len(ffx6) == 4:
+         return self.observed( ffx6 )
+
+      ffx3 = self.none_filter([self.load_obs( station.wmo, i, "ffx3" ) for i in range(3,25,3)])
+      if len(ffx3) == 8:
+         return self.observed( ffx3 )
+
+      ffx1 = self.none_filter([self.load_obs( station.wmo, i, "ffx1" ) for i in range(1,25)])
+      if len(ffx1) == 24:
+         return self.observed( ffx1 )
+      
+      ffx = self.none_filter([self.load_obs( station.wmo, i, "ffx" ) for i in range(1,25)])
+      if len(ffx) == 24:
+         return self.observed( ffx1 )
+
+      ff1 = self.none_filter([self.load_obs( station.wmo, i, "ff" ) for i in range(1,25)])
+      if len(ff1) == 24:
+         return self.observed( ffx1 )
+
+      return None
+
+   # ----------------------------------------------------------------
+   # - Prepare Sd 1h @12z
+   # ----------------------------------------------------------------
+   def _prepare_fun_Sd1_(self,station,special):
+      try: return self.load_obs( station.wmo, 12, "sun", min50=0 ) * 10
+      except: return None
+
+
+   # ----------------------------------------------------------------
+   # - Prepare RR1 (max 1h precipitation of day)
+   # ----------------------------------------------------------------
+   def _prepare_fun_RR1_(self,station,special):
+      
+      RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
+     
+      from .utils import today_tdate
+      today = today_tdate()
+      if len(RR1) == 24 or today > self.tdate:
+         return self.observed(RR1)
+      else: return None
+
+
+   # ----------------------------------------------------------------
+   # - Prepare RR24 (sum precipitation of day)
+   # ----------------------------------------------------------------
+   def _prepare_fun_RR24_(self,station,special):
+     
+      RR24 = self.load_obs( station.wmo, 24, "rr24" )
+      if RR24:
+         return RR24
+
+      RR12 = self.none_filter([self.load_obs( station.wmo, i, "rrr12" ) for i in range(12,25,6)])
+      if len(RR12) == 2:
+         return self.observed( RR12, np.sum )
+
+      RR6 = self.none_filter([self.load_obs( station.wmo, i, "rrr6" ) for i in range(6,25,6)])
+      if len(RR6) == 4:
+         return self.observed( RR6, np.sum )
+
+      RR3 = self.none_filter([self.load_obs( station.wmo, i, "rrr3" ) for i in range(3,25,3)])
+      if len(RR3) == 8:
+         return self.observed( RR3, np.sum )
+
+      RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
+      from .utils import today_tdate
+      today = today_tdate()
+      if len(RR1) == 24 or today > self.tdate:
+         return self.observed( RR1, np.sum )
+
+      return None
+
 
    # ----------------------------------------------------------------
    # - Prepare TTm
@@ -429,7 +512,13 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       tmax12 = self.load_obs( station.wmo, 18, 'tmax12' )
+      if not tmax12:
+         tmax12 = self.load_obs( station.wmo, 18, 't2max12' )
+      
       tmax24 = self.load_obs( station.wmo, 18, 'tmax24' )
+      if not tmax24:
+         tmax24 = self.load_obs( station.wmo, 18, 't2max24' )
+
       # - If tmax12 is valid: take this one
       if not tmax12 == None:
          value = tmax12
@@ -453,12 +542,13 @@ class getobs( object ):
             if spvalue is not None:
                value = np.max(spvalue)
          else:
-            print("[!] Had problems parsing the special argument! SKip!")
+            print("[!] Had problems parsing the special argument! Skip!")
 
 
       # - Return value
       return value
 
+   _prepare_fun_Tmax_ = lambda self,station,special : self._prepare_fun_TTm_(station,special)
 
    # ----------------------------------------------------------------
    # - Prepare TTn
@@ -479,6 +569,8 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       value = self.load_obs( station.wmo,  6, 'tmin12' )
+      if not value:
+         value = self.load_obs( station.wmo, 6 , 't2min12' )
 
       if special is not None and value is None:
          special = self.special_obs_object( special, self._date_ )
@@ -492,16 +584,17 @@ class getobs( object ):
             if spvalue is not None:
                value = np.min(spvalue)
          else:
-            print("[!] Had problems parsing the special argument! SKip!")
+            print("[!] Had problems parsing the special argument! Skip!")
             
       # - Return value
       return value 
 
+   _prepare_fun_Tmin_ = lambda self,station,special : self._prepare_fun_TTn_(station,special)
 
    # ----------------------------------------------------------------
    # - Prepare TTd
    # ----------------------------------------------------------------
-   def _prepare_fun_TTd_(self,station,special):
+   def _prepare_fun_TTd_(self,station,special,min50=False):
       """Helper function for dew point temperature. Returns 12 UTC observed
       dew point temperature from database column td in 1/10 degrees Celsius.
 
@@ -515,15 +608,16 @@ class getobs( object ):
       """
 
       # - Loading td valid at 12 UTC 
-      value = self.load_obs( station.wmo, 12, 'td' )
+      value = self.load_obs( station.wmo, 12, 'td', min50=min50 )
       # - Return value
       return value
 
+   _prepare_fun_Td12_ = lambda self,station,special : self._prepare_fun_TTd_(station,special,min50=1)
 
    # ----------------------------------------------------------------
    # - Prepare PPP
    # ----------------------------------------------------------------
-   def _prepare_fun_PPP_(self,station,special):
+   def _prepare_fun_PPP_(self,station,special,min50=False):
       """Helper function for mean sea level pressure at 12 UTC.
       Based on database column pmsl. Return value will be in 1/10 hPa.
 
@@ -537,7 +631,7 @@ class getobs( object ):
       """
       import numpy as np
       # - Loading td valid at 12 UTC 
-      value = self.load_obs( station.wmo, 12, 'pmsl' )
+      value = self.load_obs( station.wmo, 12, 'pmsl', min50=min50 )
       # - Original value is in 1/100 hPa. Convert.
       if value == None:
          cur = self.db.cursor()
@@ -549,8 +643,8 @@ class getobs( object ):
             h = data[0][0]
          else:
             h = data[0][1]
-         p = self.load_obs( station.wmo, 12, 'psta' )
-         T = self.load_obs( station.wmo, 12, 't' )
+         p = self.load_obs( station.wmo, 12, 'psta', min50=min50 )
+         T = self.load_obs( station.wmo, 12, 't', min50=min50 )
 
          #calculate reduced MSL pressure via international barometric height formula if no reduced pressure is given
          if not (p == None or T == None or h == None):
@@ -565,11 +659,12 @@ class getobs( object ):
       # Return value 
       return value
 
+   _prepare_fun_PPP12_ = lambda self,station,special : self._prepare_fun_PPP_(station,special,min50=1)
 
    # ----------------------------------------------------------------
    # - Prepare dd
    # ----------------------------------------------------------------
-   def _prepare_fun_dd_(self,station,special):
+   def _prepare_fun_dd_(self,station,special,min50=False):
       """Helper function for the wind direction at 12 UTC from database
       column dd. Values will be returned in 1/10 degrees but rounded
       to full 10 degrees. E.g., observed '138' degrees will be converted
@@ -593,29 +688,34 @@ class getobs( object ):
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
       """
-
+      #helper function to implement round half up (bankers rounding)
+      #https://stackoverflow.com/questions/33019698/how-to-properly-round-up-half-float-numbers
+      HalfRoundUp = lambda value: int(value + 0.5)
+      
       # - Loading td valid at 12 UTC 
-      dd = self.load_obs( station.wmo, 12, 'dd' )
-      ff = self.load_obs( station.wmo, 12, 'ff' )
+      dd = self.load_obs( station.wmo, 12, 'dd', min50=min50 )
+      ff = self.load_obs( station.wmo, 12, 'ff', min50=min50 )
       # - If dd is valid: take this one
       if dd == None:
          value = None
       # - if wind direction is 0 (variable)
       elif dd == 0:
-         # - No wind
-         if ff == 0:
+         # - No wind (ff <= 0.2 m/s)
+         if ff <= 2:
             value = 0
          #else wind direction is not defined
          else:
             value = None
       # - Else take dd as it is
       else:
-         value = np.round(float(dd)/10) * 100.
-         # - North wind will be 360, not 0. Change if 0 occurs
+         value = HalfRoundUp( float(dd) / 10 ) * 100.
+         # - North wind will be 360, not 0 (no wind!). Change if 0 occurs
          if value == 0.:
             value = 3600.
       # - Return value
       return value
+
+   _prepare_fun_dd12_ = lambda self,station,special : self._prepare_fun_dd_(station,special,min50=True)
 
 
    # ----------------------------------------------------------------
@@ -635,7 +735,7 @@ class getobs( object ):
          or None if observation not available or nor recorded.
       """
 
-      #first we check if a converted obs for dd is available (maybe it has been set zero by admin)
+      # - first we check if a converted obs for dd is available (maybe it has been set zero by admin)
       from pywetterturnier import database, utils
       import numpy as np
 
@@ -655,6 +755,10 @@ class getobs( object ):
       #no converted obs yet? get obs from obstable
       if dd is False:
          dd = self.load_obs( station.wmo, 12, 'dd' )
+      if type(dd) == None:
+         # - Fallback that we probably never need:
+         #   If no dd observation take max gust direction
+         dd = self.load_obs( station.wmo, 12, 'ddx' )
 
       #if no wind direction is determined there can be no wind
       if dd is 0:
@@ -1018,9 +1122,9 @@ class getobs( object ):
           if     x in range(20,30): ww_after.append(x)
 
 
-      #print "      [Input]  w1:       ", w1
-      #print "               ww_now:   ", ww_now
-      #print "               ww_after: ", ww_after
+      #print("      [Input]  w1:       ", w1      )
+      #print("               ww_now:   ", ww_now  )
+      #print("               ww_after: ", ww_after)
 
       # If wmoww input argument to this class has been set: convert all
       # observed w1/ww flags into the new ones.
@@ -1028,7 +1132,7 @@ class getobs( object ):
           w1       =   self.wmoww.convert( "w1", w1 )
           ww_now   = list(filter(None, [ self.wmoww.convert( "ww", x ) for x in ww_now   ] ))
           ww_after = list(filter(None, [ self.wmoww.convert( "ww", x ) for x in ww_after ] ))
-          #print "      [Converted]   ",w1, ww_now, ww_after
+          #print("      [Converted]   ",w1, ww_now, ww_after)
 
       # If list return is requested: do so.
       if returnlist:
@@ -1107,12 +1211,12 @@ class getobs( object ):
       check18 = self.check_record( station.wmo, 18 )
       check06 = self.check_record( station.wmo, 30 )
 
-      #print " ------------- "
-      #print "RR18     ", RR18
-      #print "RR06     ", RR06
-      #print "RR06_24  ", RR06_24
-      #print "check18  ", check18
-      #print "check06  ", check06
+      #print(" ------------- ")
+      #print("RR18     ", RR18   )
+      #print("RR06     ", RR06   )
+      #print("RR06_24  ", RR06_24)
+      #print("check18  ", check18)
+      #print("check06  ", check06)
 
       # - If observed values RR18/RR06 are empty but the observations
       #   are in the database we have to assume that there was no
@@ -1229,7 +1333,7 @@ class getobs( object ):
                 
             # - Else try to sum up hourly observations
             else:
-	       # Check if +24h record is here. If the record is here but we have
+	         # Check if +24h record is here. If the record is here but we have
                # not gotten any information so far (self.load_obs(..) returned None for
                # both, +30 and +24): loading 1h observations and take the sum!
                check24 = self.check_record( station.wmo, 24 )
@@ -1248,14 +1352,69 @@ class getobs( object ):
                   else:
                      # - Else sum up
                      value = sum([int( i[0] ) for i in data])
-
                      value = int( np.round(np.float(value) / np.float(self._maxSd_[station.wmo]) * 100) ) * 10
-	       # Else we report None 
+	            
+               # Else we report None 
                else: value = None
 
       # - Return value
       return value
+      
+   _prepare_fun_Sd24_ = lambda self,station,special : self._prepare_fun_Sd_(station,special)
 
+
+   # ----------------------------------------------------------------
+   # - Calling the prepare_fun methods for the different
+   #   parameters like TTm, TTn, ... 
+   # ----------------------------------------------------------------
+   def prepare( self, parameter,special=None):
+      """Prepares the different observed parameters like ``TTn``, ``TTm``, ``N``,
+      and so on (depending on what's defined in the database table
+      ``params``). Note that the script will ignore a wrong specified
+      or unknown parameter as the internal method then does not exist. 
+      The date will be taken from the public arguments of the parent
+      class :class`getobs.getobs`.
+      The additional data (specified via ``special`` input argument will only
+      be used when the final value is not yet available.
+
+      Args:
+         parameter (:obj:`str`): shortname of the Wetterturnier parameters.
+         special   (:obj:`str`): String with a very specific format. This is to
+            compute some live observations such as min/max.
+
+      Examples:
+         Prepare weather type parameter ``Wv``, in addition select database
+         column ``w1`` and select all available observations between 07:00 today
+         and 18:00 of the requested date (today), see input argument
+         ``date`` on :obj:`getobs.getobs`.
+
+         ``x.prepare( "Wv", "w1 today 07:00 to today 12:00" )``
+
+         Compute minimum temperature ``TTn``, in addition select
+         database column ``T`` between yesterday 18:00 and today 06:00.
+
+         ``x.prepare( "TTn", "T yesterday 18:00 to today 6:00" )``
+
+      .. todo:: Reference to database table param.
+      """
+
+      try:
+         #print("eval", parameter)
+         fun = eval("self._prepare_fun_%s_" % parameter)
+      except Exception as e:
+         print("[!] WARNING: method prepare_fun_%s does not exist. Cannot prepare data." % parameter)
+         print(e)
+         return
+
+      import inspect
+      if not inspect.ismethod( fun ):
+         print("[!] WARNING: method prepare_fun_%s is no instancemethod. Cannot prepare data." % parameter)
+         return
+
+      # - Else calling function
+      for station in self.stations:
+         value = fun(station,special)
+         self._add_obs_value_(parameter,station.wmo,value)
 
    # ----------------------------------------------------------------
    # - Show loaded data
@@ -1275,7 +1434,7 @@ class getobs( object ):
       for i in self.data:
          for k in list(self.data[i].keys()):
             if not k in allcols: allcols.append(k)
-      allcols.sort()
+      #allcols.sort()
 
       # - Show data
       print("     ", end=' ')
@@ -1368,11 +1527,11 @@ class getobs( object ):
 
             # - If length res is empty: INSERT
             if len(res) == 0:
-               #print "    Insert ...."
+               #print("    Insert ....")
                cur.execute( sql_insert % (stn.wmo,param[key],betdate,now,self.data[stn.wmo][key]) )
             # - If there is no user-change, update
             elif res[0][0] == 0:
-               #print "    Update ...."
+               #print("    Update ....")
                #print( sql_update % (now,self.data[wmo][key],wmo,param[key],betdate) )
                cur.execute( sql_update % (now,self.data[stn.wmo][key],stn.wmo,param[key],betdate) )
    
@@ -1408,8 +1567,8 @@ class getobs( object ):
          # First group: parameter
          # Second group: 'from' statement
          # Third group 'to' statement
-         regex_day="yesterday|today|tomorrow"
-         regex_time="[0-9]{1,2}:[0-9]{1,2}"
+         regex_day  = "yesterday|today|tomorrow"
+         regex_time = "[0-9]{1,2}:[0-9]{1,2}"
          regex = "^([a-zA-Z0-9]+)\s+({0:s})\s+({1:s})\s+to\s+({0:s})\s+({1:s}).*$".format(
                   regex_day,regex_time)
 

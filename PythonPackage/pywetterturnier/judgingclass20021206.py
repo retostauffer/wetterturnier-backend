@@ -776,7 +776,7 @@ class judging(object):
       maxpoints = 10.
       deduction = np.zeros(len(data), dtype='float'); deduction[:] = 0. 
 
-      # - Precipitation scoring is quiet fancy. I am doing this
+      # - Precipitation scoring is quite fancy. I am doing this
       #   with a vector defining the penalty for different
       #   amounts of OBSERVED prcipitation and its penalties.
       #   If observation is 0.0: start from zero element (giving the 1.0 points penalty)
@@ -834,7 +834,7 @@ class judging(object):
       # - Now take the penalty vector from user tip
       #   up to minimum observed value BUT tip was not -3.0mm
 
-      # same her with the int() bugfix...
+      # same here with the int() bugfix...
       idx = np.where( data < MIN )[0]
       imax = np.minimum( MIN, len(full_penalty) )
       for i in idx:

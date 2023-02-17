@@ -54,7 +54,7 @@ if __name__ == '__main__':
    # - Checking input user if set
    #   If input_user was given as string we have to find the
    #   corresponding userID first!
-   if type(config['input_user']) == type(int()):
+   if type(config['input_user']) == int:
       config['input_user'] = db.get_username_by_id( config['input_user'] )
       if not config['input_user']:
          utils.exit('SORRY could not convert your input -u/--user to corresponding username. Check name.')
@@ -72,12 +72,15 @@ if __name__ == '__main__':
    #the groups do not actually exists in the database but they consist of the same participants as "Automaten"
    MOS = ["MOS", "MOS-Max", "MOS-Min", "MOS-Random"]
    for i in MOS:
-      today = utils.today_tdate()
-      hour = datetime.utcnow().hour
-      minute = datetime.utcnow().minute
-      if i == "MOS-Random" and not (hour == 15 and minute in [0,1] and today == tdates[0]):
+      today  = utils.today_tdate()
+      utcnow = datetime.utcnow()
+      hour   = utcnow.hour; minute = utcnow.minute
+      hour15 = hour == 15 and minute == 0 and today == tdates[0]
+      if i == "MOS-Random" and (not hour15 or config["input_tdate"]):
          continue
-         #pass
+      #never use that flag with this script!
+      elif config["input_force"]:
+         pass
       active_groups.append( i )
  
    # - Create new user

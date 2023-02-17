@@ -36,7 +36,7 @@ if __name__ == '__main__':
       users_played.append( int(i[0]) )
 
    #who of them did actually play this year?
-   sql = "SELECT userID FROM %swetterturnier_betstat WHERE tdate BETWEEN 18635 AND 19000 AND userID IN %s ORDER BY userID ASC"
+   sql = "SELECT userID FROM %swetterturnier_betstat WHERE tdate BETWEEN 19005 AND 19357 AND userID IN %s ORDER BY userID ASC"
    cur.execute( sql % (db.prefix, db.sql_tuple( users_played) ) )
    data = cur.fetchall()
    

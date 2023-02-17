@@ -300,8 +300,10 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
    # ----------------------------------------------------------------
    # - Loading operational and test judgingclass
    try:
-      config['judging_operational'] = CNF.get('judging','operational')
-      config['judging_test']        = CNF.get('judging','test')
+      config['judging_operational']  = CNF.get('judging','operational')
+      try: config['judging_test']    = CNF.get('judging','test')
+      except: config['judging_test'] = None
+      config['judging_old']          = CNF.get('judging','old')
    except:
       exit('Problems reading necessary judging config!') 
 
@@ -314,7 +316,7 @@ def readconfig(file='config.conf',inputs=None,conversion_table=None):
       exit('Problems rading all required data infos from config file')
    if not os.path.isdir( config['data_moses'] ):
       print("[WARNING] Could not find directory %s necessary for ComputeMoses" % config['data_moses']) 
-      print("          ComputeMoes will crash!")
+      print("          ComputeMoses will crash!")
    try:
       config['data_moses_out']   = CNF.get('data','moses_out')
       # If folder does not exist: ignore
@@ -502,13 +504,13 @@ class wmowwConversion( object ):
 #   Helper function which creates a timestamp from a datetime object
 def timestamp( dt ):
     "Return POSIX timestamp from datetime object as float"
-    import time as t
-    return t.mktime( dt.timetuple() )
+    from calendar import timegm
+    return timegm( dt.timetuple() )
 
 
 def datetime2tdate( datetime ):
     "Convert datetime object to tdate"
-    return np.floor( timestamp( datetime ) / 86400 )
+    return int( timestamp( datetime ) / 86400 )
 
 
 def tdate2datetime( tdate ):
@@ -540,7 +542,7 @@ def string2tdate( datestring, moses = False ):
     "opposite of the above function"
     from datetime import datetime as dt
 
-    if moses: #mosesYYMMDD
+    if moses or len(datestring) == 6: #YYMMDD
        year = int(datestring[0:2])
        mon  = int(datestring[2:4])
        day  = int(datestring[4:6])
@@ -550,15 +552,16 @@ def string2tdate( datestring, moses = False ):
        day   = int(datestring[8:10])
 
     dtobj = dt(year, mon, day)
-    return int( timestamp2tdate( timestamp( dtobj ) ) )
+    
+    return datetime2tdate( dtobj )
 
 
 def timestamp2tdate( timestamp ):
-    return int( timestamp / 86400 )
+    return int( timestamp // 86400 )
 
 
 def tdate2timestamp( tdate ):
-    return tdate * 86400
+    return int( tdate * 86400 )
 
 
 def today_tdate():

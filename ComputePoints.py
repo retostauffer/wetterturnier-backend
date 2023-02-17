@@ -47,7 +47,8 @@ if __name__ == '__main__':
          utils.exit('SORRY could not convert your input -u/--user to corresponding userID. Check name.')
    
    # - Loading all parameters
-   params = db.get_parameter_names(False)
+   params = db.get_parameter_names(active=True, sort=True, tdate=tdates[0])
+   #params = db.get_parameter_names(active=False)
 
    # ----------------------------------------------------------------
    # - Because of the observations we have to compute the
@@ -104,7 +105,14 @@ if __name__ == '__main__':
          # ----------------------------------------------------------
          # - Dynamically loading judgingclass
          # ----------------------------------------------------------
-         modname = "pywetterturnier.judgingclass%s" % config['judging_test']
+         
+         # TODO: replace quick and dirty with automatic recognition of newest judgingclass
+
+         if tdate <= 19200:
+            judgingdate = config["judging_old"]
+         else:
+            judgingdate = config["judging_operational"]
+         modname = "pywetterturnier.judgingclass%s" % judgingdate
          try:
             from importlib import import_module
             judging = import_module(modname)
@@ -126,7 +134,9 @@ if __name__ == '__main__':
             # - Compute points
             # -------------------------------------------------------
             for param in params:
-
+               pmax = db.get_max_points(param)
+               print(pmax)
+               
                if not config['input_param'] == None:
                   if not param == config['input_param']: continue
    
@@ -152,21 +162,28 @@ if __name__ == '__main__':
                   print('    Got no data for this parameter. Skip.')
                   continue
    
-               # - If the parameter to judge is "dd" we need additional
+               # - If the parameter to judge is "dd/dd12" we need additional
                #   information about the observed wind speed! Take it here.
-               if param == 'dd':
-                  ffID = db.get_parameter_id( 'ff' )
+               if 'dd' in param:
+                  ffID = db.get_parameter_id( param )
                   special = db.get_obs_data(city['ID'],ffID,tdate,day)
                else:
                   special = None # unused
    
                # - Now compute points
                points = jug.get_points(obs,param,values,special,tdate)
-               print(points)
-               print(type(points[0]))
+               pmax = db.get_max_points(param)
+               print(points[0], "/", pmax)
+               if pmax:
+                  for i in range(len(points)):
+                     if points[i] == pmax:
+                        points[i] = points[i] + 1
+                        print("BONUS POINT GIVEN!")
+                        #save bonus points seperately?
+                
                jug.points_to_database( db, db_userID, db_cityID, db_paramID, db_tdate, \
                                        db_betdate, points )
-   #db.commit()
+   db.commit()
                
                
    # ----------------------------------------------------------------
