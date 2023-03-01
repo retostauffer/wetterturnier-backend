@@ -77,7 +77,7 @@ if __name__ == "__main__":
       obj = getobs.getobs( config, db, city, base_date )
 
       # Looping over stations
-      for station in db.get_stations_for_city(city.get("ID")):
+      for station in db.get_stations_for_city(city["ID"], active=1, tdate=tdate):
 
          # Increase column index
          j += 1
