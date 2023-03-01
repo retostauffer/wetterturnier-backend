@@ -402,7 +402,7 @@ class getobs( object ):
    def observed(self, values, func = np.max ):
       if len(values) > 0:
          return func(values)
-      return 0
+      return None
 
    # ----------------------------------------------------------------
    # - Prepare fx24 (m/s)
