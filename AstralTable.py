@@ -133,14 +133,14 @@ if __name__ == "__main__":
    # - First: header line with city name
    ofile.write( "{0:>5s} {1:>5s} ".format("","") )
    for city in cities:
-      for i in range(0,len(db.get_stations_for_city(city["ID"]))):
+      for i in range(0,len(db.get_stations_for_city(city["ID"], active=1, tdate=tdate))):
          ofile.write( "{0:>10s}".format(city["name"]) )
    ofile.write( "\n" )
 
    # - Second: header line with colum names
    ofile.write( "{0:>5s} {1:>5s} ".format("month","day") )
    for city in cities:
-      for station in db.get_stations_for_city(city["ID"]):
+      for station in db.get_stations_for_city(city["ID"], active=1, tdate=tdate):
          ofile.write( "{0:10d}".format(station.wmo))
    ofile.write( "\n" )
 
