@@ -79,7 +79,7 @@ if __name__ == '__main__':
       else:
          scripts = ['ComputePetrus.py',
                     'ComputeMeanBets.py',
-                    #'ComputePersistenzen.py',
+                    'ComputePersistenzen.py',
                     'ComputePoints.py',
                     'ComputeSleepy.py',
                     'ComputeRanksOnly.py']
