@@ -402,7 +402,7 @@ class getobs( object ):
    def observed(self, values, func = np.max ):
       if len(values) > 0:
          return func(values)
-      return None
+      return 0
 
    # ----------------------------------------------------------------
    # - Prepare fx24 (m/s)
@@ -512,12 +512,7 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       tmax12 = self.load_obs( station.wmo, 18, 'tmax12' )
-      if not tmax12:
-         tmax12 = self.load_obs( station.wmo, 18, 't2max12' )
-      
       tmax24 = self.load_obs( station.wmo, 18, 'tmax24' )
-      if not tmax24:
-         tmax24 = self.load_obs( station.wmo, 18, 't2max24' )
 
       # - If tmax12 is valid: take this one
       if not tmax12 == None:
@@ -569,8 +564,6 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       value = self.load_obs( station.wmo,  6, 'tmin12' )
-      if not value:
-         value = self.load_obs( station.wmo, 6 , 't2min12' )
 
       if special is not None and value is None:
          special = self.special_obs_object( special, self._date_ )
