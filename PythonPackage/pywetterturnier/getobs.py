@@ -451,6 +451,10 @@ class getobs( object ):
    # - Prepare RR1 (max 1h precipitation of day)
    # ----------------------------------------------------------------
    def _prepare_fun_RR1_(self,station,special):
+
+      rr1x = self.load_obs( station.wmo, 24, "rr1x" )
+      if rr1x:
+         return rr1x
       
       RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
      
