@@ -1312,19 +1312,19 @@ class getobs( object ):
          value = None
       # - Else start processing the data
       else:
-         # - Loading sunshine 24h sum, next day reported at 06UTC
-         #   which is +30 hours from self._date_.
+         # - Loading sunshine 24h sum which is reported at 00UTC
+         #   which is +24 hours from self._date_.
          #   Note: sunday is not Sunday, it is the parameter called
          #   "sunday" (sunshine, full day).
-         tmp = self.load_obs( station.wmo, 30, 'sunday' )
+         tmp = self.load_obs( station.wmo, 24, 'sunday' )
          if tmp:
             value = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
-         # - If no full day sunshine duration is reported +30h: check full day
-         #   sunshie duration +24h (00 UTC report) which is +24 hours from self._date_
+         # - If no full day sunshine duration is reported +24h: check full day
+         #   sunshine duration +24h (06 UTC report) which is +30 hours from self._date_
          else:
             #   Note: sunday is not Sunday, it is the parameter called
-            #   "sunday" (sunshine, full day).
-            tmp = self.load_obs( station.wmo, 24, 'sunday' )
+            #   "sunday" (sunshine duration of a full day).
+            tmp = self.load_obs( station.wmo, 30, 'sunday' )
             if tmp:
                value  = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
                 
