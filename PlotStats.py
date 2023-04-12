@@ -431,7 +431,7 @@ if __name__ == '__main__':
       tdate = config['input_tdate']
 
    # - Calling the function now
-   plot(db, cities, tdate)
+   plot(db, cities, tdate, verbose)
 
    db.commit()
    db.close()

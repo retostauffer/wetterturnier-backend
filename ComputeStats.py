@@ -127,6 +127,7 @@ if __name__ == '__main__':
       #tdate = max(tdates) - 7
       #if verbose: print("Calling plot routine...")
       #PlotStats.plot(db, cities[:-2], tdate, verbose=False)
-      
+
+
    db.commit()
    db.close()

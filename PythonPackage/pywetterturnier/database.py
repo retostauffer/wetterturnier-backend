@@ -776,21 +776,6 @@ class database(object):
          #print("\n".join(sql))
          cur.execute( "\n".join(sql) )
       
-      # MSwr: get GFS and EZ bets to compute the mix
-      elif typ == "mswr":
-         EZ  = self.get_user_id('MSwr-EZ-MOS')
-         GFS = self.get_user_id('MSwr-GFS-MOS')
-         sql = f"SELECT bet.value AS value FROM {self.prefix}wetterturnier_bets AS bet "
-         sql+= f"LEFT OUTER JOIN {self.prefix}users AS usr "
-         sql+= f"ON bet.userID = usr.ID "
-         sql+= f"INNER JOIN {self.prefix}wetterturnier_betstat AS stat "
-         sql+= f"ON bet.userID=stat.userID AND bet.cityID=stat.cityID AND bet.tdate=stat.tdate "
-         sql+= f"WHERE bet.cityID = {cityID} AND bet.paramID = {paramID} "
-         sql+= f"AND bet.tdate = {tdate} AND bet.betdate = {bdate} AND bet.userID IN ({EZ},{GFS}) "
-         sql+= f"ORDER BY bet.userID DESC"
-         #print(sql)
-         cur.execute(sql)
-
       # - Else ... adapt the exit condition above please.
       else:
          utils.exit('Seems that you allowed another type in database.get_bet_data but you have not created a propper rule')
