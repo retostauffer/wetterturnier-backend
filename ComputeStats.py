@@ -123,10 +123,10 @@ if __name__ == '__main__':
             print(table)
 
       #now we call a plotting routine which draws some nice statistical plots
-      import PlotStats
-      tdate = max(tdates) - 7
-      if verbose: print("Calling plot routine...")
-      PlotStats.plot(db, cities[:-2], tdate, verbose=False)
+      #import PlotStats
+      #tdate = max(tdates) - 7
+      #if verbose: print("Calling plot routine...")
+      #PlotStats.plot(db, cities[:-2], tdate, verbose=False)
       
    db.commit()
    db.close()

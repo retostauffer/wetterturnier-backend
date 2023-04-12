@@ -125,7 +125,7 @@ class database(object):
             AND
                bet.submitted IS NOT NULL
          """
-         var = 2 * [ self.prefix ] + [ groupID, tdate, cityID, bgn, end ]
+         #var = 2 * [ self.prefix ] + [ groupID, tdate, cityID, bgn, end ]
          #print( sql.format(**{"self.prefix":self.prefix, "tdate":tdate, "groupID":groupID, "cityID":cityID, "bgn":bgn, "end":end }) )
          #print( sql % tuple(var) ) 
          #cur.execute( sql, {"self.prefix":self.prefix, "groupID":groupID, "cityID":cityID, "bgn":bgn, "end":end } )

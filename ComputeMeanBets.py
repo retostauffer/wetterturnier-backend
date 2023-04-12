@@ -120,6 +120,8 @@ if __name__ == '__main__':
             print(("    Found user ID's: {:s}".format(", ".join(
                             ["{:d}".format(x) for x in participants]))))
 
+            print( participants )
+
             if len(participants) < 2:
                print("[!] Less than 2 participants for this group/city/tdate.")
                print("    Skip computation of mean bets and delete old group bet if exists.")
