@@ -70,6 +70,11 @@ def track(db, cities, tdate, verbose=False):
 
    if verbose: print(out)
 
+   # - For the parameter to judge is "dd/dd12" we need additional
+   #   information about the observed wind speed! Take it here.
+   ffID = db.get_parameter_id( "dd12" )
+   special = ()
+
    for m in mswr:
       mswrID = db.get_user_id( "MSwr-" + m )
       if verbose: print(m)
@@ -80,6 +85,11 @@ def track(db, cities, tdate, verbose=False):
          for p in params:
             if verbose: print(p)
             paramID = db.get_parameter_id(p)
+
+            if "Sd" in p or "RR" in p:
+               pmax = 8
+            else: pmax = 7
+
             for d in range(1,3):
                bdate = tdate + d
                sql = f"SELECT value,points FROM wp_wetterturnier_bets WHERE userID={mswrID} AND betdate={bdate} AND paramID={paramID} AND cityID={cityID}"
@@ -97,6 +107,13 @@ def track(db, cities, tdate, verbose=False):
                   print(res[0], res[1])
                
                if p == "dd12":
+                  ff12 = ( db.get_obs_data(cityID, ffID, tdate, d) )
+                  special = np.copy( ff12 )
+
+               dP = pmax - jug.get_points( [mos_val*10], p, [val*10], special, tdate )[0]
+               special = () # reset var
+
+               if p == "dd12":
                   if val < 90 and mos_val > 270:
                      val += 90; mos_val += 90
                   elif mos_val < 90 and val > 270:
@@ -111,7 +128,6 @@ def track(db, cities, tdate, verbose=False):
                   print(type(val), type(mos_val))
                   print(val, mos_val)
 
-               dP = jug.get_points( [val], p, [mos_val], (), tdate )[0]
                dO = res[1] - mos_points
 
                out = out.append({'MOS':m, 'Diff(Val)':dV, 'Diff(Pts)':dP, 'Diff(Obs)':dO, 'Param':p, 'City':cname, 'Day':dayname[d]}, ignore_index=True)

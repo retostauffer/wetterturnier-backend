@@ -346,8 +346,8 @@ class judging(object):
       #falsch#if len( np.where(obs ==    0.)[0] ) > 0:                           calm     = True
       #falsch#if len( np.where(obs == 9900.)[0] ) > 0:                           variable = True
 
-      #if (ffmin == 0) or at least one wind direction is zero, it's calm
-      if ( ffmin == 0 ) or ( len( np.where(obs ==    0.)[0] ) > 0 ):
+      #if (ffmin == 0.2 m/s) or at least one wind direction is zero, it's calm
+      if ( ffmin <= 2 ) or ( len( np.where(obs ==    0.)[0] ) > 0 ):
          calm     = True
       #if at least one direction is variable...
       if len( np.where(obs == 9900.)[0] ) > 0:
