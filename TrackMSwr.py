@@ -21,7 +21,6 @@ def track(db, cities, tdate, verbose=False):
 
    #generate files for MSwr forecast tracking (biggest differences from MOS every weekend)
    mswr  = ( "MOS-Mix","EZ-MOS","GFS-MOS" )
-   mswr  = [ "MSwr-" + i for i in mswr    ]
    mosID = db.get_user_id( "GRP_MOS" )
    if verbose: print(mosID)
    sql = f"SELECT cityID,paramID,betdate,value,points FROM wp_wetterturnier_bets WHERE userID={mosID} AND tdate={tdate}"
@@ -42,6 +41,7 @@ def track(db, cities, tdate, verbose=False):
    out = pd.DataFrame({'MOS'       : pd.Series(dtype='str'),
                        'Diff(Val)' : pd.Series(dtype='float'),
                        'Diff(Pts)' : pd.Series(dtype='float'),
+                       'Diff(Obs)' : pd.Series(dtype='float'),
                        'Param'     : pd.Series(dtype='str'),
                        'City'      : pd.Series(dtype='str'),
                        'Day'       : pd.Series(dtype='str')})
@@ -49,7 +49,7 @@ def track(db, cities, tdate, verbose=False):
    if verbose: print(out)
 
    for m in mswr:
-      mswrID = db.get_user_id( m )
+      mswrID = db.get_user_id( "MSwr-" + m )
       if verbose: print(m)
       for c in cities:
          cname = c["name"]
@@ -60,16 +60,19 @@ def track(db, cities, tdate, verbose=False):
             paramID = db.get_parameter_id(p)
             for d in range(1,3):
                bdate = tdate + d
-               sql = f"SELECT value,points FROM wp_wetterturnier_bets WHERE userID={mswrID} AND betdate={bdate} AND paramID={paramID}"
+               sql = f"SELECT value,points FROM wp_wetterturnier_bets WHERE userID={mswrID} AND betdate={bdate} AND paramID={paramID} AND cityID={cityID}"
                cur.execute(sql)
                res = cur.fetchall()[0]
                if verbose: print(res)
                mos = mosDF.loc[(mosDF['cityID'] == cityID) & (mosDF['paramID'] == paramID) & (mosDF['betdate'] == bdate)]
-               if verbose: print(int(mos["value"] / 10), int(mos["points"]))
+               if verbose: print(int(mos["value"] / 10), float(mos["points"]))
                if verbose: print(res[0], res[1])
                dV = (res[0] - int(mos["value"]))  / 10
-               dP = (res[1] - int(mos["points"]))
-               out = out.append({'MOS':m, 'Diff(Val)':dV, 'Diff(Pts)':dP, 'Param':p, 'City':cname, 'Day':dayname[d]}, ignore_index=True)
+               dP = 0
+               dO = res[1] - float(mos["points"])
+               out = out.append({'MOS':m, 'Diff(Val)':dV, 'Diff(Pts)':0, 'Diff(Obs)':dO, 'Param':p, 'City':cname, 'Day':dayname[d]}, ignore_index=True)
+
+   out = out.sort_values(by='Diff(Obs)', key=abs, ascending=False)
 
    if verbose: print(out)
 

@@ -39,7 +39,13 @@ if __name__ == '__main__':
       tdates     = [db.current_tournament(active=True)]
    else:
       tdates     = [config['input_tdate']]
-      print(tdates)
+   
+   verbose = False
+   if config["input_verbose"]:
+      verbose = True
+   
+   if verbose: print(tdates)
+   
    # - Loading all different cities (active cities)
    cities     = db.get_cities()
    # - If input city set, then drop all other cities.
@@ -51,7 +57,7 @@ if __name__ == '__main__':
 
 
    for i,j in zip( ["Donnerstag","Freitag"], [1,0] ):
-      print(i, j)
+      if verbose: print(i, j)
       # ----------------------------------------------------------------
       # - Prepare the Persistenz
       # ----------------------------------------------------------------
