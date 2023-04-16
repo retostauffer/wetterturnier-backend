@@ -11,11 +11,33 @@ def track(db, cities, tdate, verbose=False):
    dayname = {1:"Sat", 2:"Sun"}
 
    from pywetterturnier import utils
-   import pandas as pd
    import sys
+   sys.path.append('PyModules')
+   # ----------------------------------------------------------
+   # - Dynamically loading judgingclass
+   # ----------------------------------------------------------
 
-   if tdate < utils.today_tdate():
-      tdate -= 7
+   # TODO: replace quick and dirty with automatic recognition of newest judgingclass
+
+   if tdate <= 19200:
+      judgingdate = config["judging_old"]
+   else:
+      judgingdate = config["judging_operational"]
+   modname = f"pywetterturnier.judgingclass{judgingdate}"
+   try:
+      from importlib import import_module
+      judging = import_module(modname)
+   except Exception as e:
+      print(e)
+      utils.exit("Problems loading the judgingclass %s" % modname)
+
+   jug = judging.judging()
+   
+   import pandas as pd
+   import numpy as np
+
+   #if tdate < utils.today_tdate():
+   #   tdate -= 7
 
    cur = db.cursor()
 
@@ -65,12 +87,34 @@ def track(db, cities, tdate, verbose=False):
                res = cur.fetchall()[0]
                if verbose: print(res)
                mos = mosDF.loc[(mosDF['cityID'] == cityID) & (mosDF['paramID'] == paramID) & (mosDF['betdate'] == bdate)]
-               if verbose: print(int(mos["value"] / 10), float(mos["points"]))
-               if verbose: print(res[0], res[1])
-               dV = (res[0] - int(mos["value"]))  / 10
-               dP = 0
-               dO = res[1] - float(mos["points"])
-               out = out.append({'MOS':m, 'Diff(Val)':dV, 'Diff(Pts)':0, 'Diff(Obs)':dO, 'Param':p, 'City':cname, 'Day':dayname[d]}, ignore_index=True)
+               val = res[0] / 10
+               
+               mos_val    = int(mos["value"]) / 10
+               mos_points = float(mos["points"])
+               
+               if verbose:
+                  print(mos_val, mos_points)
+                  print(res[0], res[1])
+               
+               if p == "dd12":
+                  if val < 90 and mos_val > 270:
+                     val += 90; mos_val += 90
+                  elif mos_val < 90 and val > 270:
+                     mos_val -= 90; val -= 90
+                  dV = 360 - abs(val - mos_val)
+                  if dV > 180:
+                     dV = 360 - dV
+               else:
+                  dV = val - mos_val
+
+               if verbose:
+                  print(type(val), type(mos_val))
+                  print(val, mos_val)
+
+               dP = jug.get_points( [val], p, [mos_val], (), tdate )[0]
+               dO = res[1] - mos_points
+
+               out = out.append({'MOS':m, 'Diff(Val)':dV, 'Diff(Pts)':dP, 'Diff(Obs)':dO, 'Param':p, 'City':cname, 'Day':dayname[d]}, ignore_index=True)
 
    out = out.sort_values(by='Diff(Obs)', key=abs, ascending=False)
 

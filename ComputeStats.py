@@ -122,11 +122,16 @@ if __name__ == '__main__':
             table.to_excel( writer, sheet_name = city["hash"] )
             print(table)
 
+      import TrackMSwr
+      #start TrackMSwr tool to save important information about MSwr MOS into an xls table; for last weekend
+      tdate = max(tdates) - 7
+      track(db, cities, tdate, verbose=verbose)
+
       #now we call a plotting routine which draws some nice statistical plots
       #import PlotStats
       #tdate = max(tdates) - 7
       #if verbose: print("Calling plot routine...")
-      #PlotStats.plot(db, cities[:-2], tdate, verbose=False)
+      #PlotStats.plot(db, cities[:-2], tdate, verbose=verbose)
 
 
    db.commit()

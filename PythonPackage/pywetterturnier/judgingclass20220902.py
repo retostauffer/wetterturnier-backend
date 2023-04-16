@@ -143,7 +143,7 @@ class judging(object):
         obs (:obj:`...`): Observations
         what (:obj:`str`): Which parameter, this defines the method to be called (internally).
         special (:obj:`float`): Some rules have 'special' sub-rules. This
-            speical is a float observation required to compute the points.
+            special is a float observation required to compute the points.
         tdate (obj:`int`): tournament date, days since 1970-01-01 or None.
             Used to test whether or not it is allowed to compute the
             points for this specific tournament date with this judginclass.
