@@ -764,7 +764,7 @@ class getobs( object ):
          # - Loading ff valid at 12 UTC 
          value = self.load_obs( station.wmo, 12, 'ff' )
          if value:
-            value = np.round( np.float( value ) * (900/463) / 10 ) * 10
+            value = np.round( np.float64( value ) * (900/463) / 10 ) * 10
 
       # - Return value  
       return value
@@ -874,7 +874,7 @@ class getobs( object ):
          # - Convert from meters per second to knots.
          #   Moreover, if knots are below 25 (or 12.5 m/s) set value to zero.
          if value >= 125:
-            value = np.round( np.float( value ) * (900/463) / 10. ) * 10
+            value = np.round( np.float64( value ) * (900/463) / 10. ) * 10
             if value < 250.:
                value = 250
          else:
@@ -915,7 +915,7 @@ class getobs( object ):
       if not N == None:
          import numpy as np
          # - Note: BUFR report is in percent
-         value = (np.floor(np.float(N)/100.*8.)) * 10
+         value = (np.floor(np.float64(N)/100.*8.)) * 10
          if value > 80: value = 80
       # - Else if record exists but there is no observed
       #   cloud cover we have to assume that the value
@@ -1318,7 +1318,7 @@ class getobs( object ):
          #   "sunday" (sunshine, full day).
          tmp = self.load_obs( station.wmo, 24, 'sunday' )
          if tmp:
-            value = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
+            value = int( np.round(np.float64(tmp)/np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
          # - If no full day sunshine duration is reported +24h: check full day
          #   sunshine duration +24h (06 UTC report) which is +30 hours from self._date_
          else:
@@ -1326,7 +1326,7 @@ class getobs( object ):
             #   "sunday" (sunshine duration of a full day).
             tmp = self.load_obs( station.wmo, 30, 'sunday' )
             if tmp:
-               value  = int( np.round(np.float(tmp)/np.float(self._maxSd_[station.wmo]) * 100) ) * 10
+               value  = int( np.round(np.float64(tmp)/np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
                 
             # - Else try to sum up hourly observations
             else:
@@ -1349,7 +1349,7 @@ class getobs( object ):
                   else:
                      # - Else sum up
                      value = sum([int( i[0] ) for i in data])
-                     value = int( np.round(np.float(value) / np.float(self._maxSd_[station.wmo]) * 100) ) * 10
+                     value = int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
 	            
                # Else we report None 
                else: value = None
@@ -1490,7 +1490,7 @@ class getobs( object ):
       # - Dates and update date
       now = dt.datetime.now()
       now = now.strftime("%Y-%m-%d %H:%M")
-      betdate = np.int( np.floor( np.float(self._date_.strftime('%s')) / 86400. ) )
+      betdate = int( np.floor( np.float64(self._date_.strftime('%s')) / 86400. ) )
 
       # - Looping over wmo stations
       cur = self.db.cursor()

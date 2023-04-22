@@ -110,7 +110,14 @@ def track(db, cities, tdate, verbose=False):
                   ff12 = ( db.get_obs_data(cityID, ffID, tdate, d) )
                   special = np.copy( ff12 )
 
-               dP = pmax - jug.get_points( [mos_val*10], p, [val*10], special, tdate )[0]
+               if val <= mos_val:
+                  obs = np.copy( val )
+                  bet = np.copy( mos_val )
+               else:
+                  obs = np.copy( mos_val )
+                  bet = np.copy( val )
+
+               dP = pmax - jug.get_points( [obs*10], p, [bet*10], special, tdate )[0]
                special = () # reset var
 
                if p == "dd12":
@@ -138,7 +145,17 @@ def track(db, cities, tdate, verbose=False):
 
    date_str = utils.tdate2string( tdate )
    if verbose: print(date_str)
-   with pd.ExcelWriter( f"mswr/{date_str}.xls" ) as writer: out.to_excel( writer )
+   
+   writer = pd.ExcelWriter( f"mswr/{date_str}.xlsx" )
+   out.to_excel( writer, index=False, sheet_name="Sheet1", engine="xlsxwriter", float_format = "%.1f" )
+   #nuber format
+   workbook  = writer.book
+   worksheet = writer.sheets["Sheet1"]
+   fmt = workbook.add_format({"num_format": "0.0"})
+   worksheet.set_column("C:E", None, fmt)
+   writer.save()
+   writer.close()
+
 
 # - Start as main script (not as module)
 # -------------------------------------------------------------------
