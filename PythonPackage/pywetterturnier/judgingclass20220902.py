@@ -64,7 +64,7 @@ class judging(object):
       """
 
       if not quiet:
-         print('    Initializing judging class 2002-12-06 py')
+         print('    Initializing judging class 2022-09-02 py')
       self.quiet = quiet
 
    # ----------------------------------------------------------------

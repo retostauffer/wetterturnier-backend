@@ -1,4 +1,4 @@
-def track(db, cities, tdate, verbose=False):
+def track(db, cities, tdate, config, verbose=False):
   
    def bdate2day( bdate ):
       """Helper function converting the betdate value from the database into human-readable weekday (Sat/Sun)"""
@@ -35,6 +35,7 @@ def track(db, cities, tdate, verbose=False):
    
    import pandas as pd
    import numpy as np
+   from datetime import date
 
    #if tdate < utils.today_tdate():
    #   tdate -= 7
@@ -100,15 +101,18 @@ def track(db, cities, tdate, verbose=False):
                val = res[0] / 10
                
                mos_val    = int(mos["value"]) / 10
-               mos_points = float(mos["points"])
+               try:
+                  mos_points = float(mos["points"])
+               except TypeError:
+                  mos_points = 0
                
                if verbose:
                   print(mos_val, mos_points)
                   print(res[0], res[1])
                
                if p == "dd12":
-                  ff12 = ( db.get_obs_data(cityID, ffID, tdate, d) )
-                  special = np.copy( ff12 )
+                  ff12 = db.get_obs_data(cityID, ffID, tdate, d)
+                  special = [ np.copy( ff12 ) ]
 
                if val <= mos_val:
                   obs = np.copy( val )
@@ -135,27 +139,41 @@ def track(db, cities, tdate, verbose=False):
                   print(type(val), type(mos_val))
                   print(val, mos_val)
 
-               dO = res[1] - mos_points
+               if date.today().weekday() == 4:
+                  dO = 0
+               else:
+                  dO = res[1] - mos_points
 
-               out = out.append({'MOS':m, 'Diff(Val)':dV, 'Diff(Pts)':dP, 'Diff(Obs)':dO, 'Param':p, 'City':cname, 'Day':dayname[d]}, ignore_index=True)
+               new_row = {'MOS':m, 'Diff(Val)':dV, 'Diff(Pts)':dP, 'Diff(Obs)':dO, 'Param':p, 'City':cname, 'Day':dayname[d]}
 
+               out = pd.concat( [ out, pd.DataFrame([new_row]) ], ignore_index=True )
+
+   val = out["Diff(Val)"]
+   pts = out["Diff(Pts)"]
+   obs = out["Diff(Obs)"]
+   
    out = out.sort_values(by='Diff(Obs)', key=abs, ascending=False)
 
-   if verbose: print(out)
+   sum_row  = { 'MOS':"SUM", 'Diff(Val)':val.sum(), 'Diff(Pts)':pts.sum(), 'Diff(Obs)':obs.sum() }
+   mean_row = { 'MOS':"MEAN", 'Diff(Val)':val.mean(), 'Diff(Pts)':pts.mean(), 'Diff(Obs)':obs.mean() }
+
+   stat_rows = pd.DataFrame([sum_row, mean_row])
+   if verbose: print(stat_rows)
+   out = pd.concat( [ out, stat_rows ], ignore_index=True )
 
    date_str = utils.tdate2string( tdate )
    if verbose: print(date_str)
    
    writer = pd.ExcelWriter( f"mswr/{date_str}.xlsx" )
-   out.to_excel( writer, index=False, sheet_name="Sheet1", engine="xlsxwriter", float_format = "%.1f" )
+   out.to_excel(writer, index=False, sheet_name="Sheet1", engine="xlsxwriter", float_format="%.1f")
    #nuber format
    workbook  = writer.book
    worksheet = writer.sheets["Sheet1"]
    fmt = workbook.add_format({"num_format": "0.0"})
-   worksheet.set_column("C:E", None, fmt)
-   writer.save()
+   worksheet.set_column("B:D", None, fmt)
    writer.close()
 
+   if verbose: print(out)
 
 # - Start as main script (not as module)
 # -------------------------------------------------------------------
@@ -195,7 +213,7 @@ if __name__ == '__main__':
       tdate = config['input_tdate']
 
    # - Calling the function now
-   track(db, cities, tdate, verbose)
+   track(db, cities, tdate, config, verbose)
 
    db.commit()
    db.close()

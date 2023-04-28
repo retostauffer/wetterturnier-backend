@@ -113,7 +113,7 @@ if __name__ == '__main__':
          filename = config['input_filename']
 
       #generating ranking table output, write to .xls file
-      with pd.ExcelWriter( "plots/%s.xls" % filename ) as writer:
+      with pd.ExcelWriter( "plots/%s.xlsx" % filename ) as writer:
          for city in cities:
             if verbose:
                print(city["hash"])
@@ -122,10 +122,10 @@ if __name__ == '__main__':
             table.to_excel( writer, sheet_name = city["hash"] )
             print(table)
 
-      import TrackMSwr
+      from TrackMSwr import track
       #start TrackMSwr tool to save important information about MSwr MOS into an xls table; for last weekend
       tdate = max(tdates) - 7
-      track(db, cities, tdate, verbose=verbose)
+      track(db, cities, tdate, config, verbose=verbose)
 
       #now we call a plotting routine which draws some nice statistical plots
       #import PlotStats
