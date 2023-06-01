@@ -452,10 +452,25 @@ class getobs( object ):
    # ----------------------------------------------------------------
    def _prepare_fun_RR1_(self,station,special):
 
+      # obs has priority if existent and != 0
       rr1x = self.load_obs( station.wmo, 24, "rr1x" )
-      if rr1x:
+      if rr1x: return rr1x
+
+      datum = int( self._date_.strftime('%Y%m%d') )
+      # if we have 10min data, we take the highest possible 1h maximum RR
+      sql = "SELECT rrr10 FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
+            "datum = %d AND NOT rrr10 IS NULL" % datum
+      cur = self.db.cursor(); cur.execute( sql ); data = cur.fetchall()
+      # - No data? Go on with 1h resolution data
+      if len(data) == 0 or data == None: pass
+      else:
+         rr1x = 0
+         for i in range(len(data)-5):
+            rri = np.sum(data[i:i+6])
+            if rri > rr1x:
+               rr1x = np.copy(rri)
          return rr1x
-      
+
       RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
      
       from .utils import today_tdate
@@ -1321,10 +1336,8 @@ class getobs( object ):
          if len(data) == 0 or data == None:
             pass
          else:
-            print("maxSd:", self._maxSd_[station.wmo])
             # - Else sum up and convert to minutes
             value = sum([int( i[0] ) for i in data]) / 60
-            print("sumSd:", value)
             return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
          
 
