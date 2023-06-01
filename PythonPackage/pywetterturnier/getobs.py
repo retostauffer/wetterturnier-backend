@@ -1297,7 +1297,8 @@ class getobs( object ):
         float: Returns observed value if loading data was successful
         or None if observation not available or nor recorded.
       """
-
+      
+      datum = int( self._date_.strftime('%Y%m%d') )
       from pywetterturnier import utils
       # - If we have not loaded maxSd: stop
       if not station.wmo in self._maxSd_:
@@ -1312,6 +1313,21 @@ class getobs( object ):
          value = None
       # - Else start processing the data
       else:
+         # - If 10min sunshine data (in seconds) is available, take these
+         sql = "SELECT sun10 FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
+               "datum = %d AND NOT sun10 IS NULL" % datum
+         cur = self.db.cursor(); cur.execute( sql ); data = cur.fetchall()
+         # - No data? Go on with 24h sum reported at 00UTC
+         if len(data) == 0 or data == None:
+            pass
+         else:
+            print("maxSd:", self._maxSd_[station.wmo])
+            # - Else sum up and convert to minutes
+            value = sum([int( i[0] ) for i in data]) / 60
+            print("sumSd:", value)
+            return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
+         
+
          # - Loading sunshine 24h sum which is reported at 00UTC
          #   which is +24 hours from self._date_.
          #   Note: sunday is not Sunday, it is the parameter called
@@ -1330,27 +1346,24 @@ class getobs( object ):
                 
             # - Else try to sum up hourly observations
             else:
-	         # Check if +24h record is here. If the record is here but we have
+               # Check if +24h record is here. If the record is here but we have
                # not gotten any information so far (self.load_obs(..) returned None for
                # both, +30 and +24): loading 1h observations and take the sum!
                check24 = self.check_record( station.wmo, 24 )
                # - Else try to get the hourly sums.
                if check24:
-                  datum = int( self._date_.strftime('%Y%m%d') )
                   sql = "SELECT sun FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
                         "msgtyp = 'bufr' AND datum = %d AND NOT sun IS NULL" % datum
 
-                  cur = self.db.cursor()
-                  cur.execute( sql )
-                  data = cur.fetchall()
+                  cur = self.db.cursor(); cur.execute( sql ); data = cur.fetchall()
                   # - No data? Return None 
                   if len(data) == 0 or data == None:
                      return None
                   else:
                      # - Else sum up
                      value = sum([int( i[0] ) for i in data])
-                     value = int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
-	            
+                     print(value)
+                     return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
                # Else we report None 
                else: value = None
 

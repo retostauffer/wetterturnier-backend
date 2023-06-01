@@ -2,8 +2,9 @@
 
 pyscript=$1
 source venv/bin/activate
+alias python="python3"
 
-cd PythonPackage && python3 setup.py install
+cd PythonPackage && python setup.py install
 cd ..
 if [ -n "$pyscript" ]
 then
@@ -13,5 +14,3 @@ else
 	which python3
 	ls
 fi
-
-alias python="python3"
