@@ -463,7 +463,7 @@ class getobs( object ):
       cur = self.db.cursor(); cur.execute( sql ); data = cur.fetchall()
       # - No data? Go on with 1h resolution data
       if len(data) == 0 or data == None: pass
-      else: #determin the maximum of each possible 1h interval
+      else: #determine the maximum of each possible 1h interval
          rr1x = 0
          for i in range(len(data)-5):
             rri = np.sum(data[i:i+6])

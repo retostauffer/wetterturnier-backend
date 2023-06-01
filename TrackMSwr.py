@@ -95,7 +95,8 @@ def track(db, cities, tdate, config, verbose=False):
                bdate = tdate + d
                sql = f"SELECT value,points FROM wp_wetterturnier_bets WHERE userID={mswrID} AND betdate={bdate} AND paramID={paramID} AND cityID={cityID}"
                cur.execute(sql)
-               res = cur.fetchall()[0]
+               try: res = cur.fetchall()[0]
+               except: sys.exit()
                if verbose: print(res)
                mos = mosDF.loc[(mosDF['cityID'] == cityID) & (mosDF['paramID'] == paramID) & (mosDF['betdate'] == bdate)]
                val = res[0] / 10
