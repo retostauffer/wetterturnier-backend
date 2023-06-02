@@ -1328,6 +1328,7 @@ class getobs( object ):
          value = None
       # - Else start processing the data
       else:
+         """
          # - If 10min sunshine data (in seconds) is available, take these
          sql = "SELECT sun10 FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
                "datum = %d AND NOT sun10 IS NULL" % datum
@@ -1339,7 +1340,7 @@ class getobs( object ):
             # - Else sum up and convert to minutes
             value = sum([int( i[0] ) for i in data]) / 60
             return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
-         
+         """
 
          # - Loading sunshine 24h sum which is reported at 00UTC
          #   which is +24 hours from self._date_.
