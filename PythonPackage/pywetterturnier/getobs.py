@@ -1329,7 +1329,7 @@ class getobs( object ):
       # - Else start processing the data
       else:
          # - If 10min sunshine data (in seconds) is available, take these 
-         sql = "SELECT sun10 FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \ 
+         sql = "SELECT sun10 FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
                "datum = %d AND NOT sun10 IS NULL" % datum 
          cur = self.db.cursor(); cur.execute( sql ); data = cur.fetchall() 
          # - No data? Go on with 24h sum reported at 00UTC 
