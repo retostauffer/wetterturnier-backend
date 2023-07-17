@@ -394,7 +394,7 @@ class getobs( object ):
 
 
    def none_filter(self, values):
-      #replace all occurences of -1 by 0
+      #replace all occurences of -1 by 0 and remove missing values
       values[:] = [x if x != -1 else 0 for x in values]
       return list(filter(lambda x : x != None, values))
 
@@ -484,30 +484,37 @@ class getobs( object ):
    # - Prepare RR24 (sum precipitation of day)
    # ----------------------------------------------------------------
    def _prepare_fun_RR24_(self,station,special):
-     
+      from copy import copy
+
       RR24 = self.load_obs( station.wmo, 24, "rr24" )
-      if RR24:
-         return RR24
 
       RR12 = self.none_filter([self.load_obs( station.wmo, i, "rrr12" ) for i in range(12,25,6)])
       if len(RR12) == 2:
-         return self.observed( RR12, np.sum )
+         RR12_sum = self.observed( RR12, np.sum )
+         if RR12_sum is not None and (RR24 is None or RR12_sum > RR24):
+            RR24 = copy(RR12_sum)
 
       RR6 = self.none_filter([self.load_obs( station.wmo, i, "rrr6" ) for i in range(6,25,6)])
       if len(RR6) == 4:
-         return self.observed( RR6, np.sum )
+         RR6_sum = self.observed( RR6, np.sum )
+         if RR6_sum is not None and (RR24 is None or RR6_sum > RR24):
+            RR24 = copy(RR6_sum)
 
       RR3 = self.none_filter([self.load_obs( station.wmo, i, "rrr3" ) for i in range(3,25,3)])
       if len(RR3) == 8:
-         return self.observed( RR3, np.sum )
+         RR3_sum = self.observed( RR3, np.sum )
+         if RR3_sum is not None and (RR24 is None or RR3_sum > RR24):
+            RR24 = copy(RR3_sum)
 
       RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
       from .utils import today_tdate
       today = today_tdate()
-      if len(RR1) == 24 or today > self.tdate:
-         return self.observed( RR1, np.sum )
+      if len(RR1) == 24:
+         RR1_sum = self.observed( RR1, np.sum )
+         if RR1_sum is not None and ((RR24 is None or RR1_sum > RR24) and today > self.tdate):
+            return RR1_sum
 
-      return None
+      return RR24
 
 
    # ----------------------------------------------------------------
