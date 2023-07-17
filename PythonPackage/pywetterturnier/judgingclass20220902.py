@@ -194,8 +194,12 @@ class judging(object):
       if not self.quiet:
          print('    - Using method: %s' % method_to_use)
       call = getattr(self, method_to_use)
+
+      points = call(obs,data,special)
+
       # Round to one digit after the comma
-      return np.round( call(obs,data,special), 1 )
+      try: return np.round( points, 1 )
+      except: return np.full( points.shape, None )
 
 
    # -----------------------------------------------------------------
