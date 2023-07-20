@@ -189,7 +189,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading observations
    # ----------------------------------------------------------------
-   def load_obs( self, wmo, hour, parameter, min50=False, ts=None, FUN=None ):
+   def load_obs( self, wmo, hour, parameter, min50=0 ):
       """Loading a specific observation from the database.
       The date for which the observation should be valid and the
       name of the database are coming from the public attributes of the
@@ -201,10 +201,6 @@ class getobs( object ):
                             be valid [0,...,24], in UTC.
          parameter (:obj:`str`): Parameter name (short name) for which
                             observations should be loaded.
-         min50 (:obj:`:boolean`): Take obs from minute 50 instead of :00?
-         ts (:obj:`tuple`): Timespan in which FUN (SQL function) should be applied
-                            (start,end) in hours (-6 means 18z previous day!)
-         FUN (:obj:`str`): SQL function like MAX, MIN, AVG...
 
       Returns:
          :obj:`float` or None: None will be returned if the database
@@ -229,18 +225,9 @@ class getobs( object ):
       if min50: stdmin -= 50
 
       # - Load from db
-      if ts and type(FUN) == str:
-         from .utils import tdate2datetime
-         dt_tdate = tdate2datetime(self.tdate)
-         start = dt_tdate + dt.timedelta( hours=ts[0] )
-         end   = dt_tdate + dt.timedelta( hours=ts[1] )
-         ts = ( int(start.timestamp()), int(end.timestamp()) )
-         sql=f"SELECT {FUN}({parameter}) FROM {self._table_} WHERE statnr={wmo} AND DATUMSEC BETWEEN {ts[0]} AND {ts[1]}"
-      else:
-         sql = f"SELECT {parameter} FROM {self._table_} WHERE statnr={wmo} AND datum={datum} AND stdmin={stdmin}"
-
+      sql = "SELECT %s FROM %s WHERE statnr=%d AND datum=%d AND stdmin=%d"
       cur = self.db.cursor()
-      cur.execute( sql )
+      cur.execute( sql % (parameter, self._table_, wmo, datum, stdmin) )
       data = cur.fetchall()
 
       # - No row in database at all or None value
@@ -248,7 +235,7 @@ class getobs( object ):
          # if no obs at minute 50 try :00 obs (SYNOP)
          if min50:
             stdmin += 50
-            cur.execute( sql )
+            cur.execute( sql % (parameter, self._table_, wmo, datum, stdmin) )
             data = cur.fetchall()
          else:
             return None
@@ -371,9 +358,7 @@ class getobs( object ):
          wmo (:obj:`int`): WMO station number.
          value (:obj:`float`): Either a numeric value or None.
       """
-      
-      # some tournament specific changes that we have to hardcode
-      # LEI: Sd1,Sd24 from Bad Lauchstaedt; IBK: Sd1 from Flughafen Automat
+
       if   wmo == 2878 and parameter in ["Sd1","Sd24"]:  wmo = 10471
       elif wmo == 11121 and parameter == "Sd1": wmo = 11120
       #TODO add dd12 from 11121 only if not already observed from 11120
@@ -427,9 +412,6 @@ class getobs( object ):
       ffx24 = self.load_obs( station.wmo, 24, "fx24" )
       if ffx24:
          return ffx24
-      else:
-         value = self.load_obs( station.wmo, 0, "ffx10", ts=(0,24), FUN="MAX" )
-         if value is not None: return value
 
       ffx12 = self.none_filter([self.load_obs( station.wmo, i, "ffx12" ) for i in range(12,25,6)])
       if len(ffx12) == 2:
@@ -451,18 +433,18 @@ class getobs( object ):
       if len(ffx) == 24:
          return self.observed( ffx1 )
 
+      ff1 = self.none_filter([self.load_obs( station.wmo, i, "ff" ) for i in range(1,25)])
+      if len(ff1) == 24:
+         return self.observed( ffx1 )
+
       return None
 
    # ----------------------------------------------------------------
    # - Prepare Sd 1h @12z
    # ----------------------------------------------------------------
    def _prepare_fun_Sd1_(self,station,special):
-      try: value = self.load_obs( station.wmo, 12, "sun", min50=0 ) * 10
-      except: value = None
-      
-      if value is None:
-         try: return self.load_obs( station.wmo, 0, "sun10", ts=(11,12), FUN="SUM" ) * 10 // 60
-         except: return None
+      try: return self.load_obs( station.wmo, 12, "sun", min50=0 ) * 10
+      except: return None
 
 
    # ----------------------------------------------------------------
@@ -505,10 +487,6 @@ class getobs( object ):
       from copy import copy
 
       RR24 = self.load_obs( station.wmo, 24, "rr24" )
-      
-      if RR24 is None:
-         RR24 = self.load_obs( station.wmo, 0, "rrr10", ts=(0,24), FUN="SUM" )
-         if RR24 is not None: return RR24
 
       RR12 = self.none_filter([self.load_obs( station.wmo, i, "rrr12" ) for i in range(12,25,6)])
       if len(RR12) == 2:
@@ -563,14 +541,14 @@ class getobs( object ):
       tmax24 = self.load_obs( station.wmo, 18, 'tmax24' )
 
       # - If tmax12 is valid: take this one
-      if tmax12 is not None:
+      if not tmax12 == None:
          value = tmax12
       # - Else if tmax24 is valid, take this one
-      elif tmax24 is not None:
+      elif not tmax24 == None:
          value = tmax24
       # - Else value is None
-      else:
-         value = self.load_obs( station.wmo, 0, "tmax10", ts=(6,18), FUN="MAX" )
+      else: 
+         value = None
 
       # Live procedure
       if special is not None and value is None:
@@ -612,7 +590,7 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       value = self.load_obs( station.wmo,  6, 'tmin12' )
-      
+
       if special is not None and value is None:
          special = self.special_obs_object( special, self._date_ )
 
@@ -626,10 +604,7 @@ class getobs( object ):
                value = np.min(spvalue)
          else:
             print("[!] Had problems parsing the special argument! Skip!")
-      
-      elif value is None:
-         value = self.load_obs( station.wmo, 0, "tmin10", ts=(-6,6), FUN="MIN" )
-
+            
       # - Return value
       return value 
 
@@ -761,7 +736,562 @@ class getobs( object ):
 
    _prepare_fun_dd12_ = lambda self,station,special : self._prepare_fun_dd_(station,special,min50=True)
 
-   
+
+   # ----------------------------------------------------------------
+   # - Prepare ff
+   # ----------------------------------------------------------------
+   def _prepare_fun_ff_(self,station,special):
+      """Helper function for the wind speed at 12 UTC. Based on database
+      column ff. Values will be in 1/10 knots but rounded to full knots.
+      E.g., if 3.2m/s observed -> 6.22kt -> Return value will be 60. 
+
+      Args:
+         station (:obj:`stationclass.stationclass`): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+
+      Returns:
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
+      """
+
+      # - first we check if a converted obs for dd is available (maybe it has been set zero by admin)
+      from pywetterturnier import database, utils
+      import numpy as np
+
+      inputs = utils.inputcheck('GetObs')
+      # - Read configuration file
+      config = utils.readconfig('config.conf', inputs)
+
+      # - Initializing class and open database connection
+      db     = database.database(config)
+
+      bdate = utils.datetime2tdate( self._date_ )
+      #calculate tdate from date of observation (Saturday = bdate -1; Sunday = bdate - 2)
+      tdate = bdate - np.round( 7 * ( ( bdate/7 - np.floor( bdate/7 ) ) - 1/7 ) )
+
+      dd = db.get_obs_data( station.cityID, db.get_parameter_id("dd"), tdate, bdate, wmo=station.wmo )
+
+      #no converted obs yet? get obs from obstable
+      if dd is False:
+         dd = self.load_obs( station.wmo, 12, 'dd' )
+      if type(dd) == None:
+         # - Fallback that we probably never need:
+         #   If no dd observation take max gust direction
+         dd = self.load_obs( station.wmo, 12, 'ddx' )
+
+      #if no wind direction is determined there can be no wind
+      if dd is 0:
+         value = 0
+      else:
+         # - Loading ff valid at 12 UTC 
+         value = self.load_obs( station.wmo, 12, 'ff' )
+         if value:
+            value = np.round( np.float64( value ) * (900/463) / 10 ) * 10
+
+      # - Return value  
+      return value
+
+
+   # ----------------------------------------------------------------
+   # - Loading fx (maximum wind gust over last 1h, 6 to 6 UTC)
+   # ----------------------------------------------------------------
+   def _prepare_fun_fx_(self,station,special):
+      """Helper function for the maximum gust speed (fx > 25kt).
+      Based on database column fx1. Return value will be in 1/10 knots but
+      rounded to full knots. 
+      E.g., if 21.2m/s observed -> 41.21kt -> Return value will be 410. 
+      Special cases:
+
+      1) no observation available but +30h
+         observation (row) is in database:
+         Assume that there were no gusts at all:   **return 0**
+
+      2) no observations available and +30h
+         observation (row) not yet in database:    **return None**
+
+      3) observation available, below 25 knots:    **return 0**
+
+      4) observation available, >= 25 knots:       **return value**
+
+      Args:
+         station (:obj:`stationclass.stationclass`): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+
+      Returns:
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
+      """
+
+      # - Timestamps
+      ts1   = self._date_ + dt.timedelta(0, 6*3600); ts1   = int(ts1.strftime("%s"))
+      tsend = self._date_ + dt.timedelta(0,30*3600); tsend = int(tsend.strftime("%s"))
+
+      # - For FFX6 (maximum over the last 6 hours) I'll be sure not to pick a date/time
+      #   overlapping the period we'll take the data from. Same holds for FFX3 which is
+      #   max gust over the last 3 hours. Therefore
+      #   - ts3: first time step to pick FFX3 from
+      #   - ts6: first time step to pick FFX6 from
+      ts3   = self._date_ + dt.timedelta(0, 9*3600); ts3 = int(ts3.strftime("%s"))
+      ts6   = self._date_ + dt.timedelta(0,12*3600); ts6 = int(ts6.strftime("%s"))
+
+      # - Pick 10min ffx data 
+      #   From >   +6 hours to <= +30 hours: or in other words, all
+      #   6h-ffx observations from "07UTC to 06UTC next day"
+      sql  = "SELECT ffx  FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
+             "AND datumsec >  %s AND datumsec <= %d AND NOT ffx  IS NULL" % (ts1,tsend)
+      # - Statements to pick 1h gusts
+      #   From >   +6 hours to <= +30 hours: or in other words, all
+      #   6h-ffx observations from "07UTC to 06UTC next day"
+      sql1 = "SELECT ffx1 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
+             "AND datumsec >  %s AND datumsec <= %d AND NOT ffx1 IS NULL" % (ts1,tsend)
+      # - Statements to pick 3h gusts
+      #   From >=  +9 hours to <= +30 hours: or in other words, all
+      #   6h-ffx observations from "09UTC to 06UTC next day"
+      sql3 = "SELECT ffx3 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
+             "AND datumsec >= %s AND datumsec <= %d AND NOT ffx3 IS NULL" % (ts3,tsend)
+      # - Statements to pick 6h gusts
+      #   From >= +12 hours to <= +30 hours: or in other words, all
+      #   6h-ffx observations from "12UTC to 06UTC next day"
+      sql6 = "SELECT ffx6 FROM %s WHERE statnr = %d AND msgtyp = 'bufr' " % (self._table_,station.wmo) + \
+             "AND datumsec >= %s AND datumsec <= %d AND NOT ffx6 IS NULL" % (ts6,tsend)
+
+
+      # - Initialize database cursor
+      cur = self.db.cursor()
+
+      # - New object to store the values (from all sql queries)
+      data = []
+
+      def append_data(data, tmp):
+         for i in tmp:
+            data.append( i[0] )
+         return data
+
+      for sql in [sql, sql1, sql3, sql6]:
+         # - FFX [10 min, 1 h, 3 h, 6 h]
+         cur.execute( sql  )
+         tmp = cur.fetchall()
+         data = append_data( data, tmp )
+
+      # - Check if +30 h observation is available.
+      check30 = self.check_record( station.wmo, 30 )
+
+      # - No wind gusts received, but last observation is here
+      if len(data) == 0 and check30:
+         value = 0
+      # - No observations at all
+      elif len(data) == 0:
+         value = None
+      # - If last observation is not yet here (check30): None
+      #   This avoids to store live fx (developing over time)
+      #   observations into the database.
+      elif not check30:
+         value = None
+      # - Else sum up
+      else:
+         value = 0
+         import numpy as np
+         for i in data:
+            value = np.maximum(value, i)
+         # - Convert from meters per second to knots.
+         #   Moreover, if knots are below 25 (or 12.5 m/s) set value to zero.
+         if value >= 125:
+            value = np.round( np.float64( value ) * (900/463) / 10. ) * 10
+            if value < 250.:
+               value = 250
+         else:
+            value = 0
+
+      # - Return value  
+      return value
+
+
+   # ----------------------------------------------------------------
+   # - Prepare N
+   # ----------------------------------------------------------------
+   def _prepare_fun_N_(self,station,special):
+      """Helper function for cloud cover at 12 UTC. Return value
+      will be in 1/10 octas, rounded to full octas [0,10,20,30,...,80]. 
+      Observations based on database column cc.
+
+      1) if observation is available:       **return value**
+
+      2) if observation not recorded but
+         12 UTC database entry exists we
+         assume that there were no clouds:  **return 0**
+
+      3) else:                              **return None**
+
+      Args:
+         station (:obj:`stationclass.stationclass`): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+         float: Returns observed value if loading data was successful
+         or None if observation not available or nor recorded.
+      """
+
+      # - Loading td valid at 12 UTC 
+      N = self.load_obs( station.wmo, 12, 'cc' )
+      # - If tmax12 is valid: take this one
+      if not N == None:
+         import numpy as np
+         # - Note: BUFR report is in percent
+         value = (np.floor(np.float64(N)/100.*8.)) * 10
+         if value > 80: value = 80
+      # - Else if record exists but there is no observed
+      #   cloud cover we have to assume that the value
+      #   should be 0 but is not reported at all. 
+      elif self.check_record( station.wmo, 12 ): 
+         value = 0
+      else:
+         value = None
+      # - Return value  
+      return value
+
+
+   # ----------------------------------------------------------------
+   # - Prepare Wv
+   # ----------------------------------------------------------------
+   def _prepare_fun_Wv_(self,station,special):
+      """Helper function for significant weather for noon between
+      0600 UTC and 1200 UTC.  w1 (past weather) at 1200 UTC is used (main
+      obs time, w1 contains weathr over last 6 hours), the past weather (ww)
+      observations for 0600 UTC to 1200 UTC are used to identify "current
+      weather" while ww between 0700 UTC to 1200 UTC is used to check the "past
+      weather" (ww=20 to ww=29).  Uses :meth:`_get_proper_WvWn_` method,
+      the detailed rules can be found in the method description from
+      the helper class (:meth:`_get_proper_WvWn_`).
+
+      Args:
+         station (:obj:`stationclass.stationclass`): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+         float: Returns None if no valid Wv/Wn could have been computed, else
+         a float between 00. and 90. (for Wv/Wn = [0,1,2,3,...,9] as [0.,10.,...,90.])
+         will be returned.
+      """
+
+      # Note: difference between special_now and special_after is that special_after does
+      # NOT include 1200 UTC (used for Nachwetter), special_now does.
+      special_now   = self.special_obs_object("ww today 06:00 to today 12:00",self._date_)
+      special_after = self.special_obs_object("ww today 07:00 to today 12:00",self._date_)
+
+      w1         = self.load_obs( station.wmo, 12, 'w1' )
+      ww_now     = self.load_special_obs( station.wmo, special_now   )
+      ww_after   = self.load_special_obs( station.wmo, special_after )
+
+      Wv = self._get_proper_WvWn_( w1, ww_now, ww_after )
+
+      # If Wv is None but the 12 UTC record is here we assume a 0 (no
+      # significant weather). Until the 12 UTC record is not here we
+      # return a None (no observations available):
+      check = self.check_record( station.wmo, 12 )
+      if Wv is None and not check:
+         return None
+      # If 12 UTC observation is not yet here, return None.
+      # This avoids that we store live observations (developing over time)
+      # into the database.
+      elif not check:
+          return None
+      else:
+          return  0 if (Wv is None) else Wv
+
+   # ----------------------------------------------------------------
+   # - Prepare Wn
+   # ----------------------------------------------------------------
+   def _prepare_fun_Wn_(self,station,special):
+      """Helper function for significant weather for afternoon between
+      1200 UTC and 1800 UTC.  w1 (past weather) at 1800 UTC is used (main
+      obs time, w1 contains weathr over last 6 hours), the past weather (ww)
+      observations for 1200 UTC to 1800 UTC are used to identify "current
+      weather" while ww between 1300 UTC to 1800 UTC is used to check the "past
+      weather" (ww=20 to ww=29).  Uses :meth:`_get_proper_WvWn_` method,
+      the detailed rules can be found in the method description from
+      the helper class (:meth:`_get_proper_WvWn_`).
+
+      Args:
+         station (:obj:`stationclass.stationclass`): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+         float: Returns None if no valid Wv/Wn could have been computed, else
+         a float between 00. and 90. (for Wv/Wn = [0,1,2,3,...,9] as [0.,10.,...,90.])
+         will be returned.
+      """
+
+      # Note: difference between special_now and special_after is that special_after does
+      # NOT include 1200 UTC (used for Nachwetter), special_now does.
+      special_now   = self.special_obs_object("ww today 12:00 to today 18:00", self._date_)
+      special_after = self.special_obs_object("ww today 13:00 to today 18:00", self._date_)
+
+      w1         = self.load_obs( station.wmo, 18, 'w1' )
+      ww_now     = self.load_special_obs( station.wmo, special_now   )
+      ww_after   = self.load_special_obs( station.wmo, special_after )
+
+      Wn = self._get_proper_WvWn_( w1, ww_now, ww_after )
+
+      # If Wn is None but the 18 UTC record is here we assume a 0 (no
+      # significant weather). Until the 18 UTC record is not here we
+      # return a None (no observations available):
+      check = self.check_record( station.wmo, 18 )
+      if Wn is None and not check:
+         return None
+      # If 12 UTC observation is not yet here, return None.
+      # This avoids that we store live observations (developing over time)
+      # into the database.
+      elif not check:
+          return None
+      else:
+          return  0 if (Wn is None) else Wn
+
+   # ----------------------------------------------------------------
+   # - Prepare Wv
+   # ----------------------------------------------------------------
+   def _prepare_fun_Wall_(self,station,special):
+      """Helper function for significant weather for 24h period between
+      0600 to 0600 UTC. This function is used internally when computing the
+      observed precipitation sum. If precipitation would return a -3.0 (-0.1mm/24h)
+      but there were observed precipitation classes, set precipitation sum to 0.
+
+      Args:
+         station (:obj:`stationclass.stationclass`): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+         float: Returns None if no valid Wv/Wn could have been computed, else
+         a float between 00. and 90. (for Wv/Wn = [0,1,2,3,...,9] as [0.,10.,...,90.])
+         will be returned.
+      """
+
+      # Note: difference between special_now and special_after is that special_after does
+      # NOT include 0600 UTC (used for Nachwetter), special_now does.
+      special_after = self.special_obs_object("ww today 07:00 to tomorrow 06:00",self._date_)
+      special_now   = self.special_obs_object("ww today 06:00 to tomorrow 06:00",self._date_)
+
+      ww_after   = self.load_special_obs( station.wmo, special_after )
+      ww_now     = self.load_special_obs( station.wmo, special_now   )
+
+      Wall = self._get_proper_WvWn_( None, ww_now, ww_after, returnlist = True )
+
+      # If Wv is None but the 06 UTC record is here we assume a 0 (no
+      # significant weather). Until the 06 UTC record is not here we
+      # return a None (no observations available):
+      check = self.check_record( station.wmo, 6 )
+      if Wall is None and not check:
+         return None
+      # If 12 UTC observation is not yet here, return None.
+      # This avoids that we store live observations (developing over time)
+      # into the database.
+      elif not check:
+          return None
+      else:
+          return  0 if (Wall is None) else Wall
+
+
+   # ----------------------------------------------------------------
+   # ----------------------------------------------------------------
+   def _get_proper_WvWn_( self, w1, ww_now, ww_after, returnlist = False ):
+      """Helper class to properly prepare Wv and Wn.
+      Returns highest observed value "w1" where observed w1=1,2,3 will
+      be set to w1=0. In additioin, ww is considered in two ways:
+      input inww contains the values which are used to check the 'past weather'
+      (do not include the leading hour, e.g., do not include 0600 UTC for the
+      time period 0600 UTC to 1200 UTC) while inxX contains the same data (ww) but
+      including the leading hour and is used to extract 'current weather' from
+      the ww observations. 
+
+      Please see documentation of :meth:`utils.wmowwConversion` and check the
+      config file (:file:`wmo_ww.conf`) to see what will be converted into what.
+
+      Args:
+        inw1 (:obj:`int`): Observed w1 value (may contain
+            None or 'missing observation' numbers (e.g, w1=10)
+        ww_now (:obj:`list`): List of all observed ww values (may contain
+            None values and 'missing observation'  numbers (e.g., ww=508).
+            Similar to ww_after but contains less data (not including leading hour).
+            From this list values 20-29 will be neglected!
+        ww_after (:obj:`list`): List of all observed ww values (may contain
+            None values and 'missing observation'  numbers (e.g., ww=508).
+            From this list only values 20-19 will be consisered!
+        returnlist (:obj:`bool`): If set to true not only one single value will
+            be returned but a list of all observed w1/ww/wX whch are considiered
+            in this method. Is used for the raincheck where we don't want to have
+            the highest number only but all (as if highest is 9 (thunderstorm) it
+            might have been a dry thunderstorm, but there might be additional
+            reports on rain before/after).
+
+      Returns:
+        float: Returns a single value between 0 and 90 (w1=0 to we=90, multiplied
+        by 10 as it will be stored in the databases) or None if no valid w1
+        is available.
+      """
+
+      ww_now   = [] if ww_now   is None else ww_now 
+      ww_after = [] if ww_after is None else ww_after 
+
+      # For ww_now consider all except 20-29
+      tmp = np.copy(ww_now); ww_now = []
+      for x in tmp:
+          if not x in range(20,30) and not x is None: ww_now.append(x)
+      tmp = np.copy(ww_after); ww_after = []
+      # For ww_after (Nachwetter; including leading hour) take only 20-29!
+      for x in tmp:
+          if     x in range(20,30): ww_after.append(x)
+
+
+      #print("      [Input]  w1:       ", w1      )
+      #print("               ww_now:   ", ww_now  )
+      #print("               ww_after: ", ww_after)
+
+      # If wmoww input argument to this class has been set: convert all
+      # observed w1/ww flags into the new ones.
+      if self.wmoww:
+          w1       =   self.wmoww.convert( "w1", w1 )
+          ww_now   = list(filter(None, [ self.wmoww.convert( "ww", x ) for x in ww_now   ] ))
+          ww_after = list(filter(None, [ self.wmoww.convert( "ww", x ) for x in ww_after ] ))
+          #print("      [Converted]   ",w1, ww_now, ww_after)
+
+      # If list return is requested: do so.
+      if returnlist:
+          w1 = [] if w1 is None else [w1]
+          return w1 + ww_now + ww_after
+
+      w1 = 0 if not w1 else w1
+
+      print("    Observed w1 is ", w1, end=' ')
+
+      # If max(wX) > w1: use max(wX) value
+      for ww in [ww_now, ww_after]:
+         if ww:
+            max_ww = np.max( ww )
+            if max_ww > w1:
+               w1 = int(max_ww)
+         print(" considering [ww] as well yields ", w1)
+
+      # - Return value  
+      return None if w1 is None else float(w1)*10.
+
+
+   # ----------------------------------------------------------------
+   # - Loading RR
+   # ----------------------------------------------------------------
+   def _prepare_fun_RR_(self,station,special):
+      """Helper function for 24h sum of precipitation based on
+      database column 'rrr12' at +18 and +30h (as the reported
+      observations are 12h sums this means from 06 UTC today
+      to 06 UTC tomorrow). Returns precipitation in 1/10 mm
+      OR -30 if there was no precipitation at all.
+      Note: if there is no recorded precipitation amount or
+      the amount of precipitation recorded is 0.0 I also check
+      the W1 observations for the time period of interest. If
+      there is no sign. precipitation weather recorded in W1
+      (w1 = 5, 6, 7, 8 or 9) the value will be set to -3.0.
+      In addition w1/ww are checked to set precip sum to 0 if
+      -0.1 sum's were received but rain weather types have been
+      reported in the same time. Therefore the method
+      :meth:`getobs._prepare_fun_Wall_` is used for the time
+      period 0600 to 0600 UTC of the following day.
+
+      First: if database entry for 18 UTC is here but
+      there is no recorded amount of precipitation we
+      have to assume that there was no precipitation.
+      The same for +30h (06 UTC next day).
+
+      Second:
+      If observed precipitation amount is negative (some
+      stations send -0.1mm/12h for no precipitation) we
+
+      Third:
+      If w1/ww reports precipitation types [5,6,7,8] but rain
+      sum is -0.1 (-3.0): return 0.0 for precip!
+
+      Args:
+         station (:obj:`stationclass.stationclass`): Station handler.
+         special (:obj:`str`): See :meth:`getobs.getobs.prepare` for more details.
+      
+      Returns:
+        float: Returns observed value if loading data was successful
+        or None if observation not available or nor recorded.
+      """
+
+      # ----------------------------------------------------------
+      # RR - Precipitation (2 * 12h)
+      #      06 today to 06 tomorrow!!
+      # ----------------------------------------------------------
+      # Loading 12h sums
+      RR18    = self.load_obs( station.wmo, 18, 'rrr12' )
+      RR06    = self.load_obs( station.wmo, 30, 'rrr12' )
+      # Loading 24h sums
+      RR06_24 = self.load_obs( station.wmo, 30, 'rrr24' )
+
+      # - Check if observations (records) are hete
+      check18 = self.check_record( station.wmo, 18 )
+      check06 = self.check_record( station.wmo, 30 )
+
+      #print(" ------------- ")
+      #print("RR18     ", RR18   )
+      #print("RR06     ", RR06   )
+      #print("RR06_24  ", RR06_24)
+      #print("check18  ", check18)
+      #print("check06  ", check06)
+
+      # - If observed values RR18/RR06 are empty but the observations
+      #   are in the database we have to assume that there was no
+      #   precipitation at all. Set these values to -3.0 (no precip).
+      #   Same for RR06_24
+      if RR18    == None and check18: RR18 = -30.
+      if RR06    == None and check06: RR06 = -30.
+
+      # - Both observations available: use them
+      if not RR06_24 == None:
+         value = RR06_24
+      elif not RR18 == None and not RR06 == None:
+         # - Both negative (no precipitation) will
+         #   result in Wetterturnier special: -3.0mm.
+         if RR18 < 0 and RR06 < 0:
+            value = -30.
+         # - Else at least one of the obs was 0.0  
+         #   which is non-obervable precipitation,
+         #   but precipitation!
+         else:
+            if RR18 < 0.: RR18 = 0.
+            if RR06 < 0.: RR06 = 0.
+            value = RR18 + RR06
+      else:
+         value = None
+
+      # - Extra check: if precipitation sum is 0:
+      if value == 0:
+         # - Load W1 observation for the time period 06UTC-06UTC
+         W1 = []
+         W1.append( self.load_obs( station.wmo, 12, 'w1' ) )
+         W1.append( self.load_obs( station.wmo, 18, 'w1' ) )
+         W1.append( self.load_obs( station.wmo, 24, 'w1' ) )
+         W1.append( self.load_obs( station.wmo, 30, 'w1' ) )
+
+         # Check if all W1-observations are 10 (no sign. weather reported),
+         # class 0/1/2/3/4 (the non-precip-weather-types) or missing.
+         # If so, then the sum will be set to -3.0 (dry) rather than 0.0.
+         if all( item in [None,0,1,2,3,4,10] for item in W1):
+            value = -30.
+
+      # - Loaidng Wall to check whether rain has been observed
+      #   in past or present weather. If there are any precipitation class
+      #   observations and the precipitation sum is -0.1 (which could yield a
+      #   -3.0) set precip to 0.0!
+      raincheck = self._prepare_fun_Wall_(station,None)
+      if not raincheck is None:
+         raincheck = [x in [5,6,7,8] for x in raincheck]
+         raincheck = np.any( raincheck )
+         if not value is None:
+            if value < 0 and raincheck: value = 0.
+      
+      # - Return value  
+      return value
+
+
    # ----------------------------------------------------------------
    # - Loading sunshine. 
    # ----------------------------------------------------------------
@@ -851,6 +1381,7 @@ class getobs( object ):
                   else:
                      # - Else sum up
                      value = sum([int( i[0] ) for i in data])
+                     print(value)
                      return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
                # Else we report None 
                else: value = None
