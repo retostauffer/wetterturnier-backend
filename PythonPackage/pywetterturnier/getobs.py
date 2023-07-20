@@ -229,16 +229,16 @@ class getobs( object ):
       if min50: stdmin -= 50
 
       # - Load from db
-      if ts and FUN:
+      if ts and type(FUN) == str:
          from .utils import tdate2datetime
-         dt_tdate = dt.datetime( tdate2datetime(self.tdate) )
+         dt_tdate = tdate2datetime(self.tdate)
          start = dt_tdate + dt.timedelta( hours=ts[0] )
          end   = dt_tdate + dt.timedelta( hours=ts[1] )
-         ts = ( start, end )
-         sql=f"SELECT {FUN}({parameter}) FROM {self._table_} WHERE statnr={wmo} AND DATUMSEC IN({ts[0]},{ts[1]})"
+         ts = ( int(start.timestamp()), int(end.timestamp()) )
+         sql=f"SELECT {FUN}({parameter}) FROM {self._table_} WHERE statnr={wmo} AND DATUMSEC BETWEEN {ts[0]} AND {ts[1]}"
       else:
          sql = f"SELECT {parameter} FROM {self._table_} WHERE statnr={wmo} AND datum={datum} AND stdmin={stdmin}"
-      
+
       cur = self.db.cursor()
       cur.execute( sql )
       data = cur.fetchall()
@@ -248,7 +248,7 @@ class getobs( object ):
          # if no obs at minute 50 try :00 obs (SYNOP)
          if min50:
             stdmin += 50
-            cur.execute( sql % (parameter, self._table_, wmo, datum, stdmin) )
+            cur.execute( sql )
             data = cur.fetchall()
          else:
             return None
@@ -428,7 +428,7 @@ class getobs( object ):
       if ffx24:
          return ffx24
       else:
-         value = self.load_obs( station.wmo, None, "ffx10", ts=(0,24), "MAX" )
+         value = self.load_obs( station.wmo, 0, "ffx10", ts=(0,24), FUN="MAX" )
          if value is not None: return value
 
       ffx12 = self.none_filter([self.load_obs( station.wmo, i, "ffx12" ) for i in range(12,25,6)])
@@ -451,18 +451,18 @@ class getobs( object ):
       if len(ffx) == 24:
          return self.observed( ffx1 )
 
-      ff1 = self.none_filter([self.load_obs( station.wmo, i, "ff" ) for i in range(1,25)])
-      if len(ff1) == 24:
-         return self.observed( ffx1 )
-
       return None
 
    # ----------------------------------------------------------------
    # - Prepare Sd 1h @12z
    # ----------------------------------------------------------------
    def _prepare_fun_Sd1_(self,station,special):
-      try: return self.load_obs( station.wmo, 12, "sun", min50=0 ) * 10
-      except: return None
+      try: value = self.load_obs( station.wmo, 12, "sun", min50=0 ) * 10
+      except: value = None
+      
+      if value is None:
+         try: return self.load_obs( station.wmo, 0, "sun10", ts=(11,12), FUN="SUM" ) * 10 // 60
+         except: return None
 
 
    # ----------------------------------------------------------------
@@ -507,7 +507,7 @@ class getobs( object ):
       RR24 = self.load_obs( station.wmo, 24, "rr24" )
       
       if RR24 is None:
-         RR24 = self.load_obs( station.wmo, None, "rrr10", ts=(0,24), "SUM" )
+         RR24 = self.load_obs( station.wmo, 0, "rrr10", ts=(0,24), FUN="SUM" )
          if RR24 is not None: return RR24
 
       RR12 = self.none_filter([self.load_obs( station.wmo, i, "rrr12" ) for i in range(12,25,6)])
@@ -570,7 +570,7 @@ class getobs( object ):
          value = tmax24
       # - Else value is None
       else:
-         value = self.load_obs( station.wmo, None, "tmax10", ts=(6,18), "MAX" )
+         value = self.load_obs( station.wmo, 0, "tmax10", ts=(6,18), FUN="MAX" )
 
       # Live procedure
       if special is not None and value is None:
@@ -628,7 +628,7 @@ class getobs( object ):
             print("[!] Had problems parsing the special argument! Skip!")
       
       elif value is None:
-         value = self.load_obs( station.wmo, None, "tmin10", ts=(-6,6), "MIN" )
+         value = self.load_obs( station.wmo, 0, "tmin10", ts=(-6,6), FUN="MIN" )
 
       # - Return value
       return value 
@@ -697,7 +697,7 @@ class getobs( object ):
             value = p * ( T / (T + 0.0065*h) )**(-5.255)
             return value
 
-      if not value == None:td
+      if not value == None:
          value = np.round( value/10. )
 
       # Return value 
