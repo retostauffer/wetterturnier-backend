@@ -189,7 +189,7 @@ class getobs( object ):
    # ----------------------------------------------------------------
    # - Loading observations
    # ----------------------------------------------------------------
-   def load_obs( self, wmo, hour, parameter, min50=False, ts=None, FUN=None ):
+   def load_obs( self, wmo, hour, parameter, min50=0, ts=None, FUN=None ):
       """Loading a specific observation from the database.
       The date for which the observation should be valid and the
       name of the database are coming from the public attributes of the
@@ -201,10 +201,6 @@ class getobs( object ):
                             be valid [0,...,24], in UTC.
          parameter (:obj:`str`): Parameter name (short name) for which
                             observations should be loaded.
-         min50 (:obj:`:boolean`): Take obs from minute 50 instead of :00?
-         ts (:obj:`tuple`): Timespan in which FUN (SQL function) should be applied
-                            (start,end) in hours (-6 means 18z previous day!)
-         FUN (:obj:`str`): SQL function like MAX, MIN, AVG...
 
       Returns:
          :obj:`float` or None: None will be returned if the database
@@ -223,10 +219,10 @@ class getobs( object ):
       tmp    = self._date_ + dt.timedelta( 0, hour*3600 )
       datum  = int( tmp.strftime('%Y%m%d') )
       stdmin = int( tmp.strftime('%H%M')   )
+      #print( "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter) )
+      
       # for some parameters we prefer the obs at minute 50 (SYNOP)
       if min50: stdmin -= 50
-
-      #print( "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter) )
 
       # - Load from db
       if ts and type(FUN) == str:
@@ -372,9 +368,7 @@ class getobs( object ):
          wmo (:obj:`int`): WMO station number.
          value (:obj:`float`): Either a numeric value or None.
       """
-      
-      # some tournament specific changes that we have to hardcode
-      # LEI: Sd1,Sd24 from Bad Lauchstaedt; IBK: Sd1 from Flughafen Automat
+
       if   wmo == 2878 and parameter in ["Sd1","Sd24"]:  wmo = 10471
       elif wmo == 11121 and parameter == "Sd1": wmo = 11120
       #TODO add dd12 from 11121 only if not already observed from 11120
@@ -426,7 +420,7 @@ class getobs( object ):
    def _prepare_fun_fx24_(self,station,special):
      
       ffx24 = self.load_obs( station.wmo, 24, "fx24" )
-      if ffx24:
+      if ffx24 is not None:
          return ffx24
       else:
          value = self.load_obs( station.wmo, 0, "ffx10", ts=(1/6,24), FUN="MAX" )
@@ -450,6 +444,10 @@ class getobs( object ):
       
       ffx = self.none_filter([self.load_obs( station.wmo, i, "ffx" ) for i in range(1,25)])
       if len(ffx) == 24:
+         return self.observed( ffx1 )
+
+      ff1 = self.none_filter([self.load_obs( station.wmo, i, "ff" ) for i in range(1,25)])
+      if len(ff1) == 24:
          return self.observed( ffx1 )
 
       return None
@@ -566,10 +564,10 @@ class getobs( object ):
       tmax24 = self.load_obs( station.wmo, 18, 'tmax24' )
 
       # - If tmax12 is valid: take this one
-      if tmax12 is not None:
+      if not tmax12 == None:
          value = tmax12
       # - Else if tmax24 is valid, take this one
-      elif tmax24 is not None:
+      elif not tmax24 == None:
          value = tmax24
       # - Else value is None
       else:
@@ -615,7 +613,7 @@ class getobs( object ):
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
       value = self.load_obs( station.wmo,  6, 'tmin12' )
-      
+
       if special is not None and value is None:
          special = self.special_obs_object( special, self._date_ )
 
@@ -764,7 +762,7 @@ class getobs( object ):
 
    _prepare_fun_dd12_ = lambda self,station,special : self._prepare_fun_dd_(station,special,min50=True)
 
-   
+
    # ----------------------------------------------------------------
    # - Loading sunshine. 
    # ----------------------------------------------------------------
@@ -854,6 +852,7 @@ class getobs( object ):
                   else:
                      # - Else sum up
                      value = sum([int( i[0] ) for i in data])
+                     print(value)
                      return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
                # Else we report None 
                else: value = None
