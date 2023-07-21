@@ -420,7 +420,7 @@ class getobs( object ):
    def _prepare_fun_fx24_(self,station,special):
      
       ffx24 = self.load_obs( station.wmo, 24, "fx24" )
-      if ffx24 is not None:
+      if ffx24:
          return ffx24
       else:
          value = self.load_obs( station.wmo, 0, "ffx10", ts=(1/6,24), FUN="MAX" )
