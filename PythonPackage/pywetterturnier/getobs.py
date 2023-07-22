@@ -470,6 +470,8 @@ class getobs( object ):
    # - Prepare RR1 (max 1h precipitation of day)
    # ----------------------------------------------------------------
    def _prepare_fun_RR1_(self,station,special):
+      from .utils import today_tdate
+      today = today_tdate()
 
       # obs has priority if existent and != 0
       rr1x = self.load_obs( station.wmo, 24, "rr1x" )
@@ -488,12 +490,12 @@ class getobs( object ):
             rri = np.sum(data[i:i+6])
             if rri > rr1x: # if bigger, copy as new maximum
                rr1x = np.copy(rri)
-         return rr1x
+         if today > self.tdate:
+            return rr1x
+         else: return None
 
       RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
      
-      from .utils import today_tdate
-      today = today_tdate()
       if len(RR1) == 24 or today > self.tdate:
          return self.observed(RR1)
       else: return None
@@ -504,10 +506,12 @@ class getobs( object ):
    # ----------------------------------------------------------------
    def _prepare_fun_RR24_(self,station,special):
       from copy import copy
+      from .utils import today_tdate
+      today = today_tdate()
 
       RR24 = self.load_obs( station.wmo, 24, "rr24" )
       
-      if RR24 is None:
+      if RR24 is None and today > self.tdate:
          RR24 = self.load_obs( station.wmo, 0, "rrr10", ts=(1/6,24), FUN="SUM" )
          if RR24 is not None: return RR24
 
@@ -530,8 +534,6 @@ class getobs( object ):
             RR24 = copy(RR3_sum)
 
       RR1 = self.none_filter([self.load_obs( station.wmo, i, "rrr1" ) for i in range(1,25)])
-      from .utils import today_tdate
-      today = today_tdate()
       if len(RR1) == 24:
          RR1_sum = self.observed( RR1, np.sum )
          if RR1_sum is not None and ((RR24 is None or RR1_sum > RR24) and today > self.tdate):
@@ -609,6 +611,8 @@ class getobs( object ):
          float: Returns observed value if loading data was successful
          or None if observation not available or nor recorded.
       """
+      from .utils import today_tdate
+      today = today_tdate()
 
       # - Loading tmax24 and tmax12 (12h/24 period maximum)
       #   valid for 18 UTC in the evening for the current date 
@@ -628,7 +632,7 @@ class getobs( object ):
          else:
             print("[!] Had problems parsing the special argument! Skip!")
       
-      elif value is None:
+      elif value is None and today > self.tdate:
          value = self.load_obs( station.wmo, 0, "tmin10", ts=(-6,5+5/6), FUN="MIN" )
 
       # - Return value
