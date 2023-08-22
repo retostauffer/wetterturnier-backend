@@ -217,10 +217,9 @@ class getobs( object ):
          return None
 
       tmp    = self._date_ + dt.timedelta( 0, hour*3600 )
+      #print( "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter) )
       datum  = int( tmp.strftime('%Y%m%d') )
       stdmin = int( tmp.strftime('%H%M')   )
-      #print( "    - For station %6d: %d %04d try to load %s" % (wmo,datum,stdmin,parameter) )
-      
       # for some parameters we prefer the obs at minute 50 (SYNOP)
       if min50: stdmin -= 50
 
@@ -239,29 +238,31 @@ class getobs( object ):
       cur.execute( sql )
       data = cur.fetchall()
 
-      # - No row in database at all or None value
-      if len(data) == 0 or data[0][0] == None:
-         # if no obs at minute 50 try :00 obs (SYNOP)
-         if min50:
-            std50 = stdmin + 50
-            sql=f"SELECT {parameter} FROM {self._table_} WHERE statnr={wmo} AND datum={datum} AND stdmin={std50}"
-            cur.execute( sql )
-            data = cur.fetchall()
-         else:
-            return None
-         
+
+      if len(data) == 1:
+         # - Else return value
+         try:
+            if data[0][0] is not None:
+               return data[0][0]
+         except: pass
+
       elif len(data) > 1:
          for i in range(len(data)):
             try:
-               return data[i][0]
-            except:
-               continue
-         #utils.exit("got more than one row - thats not good. Stop.")
-      
-      # - Else return value
-      try: return data[0][0]
-      except: return None
+               if data[i][0] is not None:
+                  return data[i][0]
+            except: continue
 
+      # - No row in database at all or None value
+      if min50: # len(data) == 0
+         # if no obs at minute 50 try :00 obs (SYNOP)
+         std50 = stdmin + 50
+         sql=f"SELECT {parameter} FROM {self._table_} WHERE statnr={wmo} AND datum={datum} AND stdmin={std50}"
+         cur.execute( sql )
+         data = cur.fetchall()
+         try: return data[0][0]
+         except: return None
+      else: return None
 
    # ----------------------------------------------------------------
    # - Loading special observations 
@@ -810,17 +811,19 @@ class getobs( object ):
          value = None
       # - Else start processing the data
       else:
-         # - If 10min sunshine data (in seconds) is available, take these 
-         sql = "SELECT sun10 FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
-               "datum = %d AND NOT sun10 IS NULL" % datum 
-         cur = self.db.cursor(); cur.execute( sql ); data = cur.fetchall() 
-         # - No data? Go on with 24h sum reported at 00UTC 
-         if len(data) == 0 or data == None: 
-            pass 
-         else: 
-            # - Else sum up and convert to minutes 
-            value = sum([int( i[0] ) for i in data]) / 60 
-            return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10 
+         from .utils import today_tdate
+         if today_tdate() > self.tdate:
+            # - If 10min sunshine data (in seconds) is available, take these 
+            sql = "SELECT sun10 FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
+                  "datum = %d AND NOT sun10 IS NULL" % datum 
+            cur = self.db.cursor(); cur.execute( sql ); data = cur.fetchall() 
+            # - No data? Go on with 24h sum reported at 00UTC 
+            if len(data) == 0 or data == None: 
+               pass 
+            else: 
+               # - Else sum up and convert to minutes 
+               value = sum([int( i[0] ) for i in data]) / 60 
+               return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10 
 
          # - Loading sunshine 24h sum which is reported at 00UTC
          #   which is +24 hours from self._date_.
