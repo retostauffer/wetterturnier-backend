@@ -664,6 +664,25 @@ class getobs( object ):
 
    _prepare_fun_Td12_ = lambda self,station,special : self._prepare_fun_TTd_(station,special,min50=1)
 
+
+   def msl_qfe(self,p,T,RH,h):
+      """calculates reduced pressure taking into account barometric (or station) height,
+      temperature and relative humidity"""
+      import numpy as np
+      
+      g  = 9.80665   # gravitational acceleration
+      R  = 287.05    # gas constant of dry air
+      a  = 0.0065    # vertical temperature gradient
+      Ch = 0.12      # constant to represent average steam pressure change with height
+      
+      c1, c2, c3 = 6.11213, 17.5043, 241.2
+      
+      SVP   = lambda T : c1 * np.exp( c2 * T / (c3+T) )
+      VP    = SVP(T-273.15) * (RH / 100)
+      
+      return p * np.exp( g / R * h / (T + VP * Ch + a * h / 2) )
+      
+
    # ----------------------------------------------------------------
    # - Prepare PPP
    # ----------------------------------------------------------------
@@ -684,24 +703,37 @@ class getobs( object ):
       value = self.load_obs( station.wmo, 12, 'pmsl', min50=min50 )
       # - Original value is in 1/100 hPa. Convert.
       if value == None:
+         
          cur = self.db.cursor()
-         sql = "SELECT hoehe, hbaro FROM obs.stations WHERE statnr = %d"
+         sql = "SELECT hbaro, hoehe FROM obs.stations WHERE statnr = %d"
          cur.execute( sql % station.wmo )
          data = cur.fetchall()
          if not data: h = 0
          elif len(data[0]) > 0:
-            h = data[0][0]
-         else:
-            h = data[0][1]
+            for i in range(len(data[0])):
+               if data[0][i] != -999:
+                  h = data[0][i]
+                  break
+         
          p = self.load_obs( station.wmo, 12, 'psta', min50=min50 )
          T = self.load_obs( station.wmo, 12, 't', min50=min50 )
+         RH = self.load_obs( station.wmo, 12, 'rh', min50=min50 ) 
 
-         #calculate reduced MSL pressure via international barometric height formula if no reduced pressure is given
+         # calculate reduced MSL pressure via international barometric height formula if no reduced pressure is given
+         ### old reduction method
+         """
          if not (p == None or T == None or h == None):
             T /= 10.; p /= 10.
             T += 273.15
             value = p * ( T / (T + 0.0065*h) )**(-5.255)
             return value
+         """
+         ### new method from DWD BUFR manual
+         if not (p == None or T == None or h == None or RH == None):
+            T /= 10; p /= 100
+            T += 273.15
+            value = self.msl_qfe(p,T,RH,h)
+            return np.round(value*10)
 
       if not value == None:
          value = np.round( value/10. )
