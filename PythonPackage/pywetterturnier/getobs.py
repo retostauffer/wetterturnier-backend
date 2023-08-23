@@ -370,8 +370,8 @@ class getobs( object ):
          value (:obj:`float`): Either a numeric value or None.
       """
 
-      if   wmo == 2878 and parameter in ["Sd1","Sd24"]:  wmo = 10471
-      elif wmo == 11121 and parameter == "Sd1": wmo = 11120
+      if   wmo == 2878 and parameter in {"Sd1","Sd24"}:  wmo = 10471
+      elif wmo == 11121 and parameter in {"Sd1","PPP12"}: wmo = 11120
       #TODO add dd12 from 11121 only if not already observed from 11120
 
       # - If value is none: return
@@ -732,6 +732,7 @@ class getobs( object ):
          if not (p == None or T == None or h == None or RH == None):
             T /= 10; p /= 100
             T += 273.15
+            print(station.wmo, p)
             value = self.msl_qfe(p,T,RH,h)
             return np.round(value*10)
 
