@@ -371,7 +371,7 @@ class getobs( object ):
       """
 
       if   wmo == 2878 and parameter in {"Sd1","Sd24"}:  wmo = 10471
-      elif wmo == 11121 and parameter in {"Sd1","PPP12"}: wmo = 11120
+      elif wmo == 11121 and parameter == "Sd1": wmo = 11120 #in {"Sd1","PPP12"}: wmo = 11120
       #TODO add dd12 from 11121 only if not already observed from 11120
 
       # - If value is none: return
@@ -474,17 +474,20 @@ class getobs( object ):
       from .utils import today_tdate
       today = today_tdate()
 
-      # obs has priority if existent and != 0
-      rr1x = self.load_obs( station.wmo, 24, "rr1x" )
-      if rr1x: return rr1x
-
       datum = int( self._date_.strftime('%Y%m%d') )
-      # if we have 10min data, we take the highest possible 1h maximum RR
+      # if we have 10min data, we take the highest possible 1h maximum RR (#1 priority method)
       sql = "SELECT rrr10 FROM %s WHERE statnr = %d AND " % (self._table_,station.wmo) + \
             "datum = %d AND NOT rrr10 IS NULL" % datum
       cur = self.db.cursor(); cur.execute( sql ); data = cur.fetchall()
-      # - No data? Go on with 1h resolution data
-      if len(data) == 0 or data == None: pass
+      
+      # - No data? use parameter rr1x (only Dahlem, from MIRA FTP server 'hwerte_neu.txt' table)
+      if len(data) == 0 or data == None:
+         # rr1x obs has priority if existent and != 0
+         rr1x = self.load_obs( station.wmo, 24, "rr1x" )
+         if rr1x: return rr1x
+         # else fallback to 1h RR data (continue after next else, RR1 = ...)
+         else: pass
+
       else: #determine the maximum of each possible 1h interval
          rr1x = 0
          for i in range(len(data)-5):
@@ -732,7 +735,6 @@ class getobs( object ):
          if not (p == None or T == None or h == None or RH == None):
             T /= 10; p /= 100
             T += 273.15
-            print(station.wmo, p)
             value = self.msl_qfe(p,T,RH,h)
             return np.round(value*10)
 
