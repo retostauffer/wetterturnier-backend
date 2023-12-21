@@ -238,7 +238,6 @@ class getobs( object ):
       cur.execute( sql )
       data = cur.fetchall()
 
-
       if len(data) == 1:
          # - Else return value
          try:
@@ -371,6 +370,7 @@ class getobs( object ):
       """
 
       if   wmo == 2878 and parameter in {"Sd1","Sd24"}:  wmo = 10471
+      elif wmo == 10471 and parameter in {"Sd1","Sd24"}: wmo = 2878
       elif wmo == 11121 and parameter == "Sd1": wmo = 11120 #in {"Sd1","PPP12"}: wmo = 11120
       #TODO add dd12 from 11121 only if not already observed from 11120
 
@@ -421,7 +421,7 @@ class getobs( object ):
    def _prepare_fun_fx24_(self,station,special):
      
       ffx24 = self.load_obs( station.wmo, 24, "fx24" )
-      if ffx24:
+      if ffx24 is not None:
          return ffx24
       else:
          value = self.load_obs( station.wmo, 0, "ffx10", ts=(1/6,24), FUN="MAX" )
@@ -894,7 +894,6 @@ class getobs( object ):
                   else:
                      # - Else sum up
                      value = sum([int( i[0] ) for i in data])
-                     print(value)
                      return int( np.round(np.float64(value) / np.float64(self._maxSd_[station.wmo]) * 100) ) * 10
                # Else we report None 
                else: value = None
