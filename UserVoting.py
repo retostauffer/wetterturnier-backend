@@ -1,6 +1,8 @@
 # - Start as main script (not as module)
 if __name__ == '__main__':
 
+   from datetime import date
+   from datetime import datetime
    import numpy as np
    # - Wetterturnier specific modules
    from pywetterturnier import utils, database
@@ -12,7 +14,10 @@ if __name__ == '__main__':
    # - Initializing class and open database connection
    db        = database.database(config)
    post_id   = config['input_param']
-   t         = config['input_tdate']
+   year      = config['input_tdate'] # year of Voting
+   print("year:", year)
+
+   if not year: year = date.today().year
    
    excluded_usernames = ["WB-Berlin","Foehni","Sleepy"]
    excluded_users = [db.get_user_id(i) for i in excluded_usernames]
@@ -35,6 +40,10 @@ if __name__ == '__main__':
       #print(int(i[0]))
       users_played.append( int(i[0]) )
 
+   tdate_min, tdate_max = datetime(year, 1, 1), datetime(year, 12, 31)
+   tdate_min, tdate_max = int(tdate_min.timestamp() // 86400), int(tdate_max.timestamp() // 86400)
+   print("tdate (min/max):", tdate_min, tdate_max)
+   
    #who of them did actually play this year?
    sql = "SELECT userID FROM %swetterturnier_betstat WHERE tdate BETWEEN 19005 AND 19357 AND userID IN %s ORDER BY userID ASC"
    cur.execute( sql % (db.prefix, db.sql_tuple( users_played) ) )
@@ -61,7 +70,7 @@ if __name__ == '__main__':
    cur.execute( sql % ( db.prefix, db.sql_tuple( excluded_users ), skip[:-1], db.sql_tuple( users_played ) ) )
    data = cur.fetchall()
 
-   data = data[:t]
+   data = data[:tdate_max]
 
    for i in data:
       print( i[0] )

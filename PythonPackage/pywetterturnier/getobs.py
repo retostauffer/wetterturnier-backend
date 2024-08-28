@@ -516,7 +516,7 @@ class getobs( object ):
       RR24 = self.load_obs( station.wmo, 24, "rr24" )
       
       if RR24 is None and today > self.tdate:
-         RR24 = self.load_obs( station.wmo, 0, "rrr10", ts=(1/6,24), FUN="SUM" )
+         RR24 = self.load_obs( station.wmo, 0, "rrr10", ts=(0,23+5/6), FUN="SUM" )
          if RR24 is not None: return RR24
 
       RR12 = self.none_filter([self.load_obs( station.wmo, i, "rrr12" ) for i in range(12,25,6)])
