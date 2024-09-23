@@ -397,11 +397,11 @@ class getobs( object ):
    # - Prepare ff12 (m/s)
    # ----------------------------------------------------------------
    def _prepare_fun_ff12_(self,station,special):
-      ff12 = self.load_obs( station.wmo, 12, "ff12" )
+      ff12 = self.load_obs( station.wmo, 12, "ff12", min50=1 )
       if ff12 is not None:
          return ff12
       else:
-         return self.load_obs( station.wmo, 12, "ff", min50=1 )
+         return self.load_obs( station.wmo, 12, "ff" )
 
 
    def none_filter(self, values):
@@ -424,7 +424,7 @@ class getobs( object ):
       if ffx24 is not None:
          return ffx24
       else:
-         value = self.load_obs( station.wmo, 0, "ffx10", ts=(1/6,24), FUN="MAX" )
+         value = self.load_obs( station.wmo, 0, "ffx10", ts=(0,23+5/6), FUN="MAX" )
          if value is not None: return value
 
       ffx12 = self.none_filter([self.load_obs( station.wmo, i, "ffx12" ) for i in range(12,25,6)])
@@ -575,9 +575,11 @@ class getobs( object ):
       # - Else if tmax24 is valid, take this one
       elif not tmax24 == None:
          value = tmax24
-      # - Else value is None
-      else:
+      # - Else if hour >= 18
+      elif dt.datetime.now().hour >= 18:
          value = self.load_obs( station.wmo, 0, "tmax10", ts=(6,17+5/6), FUN="MAX" )
+      # - Else value is None
+      else: value = None
 
       # Live procedure
       if special is not None and value is None:
